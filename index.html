@@ -24,9 +24,17 @@
       --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
     }
 
+    html {
+      scrollbar-width: none; /* Firefox */
+    }
+    html::-webkit-scrollbar {
+      display: none; /* Chrome / Safari / Edge */
+    }
+
     html, body {
       width: 100%;
       height: 100%;
+      overflow: hidden; /* navigation is gesture-driven; no page scroll */
       background: var(--bg);
       color: var(--text);
       font-family: var(--font-body);
@@ -152,7 +160,13 @@
       height: 100dvh; /* mobile browsers: excludes address bar */
       overflow: hidden;
       contain: paint; /* limit repaint to this element's bounds */
+      cursor: grab;
+      user-select: none;
     }
+
+    /* While dragging: override cursor for the whole page */
+    body.is-dragging,
+    body.is-dragging * { cursor: grabbing !important; }
 
     #canvas {
       position: absolute;
@@ -161,9 +175,11 @@
       background: var(--bg);
     }
 
-    /* Cinematic scrim — darkens the bottom-left quadrant where
-       stop text lives. Two gradients: vertical (bottom→up) +
-       horizontal (left→right). Always present over the canvas. */
+    /* Cinematic scrim — three layers anchored to the text zone:
+       1. Vertical  (bottom → up)  : covers the text area solidly.
+       2. Horizontal (left → right): adds left-side depth.
+       3. Radial    (bottom-left)  : concentrated dark well exactly
+          where heading + body live, survives any background tone. */
     #stage::after {
       content: '';
       position: absolute;
@@ -171,8 +187,18 @@
       z-index: 1;
       pointer-events: none;
       background:
-        linear-gradient(to top,  oklch(9% 0.008 250 / 0.94) 0%, transparent 58%),
-        linear-gradient(to right, oklch(9% 0.008 250 / 0.55) 0%, transparent 52%);
+        linear-gradient(to top,
+          oklch(9% 0.008 250 / 0.98) 0%,
+          oklch(9% 0.008 250 / 0.82) 28%,
+          oklch(9% 0.008 250 / 0.30) 55%,
+          transparent 70%),
+        linear-gradient(to right,
+          oklch(9% 0.008 250 / 0.72) 0%,
+          oklch(9% 0.008 250 / 0.20) 42%,
+          transparent 60%),
+        radial-gradient(ellipse 70% 55% at 10% 96%,
+          oklch(9% 0.008 250 / 0.75) 0%,
+          transparent 100%);
     }
 
     /* =====================================================
@@ -189,11 +215,29 @@
       width: 400px;
     }
 
+
     .stop-text {
       position: absolute;
       bottom: 0;
       left: 0;
       opacity: 0;
+      isolation: isolate; /* stacking context so ::before z-index: -1 stays local */
+    }
+
+    /* Pill backdrop — dark frosted panel behind the text.
+       opacity and transition-duration are driven by JS custom
+       properties so show = slow fade-in, hide = instant. */
+    .stop-text::before {
+      content: '';
+      position: absolute;
+      inset: -18px -28px -22px -28px;
+      z-index: -1;
+      background: oklch(9% 0.008 250 / 0.64);
+      backdrop-filter: blur(16px) saturate(0.6);
+      -webkit-backdrop-filter: blur(16px) saturate(0.6);
+      border-radius: 20px;
+      opacity: var(--bd-opacity, 0);
+      transition: opacity var(--bd-dur, 0s) ease;
     }
 
     .stop-num {
@@ -214,17 +258,18 @@
       color: var(--text);
       margin-bottom: 16px;
       text-wrap: balance;
-      text-shadow: 0 2px 28px oklch(0% 0 0 / 0.55);
+      text-shadow: 0 2px 24px oklch(0% 0 0 / 0.55);
     }
 
     .stop-body {
       font-size: 1rem;
       font-weight: 400;
-      color: oklch(62% 0.01 250);
+      color: oklch(88% 0.006 250);
       line-height: 1.75;
       max-width: 360px;
       letter-spacing: 0.01em;
       text-wrap: pretty;
+      text-shadow: 0 1px 8px oklch(0% 0 0 / 0.60);
     }
 
     .word {
@@ -574,14 +619,18 @@
     const bitmaps         = new Array(C.totalFrames); // pre-decoded ImageBitmaps (off-thread)
     let currentFrame      = -1;
     let isLocked          = false;
-    let scrollEnabled     = false;
-    let prevZone          = 0;     // zone of last rendered frame
+    let currentStopIndex  = 0;     // which stop the user is currently at
+    let isTransitioning   = false; // true while frame tween is running
+    let inputCooldown     = true;  // blocks nav until boot stop-0 finishes
+    let isDragging        = false; // true during click-hold drag scrubbing
+    let dragStartY        = 0;
+    let dragStartFrame    = 0;
+    let touchStartY       = 0;
+    let touchTriggered    = false;
     let prevChapterZone   = -1;    // last zone passed to updateChapters
     let textVisible       = false; // guard: skip hideText work when already hidden
     let cssWidth          = 0;     // logical canvas size (excludes DPR)
     let cssHeight         = 0;
-    let maxScroll         = 0;     // cached, set in boot()
-    let rafPending        = false;
     let resizeTimer       = null;  // debounce handle for resize
     let skipCurrentVideo  = null;  // set during playStopVideo; call to interrupt
 
@@ -598,11 +647,6 @@
       canvas.style.height   = cssHeight + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in logical pixels
       if (currentFrame >= 0) renderFrame(currentFrame);
-      // Viewport height may have changed (rotation, mobile browser chrome).
-      // Recompute wrapper so maxScroll stays reachable at the new innerHeight.
-      if (maxScroll > 0) {
-        document.getElementById('scroll-wrapper').style.height = (maxScroll + cssHeight) + 'px';
-      }
     }
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
@@ -722,9 +766,11 @@
     ===================================================== */
     function showStopText(stopIndex) {
       textVisible = true;
-      // Reset all elements first (no transition so there's no flicker)
+      // Reset all — instant, no transitions
       textEls.forEach(el => {
         el.style.opacity = '0';
+        el.style.setProperty('--bd-dur',     '0s');
+        el.style.setProperty('--bd-opacity', '0');
         el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
           c.style.transition = 'none';
           c.style.opacity    = '0';
@@ -732,8 +778,14 @@
         });
       });
 
-      const el    = textEls[stopIndex];
+      const el = textEls[stopIndex];
       el.style.opacity = '1';
+
+      // Next frame: enable slow fade-in for the pill backdrop
+      requestAnimationFrame(() => {
+        el.style.setProperty('--bd-dur',     '0.55s');
+        el.style.setProperty('--bd-opacity', '1');
+      });
 
       const queue = [];
       const numEl  = el.querySelector('.stop-num');
@@ -760,6 +812,9 @@
       textVisible = false;
       textEls.forEach(el => {
         el.style.opacity = '0';
+        // Kill backdrop instantly (no linger during navigation)
+        el.style.setProperty('--bd-dur',     '0s');
+        el.style.setProperty('--bd-opacity', '0');
         el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
           c.style.transition = 'none';
           c.style.opacity    = '0';
@@ -856,11 +911,8 @@
     }
 
     /* =====================================================
-       HANDLE FRAME
+       ZONE HELPER — for chapter dot tracking only
     ===================================================== */
-
-    // Returns which stop's zone contains this frame.
-    // Zone i = [stops[i].frame, stops[i+1].frame).
     function getZone(frame) {
       for (let i = C.stops.length - 1; i >= 0; i--) {
         if (frame >= C.stops[i].frame) return i;
@@ -868,49 +920,70 @@
       return 0;
     }
 
-    function handleFrame(index) {
-      const clamped = Math.max(0, Math.min(C.totalFrames - 1, index));
-      renderFrame(clamped);
+    /* =====================================================
+       FRAME ANIMATION
+       Tweens canvas from one frame to another.
+       Ease-out-quart; duration scales with distance (250–650 ms).
+    ===================================================== */
+    function animateToFrame(fromFrame, toFrame, onDone) {
+      if (fromFrame === toFrame) { onDone(); return; } // already there
+      const distance = Math.abs(toFrame - fromFrame);
+      const duration = Math.min(Math.max(distance * 3.5, 250), 650);
+      const startTime = performance.now();
 
-      const zone = getZone(clamped);
-      updateChapters(zone);
-
-      // When the zone changes (in either direction), trigger that zone's stop.
-      // Forward  0→1→2…  plays each stop as you approach it.
-      // Backward …2→1→0  replays each stop as you scroll back through it.
-      // Origin (zone 0) re-triggers as soon as the user scrolls back
-      // below Impulse's frame — no need to reach exact frame 0.
-      if (zone !== prevZone) {
-        renderFrame(C.stops[zone].frame);
-        hideText();
-        lockScroll();
-        playStopVideo(zone, () => { unlockScroll(); });
-        prevZone = zone;
-      }
+      (function tick(now) {
+        const t     = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 4); // ease-out-quart
+        renderFrame(Math.round(fromFrame + (toFrame - fromFrame) * eased));
+        if (t < 1) requestAnimationFrame(tick);
+        else { renderFrame(toFrame); onDone(); }
+      })(performance.now());
     }
 
     /* =====================================================
-       SCROLL LISTENER — RAF-throttled, cached maxScroll
+       NAVIGATION
+       One gesture = advance one stop (forward or backward).
+       Forward: tween + play stop video.
+       Backward: tween only, no video replay.
     ===================================================== */
-    window.addEventListener('scroll', () => {
-      if (!scrollEnabled || isLocked || rafPending) return;
-      rafPending = true;
-      requestAnimationFrame(() => {
-        rafPending = false;
-        hideText(); // text disappears the moment scroll starts
-        const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
-        const idx      = Math.floor(progress * (C.totalFrames - 1));
-        handleFrame(idx);
+    function goToStop(targetIndex) {
+      if (isTransitioning || isLocked || inputCooldown) return;
+      targetIndex = Math.max(0, Math.min(C.stops.length - 1, targetIndex));
+      if (targetIndex === currentStopIndex) return;
+
+      const forward   = targetIndex > currentStopIndex;
+      isTransitioning = true;
+      inputCooldown   = true;
+
+      const fromFrame = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
+      const toFrame   = C.stops[targetIndex].frame;
+
+      animateToFrame(fromFrame, toFrame, () => {
+        currentStopIndex = targetIndex;
+        isTransitioning  = false;
+        updateChapters(currentStopIndex);
+        hideText();
+
+        if (forward) {
+          lockScroll();
+          playStopVideo(currentStopIndex, () => {
+            unlockScroll();
+            setTimeout(() => { inputCooldown = false; }, 200);
+          });
+        } else {
+          // Backward: no video replay — instant re-enable
+          setTimeout(() => { inputCooldown = false; }, 280);
+        }
       });
-    }, { passive: true });
+    }
+
+    function goNext() { goToStop(currentStopIndex + 1); }
+    function goPrev() { goToStop(currentStopIndex - 1); }
 
     /* =====================================================
        VIDEO INTERRUPT
-       While isLocked (stop video playing), any scroll
-       gesture immediately skips the video and resumes scroll.
-       wheel  — desktop trackpad / mouse wheel
-       touchmove — mobile swipe
-       keydown   — arrow keys, Space, Page Down/Up
+       While a stop video is playing, any scroll gesture
+       skips it so the user can continue navigating.
     ===================================================== */
     function tryInterrupt() {
       if (!isLocked || !skipCurrentVideo) return;
@@ -918,12 +991,117 @@
       skipCurrentVideo();
     }
 
-    window.addEventListener('wheel',     tryInterrupt, { passive: true });
-    window.addEventListener('touchmove', tryInterrupt, { passive: true });
+    /* =====================================================
+       INPUT HANDLERS — wheel · touch · keyboard
+    ===================================================== */
+    // Wheel (mouse + trackpad)
+    window.addEventListener('wheel', e => {
+      if (isLocked) { tryInterrupt(); return; }
+      if (e.deltaY > 0) goNext();
+      else if (e.deltaY < 0) goPrev();
+    }, { passive: true });
+
+    // Touch swipe
+    window.addEventListener('touchstart', e => {
+      touchStartY    = e.touches[0].clientY;
+      touchTriggered = false;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', e => {
+      if (touchTriggered) return;
+      const dy = touchStartY - e.touches[0].clientY;
+      if (Math.abs(dy) < 24) return; // minimum swipe distance
+      touchTriggered = true;
+      if (isLocked) { tryInterrupt(); return; }
+      if (dy > 0) goNext();
+      else        goPrev();
+    }, { passive: true });
+
+    // Keyboard
     window.addEventListener('keydown', e => {
-      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' '].includes(e.key)) {
-        tryInterrupt();
-      }
+      const down = ['ArrowDown', 'PageDown', ' '].includes(e.key);
+      const up   = ['ArrowUp',   'PageUp'       ].includes(e.key);
+      if (!down && !up) return;
+      e.preventDefault();
+      if (isLocked) { tryInterrupt(); return; }
+      if (down) goNext();
+      else      goPrev();
+    });
+
+    /* =====================================================
+       MOUSE DRAG SCRUBBING
+       Click-hold + drag up to go forward, down to go back.
+       Scrubs freely through all frames; on release snaps to
+       the nearest stop (plays video only when moving forward).
+
+       DRAG_PX_PER_FRAME — pixels of drag per frame.
+       At 4px: 240 px drag spans one stop (60 frames).
+    ===================================================== */
+    const DRAG_PX_PER_FRAME = 4;
+
+    const stage = document.getElementById('stage');
+
+    stage.addEventListener('mousedown', e => {
+      if (isLocked || isTransitioning || inputCooldown) return;
+      e.preventDefault(); // suppress text selection
+      isDragging     = true;
+      dragStartY     = e.clientY;
+      dragStartFrame = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
+      document.body.classList.add('is-dragging');
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      // If button was released outside the window, treat as mouseup
+      if (e.buttons === 0) { window.dispatchEvent(new MouseEvent('mouseup')); return; }
+      const dy         = dragStartY - e.clientY; // drag up = positive = forward
+      const frameDelta = Math.round(dy / DRAG_PX_PER_FRAME);
+      const target     = Math.max(0, Math.min(C.totalFrames - 1, dragStartFrame + frameDelta));
+      renderFrame(target);
+      updateChapters(getZone(target));
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      document.body.classList.remove('is-dragging');
+
+      const landingFrame = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
+
+      // Find nearest stop to landing position
+      let nearestIndex = 0;
+      let nearestDist  = Infinity;
+      C.stops.forEach((stop, i) => {
+        const dist = Math.abs(landingFrame - stop.frame);
+        if (dist < nearestDist) { nearestDist = dist; nearestIndex = i; }
+      });
+
+      const prevStopIndex = currentStopIndex;
+      const snapFrame     = C.stops[nearestIndex].frame;
+      const sameStop      = nearestIndex === prevStopIndex;
+      const forward       = nearestIndex  >  prevStopIndex;
+
+      inputCooldown   = true;
+      isTransitioning = true;
+
+      animateToFrame(landingFrame, snapFrame, () => {
+        currentStopIndex = nearestIndex;
+        isTransitioning  = false;
+        updateChapters(currentStopIndex);
+        hideText();
+
+        if (forward) {
+          // Landing on a new stop ahead → play its video
+          lockScroll();
+          playStopVideo(currentStopIndex, () => {
+            unlockScroll();
+            setTimeout(() => { inputCooldown = false; }, 200);
+          });
+        } else {
+          // Same stop or moving backward → no video, quick re-enable
+          setTimeout(() => { inputCooldown = false; }, 200);
+        }
+      });
     });
 
     /* =====================================================
@@ -949,23 +1127,24 @@
     }
 
     /* =====================================================
-       ENABLE SCROLL
+       ENABLE NAVIGATION — called once after boot stop-0
     ===================================================== */
-    function enableScroll() {
-      scrollEnabled = true;
+    function enableNav() {
+      inputCooldown = false;
       scrollHint.classList.add('visible');
-      window.addEventListener('scroll', () => {
-        scrollHint.classList.remove('visible');
-      }, { once: true, passive: true });
+      // Dismiss hint on first navigation gesture
+      const hideHint = () => scrollHint.classList.remove('visible');
+      window.addEventListener('wheel',      hideHint, { once: true, passive: true });
+      window.addEventListener('touchstart', hideHint, { once: true, passive: true });
+      window.addEventListener('keydown',    hideHint, { once: true });
     }
 
     /* =====================================================
        BOOT
     ===================================================== */
     function boot() {
-      maxScroll = C.totalFrames * C.scrollPerFrame;
-      const wrapperH = maxScroll + window.innerHeight;
-      document.getElementById('scroll-wrapper').style.height = wrapperH + 'px';
+      // Wrapper is viewport-height only — navigation is gesture-driven.
+      document.getElementById('scroll-wrapper').style.height = window.innerHeight + 'px';
 
       loadFramesInBackground();
       renderFrame(0);
@@ -979,8 +1158,9 @@
           hideText();
           lockScroll();
           playStopVideo(0, () => {
+            currentStopIndex = 0;
             unlockScroll();
-            enableScroll();
+            enableNav();
           });
         });
       }, 600);
