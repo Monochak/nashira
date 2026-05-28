@@ -160,13 +160,13 @@
       height: 100dvh; /* mobile browsers: excludes address bar */
       overflow: hidden;
       contain: paint; /* limit repaint to this element's bounds */
-      cursor: grab;
+      cursor: ew-resize;
       user-select: none;
     }
 
     /* While dragging: override cursor for the whole page */
     body.is-dragging,
-    body.is-dragging * { cursor: grabbing !important; }
+    body.is-dragging * { cursor: ew-resize !important; }
 
     #canvas {
       position: absolute;
@@ -623,7 +623,7 @@
     let isTransitioning   = false; // true while frame tween is running
     let inputCooldown     = true;  // blocks nav until boot stop-0 finishes
     let isDragging        = false; // true during click-hold drag scrubbing
-    let dragStartY        = 0;
+    let dragStartX        = 0;
     let dragStartFrame    = 0;
     let dragLastDy        = 0;    // last vertical delta — used to detect direction on release
     let touchStartY       = 0;
@@ -667,17 +667,28 @@
 
     /* =====================================================
        RENDER FRAME — bitmap → img → placeholder
+       Draws with object-fit: cover behavior: scales to fill
+       the canvas while preserving aspect ratio, cropping center.
     ===================================================== */
+    function drawCover(source, srcW, srcH) {
+      const scale   = Math.max(cssWidth / srcW, cssHeight / srcH);
+      const drawW   = srcW * scale;
+      const drawH   = srcH * scale;
+      const offsetX = (cssWidth  - drawW) / 2;
+      const offsetY = (cssHeight - drawH) / 2;
+      ctx.drawImage(source, 0, 0, srcW, srcH, offsetX, offsetY, drawW, drawH);
+    }
+
     function renderFrame(index) {
       currentFrame = index;
       const bmp = bitmaps[index];
       if (bmp) {
-        ctx.drawImage(bmp, 0, 0, cssWidth, cssHeight);
+        drawCover(bmp, bmp.width, bmp.height);
         return;
       }
       const img = frames[index];
       if (img && img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, 0, 0, cssWidth, cssHeight);
+        drawCover(img, img.naturalWidth, img.naturalHeight);
       } else {
         // Gradient placeholder while assets are being produced
         const hue = 230 + (index / C.totalFrames) * 25;
@@ -1003,8 +1014,7 @@
     /* =====================================================
        NAVIGATION
        One gesture = advance one stop (forward or backward).
-       Forward: tween + play stop video.
-       Backward: tween only, no video replay.
+       Both directions: tween + play stop video.
     ===================================================== */
     // forward is passed explicitly so loop wraps animate in the right direction
     function goToStop(targetIndex, forward) {
@@ -1023,15 +1033,11 @@
         updateChapters(currentStopIndex);
         hideText();
 
-        if (forward) {
-          lockScroll();
-          playStopVideo(currentStopIndex, () => {
-            unlockScroll();
-            setTimeout(() => { inputCooldown = false; }, 200);
-          });
-        } else {
-          setTimeout(() => { inputCooldown = false; }, 280);
-        }
+        lockScroll();
+        playStopVideo(currentStopIndex, () => {
+          unlockScroll();
+          setTimeout(() => { inputCooldown = false; }, 200);
+        });
       }, forward);
     }
 
@@ -1092,80 +1098,40 @@
     });
 
     /* =====================================================
-       MOUSE DRAG SCRUBBING
-       Click-hold + drag up to go forward, down to go back.
-       Scrubs freely through all frames; on release snaps to
-       the nearest stop (plays video only when moving forward).
-
-       DRAG_PX_PER_FRAME — pixels of drag per frame.
-       At 4px: 240 px drag spans one stop (60 frames).
+       MOUSE DRAG — gesture mode
+       Mirrors wheel/swipe: one drag gesture (≥24px) triggers
+       goNext() or goPrev(), identical feel to scroll.
     ===================================================== */
-    const DRAG_PX_PER_FRAME = 14; // px of drag per frame — higher = slower scrubbing
-
     const stage = document.getElementById('stage');
 
     stage.addEventListener('mousedown', e => {
       if (isLocked || isTransitioning || inputCooldown) return;
-      e.preventDefault(); // suppress text selection
-      isDragging     = true;
-      dragStartY     = e.clientY;
-      dragStartFrame = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
+      e.preventDefault();
+      isDragging = true;
+      dragStartX = e.clientX;
       document.body.classList.add('is-dragging');
     });
 
     window.addEventListener('mousemove', e => {
       if (!isDragging) return;
-      if (e.buttons === 0) { window.dispatchEvent(new MouseEvent('mouseup')); return; }
-      const dy         = dragStartY - e.clientY; // drag up = positive = forward
-      dragLastDy       = dy;
-      const frameDelta = Math.round(dy / DRAG_PX_PER_FRAME);
-      // Wrap frames so dragging past the end loops to the beginning and vice versa
-      const target     = wrapFrame(dragStartFrame + frameDelta);
-      renderFrame(target);
-      updateChapters(getZone(target));
+      if (e.buttons === 0) {
+        isDragging = false;
+        document.body.classList.remove('is-dragging');
+        return;
+      }
+      const dx = e.clientX - dragStartX; // right = positive = backward, left = forward
+      if (Math.abs(dx) < 24) return;     // minimum drag distance
+      isDragging = false;                 // one trigger per gesture
+      document.body.classList.remove('is-dragging');
+      if (isLocked) { tryInterrupt(); return; }
+      if (dx < 0) goNext();  // drag left = forward
+      else        goPrev();  // drag right = backward
     });
 
     window.addEventListener('mouseup', () => {
       if (!isDragging) return;
       isDragging = false;
       document.body.classList.remove('is-dragging');
-
-      const landingFrame = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
-
-      // Find nearest stop to landing position
-      let nearestIndex = 0;
-      let nearestDist  = Infinity;
-      C.stops.forEach((stop, i) => {
-        const dist = Math.abs(landingFrame - stop.frame);
-        if (dist < nearestDist) { nearestDist = dist; nearestIndex = i; }
-      });
-
-      const prevStopIndex = currentStopIndex;
-      const snapFrame     = C.stops[nearestIndex].frame;
-      const sameStop      = nearestIndex === prevStopIndex;
-      // Use the last drag direction rather than index comparison,
-      // so loop wraps (e.g. stop 5 → stop 0) are handled correctly.
-      const forward       = sameStop ? false : dragLastDy > 0;
-
-      inputCooldown   = true;
-      isTransitioning = true;
-
-      animateToFrame(landingFrame, snapFrame, () => {
-        currentStopIndex = nearestIndex;
-        isTransitioning  = false;
-        updateChapters(currentStopIndex);
-        hideText();
-
-        if (forward) {
-          lockScroll();
-          playStopVideo(currentStopIndex, () => {
-            unlockScroll();
-            setTimeout(() => { inputCooldown = false; }, 200);
-          });
-        } else {
-          setTimeout(() => { inputCooldown = false; }, 200);
-        }
-      }, forward); // pass direction so loop wraps animate correctly
     });
 
     /* =====================================================
