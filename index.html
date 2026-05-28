@@ -188,9 +188,9 @@
       pointer-events: none;
       background:
         linear-gradient(to top,
-          oklch(9% 0.008 250 / 0.98) 0%,
-          oklch(9% 0.008 250 / 0.82) 28%,
-          oklch(9% 0.008 250 / 0.30) 55%,
+          oklch(9% 0.008 250 / 0.39) 0%,
+          oklch(9% 0.008 250 / 0.33) 28%,
+          oklch(9% 0.008 250 / 0.12) 55%,
           transparent 70%),
         linear-gradient(to right,
           oklch(9% 0.008 250 / 0.72) 0%,
@@ -232,9 +232,9 @@
       position: absolute;
       inset: -18px -28px -22px -28px;
       z-index: -1;
-      background: oklch(9% 0.008 250 / 0.64);
-      backdrop-filter: blur(16px) saturate(0.6);
-      -webkit-backdrop-filter: blur(16px) saturate(0.6);
+      background: oklch(9% 0.008 250 / 0.05);
+      backdrop-filter: blur(4px) saturate(0.6);
+      -webkit-backdrop-filter: blur(4px) saturate(0.6);
       border-radius: 20px;
       opacity: var(--bd-opacity, 0);
       transition: opacity var(--bd-dur, 0s) ease;
@@ -625,6 +625,7 @@
     let isDragging        = false; // true during click-hold drag scrubbing
     let dragStartY        = 0;
     let dragStartFrame    = 0;
+    let dragLastDy        = 0;    // last vertical delta — used to detect direction on release
     let touchStartY       = 0;
     let touchTriggered    = false;
     let prevChapterZone   = -1;    // last zone passed to updateChapters
@@ -687,37 +688,82 @@
     }
 
     /* =====================================================
-       LOAD FRAMES — non-blocking, off-thread ImageBitmap decode
+       LOAD FRAMES — two-phase strategy
+
+       Phase 1 — Critical (stop frames only, 6 images):
+         Loaded with createImageBitmap so they're GPU-ready.
+         Loading bar reflects only these. Experience starts
+         as soon as they're all settled.
+
+       Phase 2 — Background (remaining 354 frames):
+         Loaded in batches of 12 after the experience starts
+         so the browser connection pool isn't saturated.
+         No bitmaps — raw Image fallback is fast enough for
+         the tween animation between stops.
     ===================================================== */
-    function loadFramesInBackground() {
-      let framesSettled = 0;
 
-      function onSettled() {
-        framesSettled++;
-        const pct = Math.round((framesSettled / C.totalFrames) * 100);
-        loadingFill.style.width = pct + '%';
-      }
-
-      for (let i = 0; i < C.totalFrames; i++) {
+    // Load a single frame, return a Promise that resolves when done.
+    // useBitmap=true → also decodes an ImageBitmap (for stop frames).
+    function loadFrame(i, useBitmap) {
+      return new Promise(resolve => {
         const img = new Image();
         img.onload = () => {
-          if (typeof createImageBitmap === 'function') {
+          frames[i] = img;
+          if (useBitmap && typeof createImageBitmap === 'function') {
             createImageBitmap(img)
-              .then(bmp => { bitmaps[i] = bmp; })
-              .catch(() => { /* bitmap failed — img fallback still works */ })
-              .finally(() => {
-                onSettled();
-                if (i === currentFrame) renderFrame(i);
-              });
+              .then(bmp  => { bitmaps[i] = bmp; })
+              .catch(()  => {})
+              .finally(resolve);
           } else {
-            onSettled();
-            if (i === currentFrame) renderFrame(i);
+            resolve();
           }
         };
-        img.onerror = onSettled; // 404s still advance the bar
-        img.src     = framePath(i);
-        frames[i]   = img;
+        img.onerror = resolve; // 404s don't block
+        img.src = framePath(i);
+        frames[i] = img;
+      });
+    }
+
+    // Phase 1: load only the 6 stop frames; update the loading bar.
+    function loadCriticalFrames() {
+      const indices = C.stops.map(s => s.frame);
+      let settled = 0;
+      return Promise.all(
+        indices.map(idx =>
+          loadFrame(idx, true).then(() => {
+            settled++;
+            loadingFill.style.width =
+              Math.round((settled / indices.length) * 100) + '%';
+          })
+        )
+      );
+    }
+
+    // Phase 2: load everything else in batches — low priority, no bitmap.
+    function loadRemainingFrames() {
+      const criticalSet = new Set(C.stops.map(s => s.frame));
+      const queue = [];
+      for (let i = 0; i < C.totalFrames; i++) {
+        if (!criticalSet.has(i)) queue.push(i);
       }
+
+      const BATCH = 12;
+      let pos = 0;
+
+      function nextBatch() {
+        if (pos >= queue.length) return;
+        const batch = queue.slice(pos, pos + BATCH);
+        pos += BATCH;
+        let done = 0;
+        batch.forEach(i => {
+          loadFrame(i, false).then(() => {
+            if (i === currentFrame) renderFrame(i); // refresh if visible
+            if (++done === batch.length) nextBatch();
+          });
+        });
+      }
+
+      nextBatch();
     }
 
     /* =====================================================
@@ -925,18 +971,32 @@
        Tweens canvas from one frame to another.
        Ease-out-quart; duration scales with distance (250–650 ms).
     ===================================================== */
-    function animateToFrame(fromFrame, toFrame, onDone) {
-      if (fromFrame === toFrame) { onDone(); return; } // already there
-      const distance = Math.abs(toFrame - fromFrame);
-      const duration = Math.min(Math.max(distance * 3.5, 250), 650);
+    // Wraps a raw frame number into [0, totalFrames)
+    function wrapFrame(f) {
+      return ((f % C.totalFrames) + C.totalFrames) % C.totalFrames;
+    }
+
+    // forward: true  → animate forward even if toFrame < fromFrame (loop)
+    //          false → animate backward even if toFrame > fromFrame (loop)
+    //          undefined → pick shortest path (non-loop calls)
+    function animateToFrame(fromFrame, toFrame, onDone, forward) {
+      if (fromFrame === toFrame) { onDone(); return; }
+
+      // Compute effective target crossing the boundary when looping
+      let effectiveTo = toFrame;
+      if (forward === true  && toFrame < fromFrame) effectiveTo = toFrame + C.totalFrames;
+      if (forward === false && toFrame > fromFrame) effectiveTo = toFrame - C.totalFrames;
+
+      const distance = Math.abs(effectiveTo - fromFrame);
+      const duration = Math.min(Math.max(distance * 16, 1200), 2400);
       const startTime = performance.now();
 
       (function tick(now) {
         const t     = Math.min((now - startTime) / duration, 1);
         const eased = 1 - Math.pow(1 - t, 4); // ease-out-quart
-        renderFrame(Math.round(fromFrame + (toFrame - fromFrame) * eased));
+        renderFrame(wrapFrame(Math.round(fromFrame + (effectiveTo - fromFrame) * eased)));
         if (t < 1) requestAnimationFrame(tick);
-        else { renderFrame(toFrame); onDone(); }
+        else { renderFrame(wrapFrame(effectiveTo)); onDone(); }
       })(performance.now());
     }
 
@@ -946,12 +1006,11 @@
        Forward: tween + play stop video.
        Backward: tween only, no video replay.
     ===================================================== */
-    function goToStop(targetIndex) {
+    // forward is passed explicitly so loop wraps animate in the right direction
+    function goToStop(targetIndex, forward) {
       if (isTransitioning || isLocked || inputCooldown) return;
-      targetIndex = Math.max(0, Math.min(C.stops.length - 1, targetIndex));
       if (targetIndex === currentStopIndex) return;
 
-      const forward   = targetIndex > currentStopIndex;
       isTransitioning = true;
       inputCooldown   = true;
 
@@ -971,14 +1030,18 @@
             setTimeout(() => { inputCooldown = false; }, 200);
           });
         } else {
-          // Backward: no video replay — instant re-enable
           setTimeout(() => { inputCooldown = false; }, 280);
         }
-      });
+      }, forward);
     }
 
-    function goNext() { goToStop(currentStopIndex + 1); }
-    function goPrev() { goToStop(currentStopIndex - 1); }
+    // Modulo wrap so last→next = first, first→prev = last
+    function goNext() {
+      goToStop((currentStopIndex + 1) % C.stops.length, true);
+    }
+    function goPrev() {
+      goToStop((currentStopIndex - 1 + C.stops.length) % C.stops.length, false);
+    }
 
     /* =====================================================
        VIDEO INTERRUPT
@@ -1037,7 +1100,7 @@
        DRAG_PX_PER_FRAME — pixels of drag per frame.
        At 4px: 240 px drag spans one stop (60 frames).
     ===================================================== */
-    const DRAG_PX_PER_FRAME = 4;
+    const DRAG_PX_PER_FRAME = 14; // px of drag per frame — higher = slower scrubbing
 
     const stage = document.getElementById('stage');
 
@@ -1052,11 +1115,12 @@
 
     window.addEventListener('mousemove', e => {
       if (!isDragging) return;
-      // If button was released outside the window, treat as mouseup
       if (e.buttons === 0) { window.dispatchEvent(new MouseEvent('mouseup')); return; }
       const dy         = dragStartY - e.clientY; // drag up = positive = forward
+      dragLastDy       = dy;
       const frameDelta = Math.round(dy / DRAG_PX_PER_FRAME);
-      const target     = Math.max(0, Math.min(C.totalFrames - 1, dragStartFrame + frameDelta));
+      // Wrap frames so dragging past the end loops to the beginning and vice versa
+      const target     = wrapFrame(dragStartFrame + frameDelta);
       renderFrame(target);
       updateChapters(getZone(target));
     });
@@ -1079,7 +1143,9 @@
       const prevStopIndex = currentStopIndex;
       const snapFrame     = C.stops[nearestIndex].frame;
       const sameStop      = nearestIndex === prevStopIndex;
-      const forward       = nearestIndex  >  prevStopIndex;
+      // Use the last drag direction rather than index comparison,
+      // so loop wraps (e.g. stop 5 → stop 0) are handled correctly.
+      const forward       = sameStop ? false : dragLastDy > 0;
 
       inputCooldown   = true;
       isTransitioning = true;
@@ -1091,17 +1157,15 @@
         hideText();
 
         if (forward) {
-          // Landing on a new stop ahead → play its video
           lockScroll();
           playStopVideo(currentStopIndex, () => {
             unlockScroll();
             setTimeout(() => { inputCooldown = false; }, 200);
           });
         } else {
-          // Same stop or moving backward → no video, quick re-enable
           setTimeout(() => { inputCooldown = false; }, 200);
         }
-      });
+      }, forward); // pass direction so loop wraps animate correctly
     });
 
     /* =====================================================
@@ -1143,27 +1207,32 @@
        BOOT
     ===================================================== */
     function boot() {
-      // Wrapper is viewport-height only — navigation is gesture-driven.
       document.getElementById('scroll-wrapper').style.height = window.innerHeight + 'px';
-
-      loadFramesInBackground();
       renderFrame(0);
       updateChapters(0);
 
-      loadingEl.classList.add('out');
-      setTimeout(() => {
-        loadingEl.style.display = 'none';
+      // Phase 1: wait only for the 6 stop frames, then start the experience.
+      loadCriticalFrames().then(() => {
+        renderFrame(0); // re-render with the real bitmap now available
+        loadingEl.classList.add('out');
 
-        playIntro(() => {
-          hideText();
-          lockScroll();
-          playStopVideo(0, () => {
-            currentStopIndex = 0;
-            unlockScroll();
-            enableNav();
+        setTimeout(() => {
+          loadingEl.style.display = 'none';
+
+          playIntro(() => {
+            hideText();
+            lockScroll();
+            playStopVideo(0, () => {
+              currentStopIndex = 0;
+              unlockScroll();
+              enableNav();
+            });
           });
-        });
-      }, 600);
+        }, 400);
+
+        // Phase 2: load remaining frames quietly in the background.
+        setTimeout(loadRemainingFrames, 200);
+      });
     }
 
     boot();
