@@ -526,9 +526,7 @@
       fill: none;
     }
 
-    @media (max-width: 767px) {
-      #nav-stop-pill { bottom: 24px; }
-    }
+    /* Mobile pill + chevron overrides live in the main ≤767px block below */
 
     /* =====================================================
        REDUCED MOTION
@@ -592,10 +590,40 @@
         bottom: 24px;
       }
 
-      /* Scroll hint */
+      /* Scroll hint — oculto en móvil, solo botones */
       #scroll-hint {
-        right: 24px;
-        bottom: 24px;
+        display: none;
+      }
+
+      /* Chevrones — más grandes y más opacos en táctil */
+      .nav-chevron {
+        padding: 28px 20px;
+      }
+
+      .nav-chevron svg {
+        width: 36px;
+        height: 36px;
+      }
+
+      .nav-chevron.visible {
+        opacity: 0.80;
+      }
+
+      /* Pill — reposicionado, botones con área táctil cómoda */
+      #nav-stop-pill {
+        bottom: 32px;
+        gap: 6px;
+        padding: 8px 10px 8px 16px;
+      }
+
+      .pill-btn {
+        padding: 10px 14px;
+        opacity: 0.70;
+      }
+
+      .pill-btn svg {
+        width: 18px;
+        height: 18px;
       }
     }
 
@@ -617,6 +645,21 @@
          is already short and the hint cuts into content */
       #scroll-hint {
         display: none;
+      }
+
+      /* Landscape mobile: pill sube para no tapar texto */
+      #nav-stop-pill {
+        bottom: 16px;
+      }
+
+      /* Chevrones más compactos en landscape */
+      .nav-chevron {
+        padding: 20px 16px;
+      }
+
+      .nav-chevron svg {
+        width: 28px;
+        height: 28px;
       }
     }
   </style>
