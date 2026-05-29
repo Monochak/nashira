@@ -188,16 +188,16 @@
       pointer-events: none;
       background:
         linear-gradient(to top,
-          oklch(9% 0.008 250 / 0.39) 0%,
-          oklch(9% 0.008 250 / 0.33) 28%,
-          oklch(9% 0.008 250 / 0.12) 55%,
+          oklch(9% 0.008 250 / 0.10) 0%,
+          oklch(9% 0.008 250 / 0.09) 28%,
+          oklch(9% 0.008 250 / 0.03) 55%,
           transparent 70%),
         linear-gradient(to right,
-          oklch(9% 0.008 250 / 0.72) 0%,
-          oklch(9% 0.008 250 / 0.20) 42%,
+          oklch(9% 0.008 250 / 0.18) 0%,
+          oklch(9% 0.008 250 / 0.05) 42%,
           transparent 60%),
         radial-gradient(ellipse 70% 55% at 10% 96%,
-          oklch(9% 0.008 250 / 0.75) 0%,
+          oklch(9% 0.008 250 / 0.19) 0%,
           transparent 100%);
     }
 
@@ -592,6 +592,11 @@
     ===================================================== */
     const C = JSON.parse(document.getElementById('site-config').textContent);
 
+    // Frames reserved for the post-video state (stopFrame + 1).
+    // The scrubber skips these — they only appear when a video ends naturally.
+    const reservedFrames = new Set(C.stops.map(s => ((s.frame + 1) % C.totalFrames)));
+    function isReserved(f) { return reservedFrames.has(((f % C.totalFrames) + C.totalFrames) % C.totalFrames); }
+
     /* =====================================================
        ELEMENTS
     ===================================================== */
@@ -877,14 +882,13 @@
       });
     }
 
-    // Hide all text instantly — called whenever scroll resumes.
-    // Guard: skips DOM work when text is already hidden (called every RAF tick).
+    // Hide all text instantly — for interrupt and boot.
     function hideText() {
       if (!textVisible) return;
       textVisible = false;
       textEls.forEach(el => {
-        el.style.opacity = '0';
-        // Kill backdrop instantly (no linger during navigation)
+        el.style.transition = '';
+        el.style.opacity    = '0';
         el.style.setProperty('--bd-dur',     '0s');
         el.style.setProperty('--bd-opacity', '0');
         el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
@@ -893,6 +897,31 @@
           c.style.transform  = 'translateY(10px)';
         });
       });
+    }
+
+    // Fade text out over 0.5s — called when navigation begins so the
+    // card dissolves while the frame tween runs. Internal elements are
+    // snapped to reset state after the fade so showStopText() starts
+    // clean on the next stop.
+    function hideTextFade() {
+      if (!textVisible) return;
+      textVisible = false;
+      textEls.forEach(el => {
+        el.style.transition = 'opacity 0.5s ease';
+        el.style.opacity    = '0';
+        el.style.setProperty('--bd-dur',     '0.5s');
+        el.style.setProperty('--bd-opacity', '0');
+      });
+      setTimeout(() => {
+        textEls.forEach(el => {
+          el.style.transition = '';
+          el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
+            c.style.transition = 'none';
+            c.style.opacity    = '0';
+            c.style.transform  = 'translateY(10px)';
+          });
+        });
+      }, 520);
     }
 
     /* =====================================================
@@ -933,7 +962,10 @@
        startTimer / showTimer are stored so both can be cancelled if the
        user interrupts before the video or text animation begins.
     ===================================================== */
-    function playStopVideo(stopIndex, onDone) {
+    // onFadeStart: fires the instant the overlay begins fading out.
+    // Use it to pre-render the next canvas frame while the overlay
+    // is still opaque — by the time it's transparent, the frame is ready.
+    function playStopVideo(stopIndex, onDone, onFadeStart) {
       const v = preloadedVideos[stopIndex];
       v.currentTime = 0;   // rewind in case this stop was visited before
       v.style.display = 'block';
@@ -951,6 +983,7 @@
         v.removeEventListener('ended', onEnded);
         v.removeEventListener('error', onError);
         stopOverlay.classList.remove('in');
+        if (onFadeStart) onFadeStart(); // render next frame under the fading overlay
         v.pause();
         if (immediate) {
           // Interrupted: unlock now so scroll resumes during overlay fade-out
@@ -1021,7 +1054,9 @@
       (function tick(now) {
         const t     = Math.min((now - startTime) / duration, 1);
         const eased = 1 - Math.pow(1 - t, 4); // ease-out-quart
-        renderFrame(wrapFrame(Math.round(fromFrame + (effectiveTo - fromFrame) * eased)));
+        let f = wrapFrame(Math.round(fromFrame + (effectiveTo - fromFrame) * eased));
+        if (isReserved(f)) f = wrapFrame(effectiveTo >= fromFrame ? f + 1 : f - 1);
+        renderFrame(f);
         if (t < 1) requestAnimationFrame(tick);
         else { renderFrame(wrapFrame(effectiveTo)); onDone(); }
       })(performance.now());
@@ -1037,22 +1072,28 @@
       if (isTransitioning || isLocked || inputCooldown) return;
       if (targetIndex === currentStopIndex) return;
 
+      hideTextFade(); // dissolve current stop card as navigation begins
+
       isTransitioning = true;
       inputCooldown   = true;
 
-      const fromFrame = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
+      // If resting on a reserved (post-video) frame, start tween from +2 so
+      // the scrubber never passes through the reserved +1 frame going forward.
+      const rawFrom   = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
+      const fromFrame = isReserved(rawFrom) ? wrapFrame(rawFrom + 1) : rawFrom;
       const toFrame   = C.stops[targetIndex].frame;
 
       animateToFrame(fromFrame, toFrame, () => {
         currentStopIndex = targetIndex;
         isTransitioning  = false;
         updateChapters(currentStopIndex);
-        hideText();
 
         lockScroll();
         playStopVideo(currentStopIndex, () => {
           unlockScroll();
           setTimeout(() => { inputCooldown = false; }, 200);
+        }, () => {
+          renderFrame(wrapFrame(C.stops[currentStopIndex].frame + 1));
         });
       }, forward);
     }
@@ -1274,6 +1315,8 @@
               currentStopIndex = 0;
               unlockScroll();
               enableNav();
+            }, () => {
+              renderFrame(wrapFrame(C.stops[0].frame + 1));
             });
           });
         }, 400);
