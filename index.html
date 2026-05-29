@@ -1151,13 +1151,11 @@
 
       let done       = false;
       let startTimer = null;
-      let showTimer  = null;
 
       function finish(immediate) {
         if (done) return;
         done = true;
         clearTimeout(startTimer);
-        clearTimeout(showTimer);
         skipCurrentVideo = null;
         v.removeEventListener('ended', onEnded);
         v.removeEventListener('error', onError);
@@ -1167,15 +1165,16 @@
         renderFrame(wrapFrame(C.stops[stopIndex].frame + 1));
         v.pause();
         if (immediate) {
-          // Interrupted: unlock now so scroll resumes during overlay fade-out
+          // Interrupted: navega sin mostrar texto — el usuario ya se fue
           v.style.display = 'none';
           stopOverlay.style.willChange = '';
           onDone();
         } else {
-          // Natural end: wait for overlay to fade, then unlock
+          // Natural end: overlay fade → texto aparece → unlock
           setTimeout(() => {
             v.style.display = 'none';
             stopOverlay.style.willChange = '';
+            showStopText(stopIndex);
             onDone();
           }, 400);
         }
@@ -1193,7 +1192,6 @@
       stopOverlay.classList.add('in');
       startTimer = setTimeout(() => {
         v.play().catch(() => finish(false));
-        showTimer = setTimeout(() => showStopText(stopIndex), 500);
       }, 400);
     }
 
