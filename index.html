@@ -140,7 +140,7 @@
 
     /* Shared video styles */
     #intro-video,
-    #stop-video {
+    .pool-video {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -564,10 +564,8 @@
     <video id="intro-video" muted playsinline preload="auto"></video>
   </div>
 
-  <!-- STOP VIDEO -->
-  <div id="stop-overlay">
-    <video id="stop-video" muted playsinline preload="none"></video>
-  </div>
+  <!-- STOP VIDEO — pool built in JS -->
+  <div id="stop-overlay"></div>
 
   <!-- CANVAS -->
   <div id="scroll-wrapper">
@@ -602,12 +600,29 @@
     const introOverlay = document.getElementById('intro-overlay');
     const introVideo   = document.getElementById('intro-video');
     const stopOverlay  = document.getElementById('stop-overlay');
-    const stopVideoEl  = document.getElementById('stop-video');
     const canvas       = document.getElementById('canvas');
     const ctx          = canvas.getContext('2d');
     const textOverlay  = document.getElementById('text-overlay');
     const chaptersEl   = document.getElementById('chapters');
     const scrollHint   = document.getElementById('scroll-hint');
+
+    /* =====================================================
+       STOP VIDEO POOL — one <video> per stop, preloaded at boot.
+       All elements live in #stop-overlay; only the active one
+       is visible (display block). The overlay fade handles
+       the cinematic in/out — individual elements just show/hide.
+    ===================================================== */
+    const preloadedVideos = C.stops.map(stop => {
+      const v = document.createElement('video');
+      v.className   = 'pool-video';
+      v.muted       = true;
+      v.setAttribute('playsinline', '');
+      v.preload     = 'auto';
+      v.src         = stop.video;
+      v.style.display = 'none';
+      stopOverlay.appendChild(v);
+      return v;
+    });
 
     document.title = C.brand;
     document.getElementById('loading-brand').textContent = C.brand;
@@ -919,8 +934,9 @@
        user interrupts before the video or text animation begins.
     ===================================================== */
     function playStopVideo(stopIndex, onDone) {
-      stopVideoEl.src = C.stops[stopIndex].video;
-      stopVideoEl.load();
+      const v = preloadedVideos[stopIndex];
+      v.currentTime = 0;   // rewind in case this stop was visited before
+      v.style.display = 'block';
 
       let done       = false;
       let startTimer = null;
@@ -932,19 +948,19 @@
         clearTimeout(startTimer);
         clearTimeout(showTimer);
         skipCurrentVideo = null;
-        stopVideoEl.removeEventListener('ended', onEnded);
-        stopVideoEl.removeEventListener('error', onError);
+        v.removeEventListener('ended', onEnded);
+        v.removeEventListener('error', onError);
         stopOverlay.classList.remove('in');
-        stopVideoEl.pause();
+        v.pause();
         if (immediate) {
           // Interrupted: unlock now so scroll resumes during overlay fade-out
-          stopVideoEl.src = '';
+          v.style.display = 'none';
           stopOverlay.style.willChange = '';
           onDone();
         } else {
           // Natural end: wait for overlay to fade, then unlock
           setTimeout(() => {
-            stopVideoEl.src = '';
+            v.style.display = 'none';
             stopOverlay.style.willChange = '';
             onDone();
           }, 400);
@@ -956,13 +972,13 @@
 
       skipCurrentVideo = () => finish(true);
 
-      stopVideoEl.addEventListener('ended', onEnded);
-      stopVideoEl.addEventListener('error', onError);
+      v.addEventListener('ended', onEnded);
+      v.addEventListener('error', onError);
 
       stopOverlay.style.willChange = 'opacity';
       stopOverlay.classList.add('in');
       startTimer = setTimeout(() => {
-        stopVideoEl.play().catch(() => finish(false));
+        v.play().catch(() => finish(false));
         showTimer = setTimeout(() => showStopText(stopIndex), 500);
       }, 400);
     }
