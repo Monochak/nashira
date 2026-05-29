@@ -386,48 +386,13 @@
     /* =====================================================
        SCROLL HINT
     ===================================================== */
-    #scroll-hint {
-      position: fixed;
-      bottom: 40px;
-      right: 48px;
-      z-index: 45;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.6s ease;
-    }
-
-    #scroll-hint.visible { opacity: 0.4; }
-
-    .hint-line {
-      width: 1px;
-      height: 36px;
-      background: linear-gradient(to bottom, var(--muted), transparent);
-      animation: hintPulse 2.2s ease-in-out infinite;
-    }
-
-    .hint-label {
-      font-size: 0.5625rem; /* 9px in rem */
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
-    @keyframes hintPulse {
-      0%, 100% { opacity: 0.2; }
-      50%       { opacity: 1;   }
-    }
-
     /* =====================================================
        OPTION A — SIDE CHEVRONS
-       Appear after 3s idle; hide on any interaction.
-       On touch devices, always visible after enableNav().
+       Visible immediately after boot; stay permanently.
+       On first enableNav(), pulse 3 times to reveal presence.
     ===================================================== */
     .nav-chevron {
+      position: relative; /* contains the ::before glow layer */
       position: fixed;
       top: 50%;
       transform: translateY(-50%);
@@ -457,6 +422,33 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       fill: none;
+      position: relative; /* above the glow layer */
+      z-index: 1;
+    }
+
+    /* Glow pulse — 3 parpadeos al mostrar por primera vez.
+       Desaparece solo al terminar o al primer click. */
+    .nav-chevron.pulsing::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        oklch(from var(--accent) l c h / 0.55) 0%,
+        oklch(from var(--accent) l c h / 0.18) 45%,
+        transparent 70%);
+      pointer-events: none;
+      animation: chevronGlow 1s ease-in-out 3 forwards;
+    }
+
+    @keyframes chevronGlow {
+      0%   { opacity: 0;    transform: translate(-50%, -50%) scale(0.7); }
+      40%  { opacity: 1;    transform: translate(-50%, -50%) scale(1);   }
+      100% { opacity: 0;    transform: translate(-50%, -50%) scale(1.1); }
     }
 
     /* =====================================================
@@ -548,7 +540,6 @@
     @media (min-width: 768px) and (max-width: 1023px) {
       #text-overlay { left: 40px; }
       #chapters     { left: 40px; }
-      #scroll-hint  { right: 32px; }
     }
 
     /* =====================================================
@@ -588,11 +579,6 @@
       #chapters {
         left: 24px;
         bottom: 24px;
-      }
-
-      /* Scroll hint — oculto en móvil, solo botones */
-      #scroll-hint {
-        display: none;
       }
 
       /* Chevrones — más grandes y más opacos en táctil */
@@ -639,12 +625,6 @@
 
       #chapters {
         bottom: 12px;
-      }
-
-      /* Scroll hint adds no value in landscape — screen
-         is already short and the hint cuts into content */
-      #scroll-hint {
-        display: none;
       }
 
       /* Landscape mobile: pill sube para no tapar texto */
@@ -741,11 +721,6 @@
   <div id="chapters" aria-hidden="true"></div>
 
   <!-- SCROLL HINT -->
-  <div id="scroll-hint" aria-hidden="true">
-    <div class="hint-line"></div>
-    <span class="hint-label">Navigate</span>
-  </div>
-
   <!-- OPTION A — SIDE CHEVRONS -->
   <button class="nav-chevron nav-chevron--left"  id="chevron-prev" aria-label="Previous stop">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -789,7 +764,6 @@
     const ctx          = canvas.getContext('2d');
     const textOverlay  = document.getElementById('text-overlay');
     const chaptersEl   = document.getElementById('chapters');
-    const scrollHint   = document.getElementById('scroll-hint');
 
     /* =====================================================
        STOP VIDEO POOL — one <video> per stop, preloaded at boot.
@@ -1523,15 +1497,27 @@
     ===================================================== */
     function enableNav() {
       inputCooldown = false;
-      scrollHint.classList.add('visible');
       navStopPill.classList.add('visible');
       updateNavPill(currentStopIndex);
       showChevrons();
-      // Dismiss hint on first navigation gesture
-      const hideHint = () => scrollHint.classList.remove('visible');
-      window.addEventListener('wheel',      hideHint, { once: true, passive: true });
-      window.addEventListener('touchstart', hideHint, { once: true, passive: true });
-      window.addEventListener('keydown',    hideHint, { once: true });
+
+      // Glow pulse — 3 parpadeos ámbar, revela la presencia de los chevrones.
+      // Se detiene solo al terminar la animación o al primer click.
+      setTimeout(() => {
+        chevronPrev.classList.add('pulsing');
+        chevronNext.classList.add('pulsing');
+
+        const stopPulse = () => {
+          chevronPrev.classList.remove('pulsing');
+          chevronNext.classList.remove('pulsing');
+        };
+
+        // Animación termina sola: 3 iteraciones × 1s = 3s
+        chevronNext.addEventListener('animationend', stopPulse, { once: true });
+        // O el usuario hace click antes de que termine
+        chevronPrev.addEventListener('click', stopPulse, { once: true });
+        chevronNext.addEventListener('click', stopPulse, { once: true });
+      }, 500);
     }
 
     /* =====================================================
