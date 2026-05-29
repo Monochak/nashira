@@ -291,6 +291,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      pointer-events: none;
     }
 
     .chap-dot {
@@ -298,20 +299,8 @@
       width: 20px;
       background: var(--border);
       border-radius: 2px;
-      transition: width 0.4s ease, background 0.4s ease, opacity 0.4s ease, height 0.2s ease;
+      transition: width 0.4s ease, background 0.4s ease, opacity 0.4s ease;
       opacity: 0.5;
-      cursor: pointer;
-      /* Ampliar área táctil sin cambiar visual */
-      padding: 10px 0;
-      margin: -10px 0;
-      box-sizing: content-box;
-    }
-
-    .chap-dot:hover,
-    .chap-dot:focus-visible {
-      opacity: 1;
-      height: 3px;
-      outline: none;
     }
 
     .chap-dot.is-active {
@@ -599,17 +588,6 @@
       #chapters {
         left: 24px;
         bottom: 24px;
-        gap: 10px;
-      }
-
-      .chap-dot {
-        padding: 14px 0;
-        margin: -14px 0;
-        width: 24px;
-      }
-
-      .chap-dot.is-active {
-        width: 44px;
       }
 
       /* Scroll hint — oculto en móvil, solo botones */
@@ -760,7 +738,7 @@
   <div id="text-overlay"></div>
 
   <!-- CHAPTER INDICATORS -->
-  <div id="chapters" role="group" aria-label="Navegación por capítulos"></div>
+  <div id="chapters" aria-hidden="true"></div>
 
   <!-- SCROLL HINT -->
   <div id="scroll-hint" aria-hidden="true">
@@ -1026,23 +1004,9 @@
     ===================================================== */
     const chapDots = [];
 
-    C.stops.forEach((stop, i) => {
+    C.stops.forEach((_, i) => {
       const dot = document.createElement('div');
       dot.className = 'chap-dot';
-      dot.setAttribute('role', 'button');
-      dot.setAttribute('tabindex', '0');
-      dot.setAttribute('aria-label', `Capítulo ${i + 1}: ${stop.label}`);
-      dot.addEventListener('click', () => {
-        if (inputCooldown || isTransitioning || isLocked) return;
-        goToStop(i, i > currentStopIndex);
-      });
-      dot.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          if (inputCooldown || isTransitioning || isLocked) return;
-          goToStop(i, i > currentStopIndex);
-        }
-      });
       chaptersEl.appendChild(dot);
       chapDots.push(dot);
     });
