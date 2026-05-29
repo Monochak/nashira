@@ -353,7 +353,7 @@
     .nav-links a {
       font-size: 0.75rem;
       font-weight: 500;
-      color: oklch(93% 0.005 250 / 0.45);
+      color: oklch(93% 0.005 250 / 0.80);
       text-decoration: none;
       letter-spacing: 0.01em;
       transition: color 0.2s;
@@ -377,6 +377,8 @@
     }
 
     .nav-cta:hover { opacity: 0.85; transform: scale(1.03); }
+    /* CTA sits on --accent background — use --text so the outline is visible */
+    .nav-cta:focus-visible { outline-color: var(--text); }
 
     /* =====================================================
        SCROLL HINT
@@ -559,9 +561,10 @@
     <div id="loading-track"><div id="loading-fill"></div></div>
   </div>
 
-  <!-- INTRO VIDEO -->
+  <!-- INTRO VIDEO — ambient/visual only, no dialogue or meaningful audio -->
   <div id="intro-overlay">
-    <video id="intro-video" muted playsinline preload="auto"></video>
+    <video id="intro-video" muted playsinline preload="auto"
+           aria-label="Intro sequence — ambient visual, no audio content"></video>
   </div>
 
   <!-- STOP VIDEO — pool built in JS -->
@@ -569,7 +572,10 @@
 
   <!-- CANVAS -->
   <div id="scroll-wrapper">
-    <div id="stage">
+    <div id="stage"
+         tabindex="0"
+         role="application"
+         aria-label="Motion sequence — use arrow keys or swipe to navigate between stops">
       <canvas id="canvas" role="img" aria-label="Scroll-driven motion sequence"></canvas>
     </div>
   </div>
@@ -595,7 +601,8 @@
     // Frames reserved for the post-video state (stopFrame + 1).
     // The scrubber skips these — they only appear when a video ends naturally.
     const reservedFrames = new Set(C.stops.map(s => ((s.frame + 1) % C.totalFrames)));
-    function isReserved(f) { return reservedFrames.has(((f % C.totalFrames) + C.totalFrames) % C.totalFrames); }
+    // Callers must pass a wrapFrame()-normalized value — no internal re-normalization needed.
+    function isReserved(f) { return reservedFrames.has(f); }
 
     /* =====================================================
        ELEMENTS
@@ -622,6 +629,7 @@
       v.className   = 'pool-video';
       v.muted       = true;
       v.setAttribute('playsinline', '');
+      v.setAttribute('aria-label', `${stop.label} — ambient visual, no audio content`);
       v.preload     = 'auto';
       v.src         = stop.video;
       v.style.display = 'none';
@@ -848,11 +856,7 @@
         el.style.opacity = '0';
         el.style.setProperty('--bd-dur',     '0s');
         el.style.setProperty('--bd-opacity', '0');
-        el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
-          c.style.transition = 'none';
-          c.style.opacity    = '0';
-          c.style.transform  = 'translateY(10px)';
-        });
+        resetTextChildren(el);
       });
 
       const el = textEls[stopIndex];
@@ -882,6 +886,16 @@
       });
     }
 
+    // Shared child-element reset — used by hideText, hideTextFade, and showStopText.
+    // Adding a new animated child to .stop-text only needs updating here.
+    function resetTextChildren(el) {
+      el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
+        c.style.transition = 'none';
+        c.style.opacity    = '0';
+        c.style.transform  = 'translateY(10px)';
+      });
+    }
+
     // Hide all text instantly — for interrupt and boot.
     function hideText() {
       if (!textVisible) return;
@@ -891,11 +905,7 @@
         el.style.opacity    = '0';
         el.style.setProperty('--bd-dur',     '0s');
         el.style.setProperty('--bd-opacity', '0');
-        el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
-          c.style.transition = 'none';
-          c.style.opacity    = '0';
-          c.style.transform  = 'translateY(10px)';
-        });
+        resetTextChildren(el);
       });
     }
 
@@ -903,6 +913,7 @@
     // card dissolves while the frame tween runs. Internal elements are
     // snapped to reset state after the fade so showStopText() starts
     // clean on the next stop.
+    let hideTextFadeTimer = null;
     function hideTextFade() {
       if (!textVisible) return;
       textVisible = false;
@@ -912,14 +923,11 @@
         el.style.setProperty('--bd-dur',     '0.5s');
         el.style.setProperty('--bd-opacity', '0');
       });
-      setTimeout(() => {
+      clearTimeout(hideTextFadeTimer);
+      hideTextFadeTimer = setTimeout(() => {
         textEls.forEach(el => {
           el.style.transition = '';
-          el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
-            c.style.transition = 'none';
-            c.style.opacity    = '0';
-            c.style.transform  = 'translateY(10px)';
-          });
+          resetTextChildren(el);
         });
       }, 520);
     }
@@ -962,10 +970,7 @@
        startTimer / showTimer are stored so both can be cancelled if the
        user interrupts before the video or text animation begins.
     ===================================================== */
-    // onFadeStart: fires the instant the overlay begins fading out.
-    // Use it to pre-render the next canvas frame while the overlay
-    // is still opaque — by the time it's transparent, the frame is ready.
-    function playStopVideo(stopIndex, onDone, onFadeStart) {
+    function playStopVideo(stopIndex, onDone) {
       const v = preloadedVideos[stopIndex];
       v.currentTime = 0;   // rewind in case this stop was visited before
       v.style.display = 'block';
@@ -983,7 +988,9 @@
         v.removeEventListener('ended', onEnded);
         v.removeEventListener('error', onError);
         stopOverlay.classList.remove('in');
-        if (onFadeStart) onFadeStart(); // render next frame under the fading overlay
+        // Pre-render the reserved frame (stopFrame+1) while the overlay fades —
+        // by the time it reaches 0 opacity, the correct canvas frame is already painted.
+        renderFrame(wrapFrame(C.stops[stopIndex].frame + 1));
         v.pause();
         if (immediate) {
           // Interrupted: unlock now so scroll resumes during overlay fade-out
@@ -1039,8 +1046,14 @@
     // forward: true  → animate forward even if toFrame < fromFrame (loop)
     //          false → animate backward even if toFrame > fromFrame (loop)
     //          undefined → pick shortest path (non-loop calls)
+    // Checked once at boot; assumed stable for the session lifetime.
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     function animateToFrame(fromFrame, toFrame, onDone, forward) {
       if (fromFrame === toFrame) { onDone(); return; }
+
+      // Skip tween entirely for users who prefer reduced motion.
+      if (prefersReducedMotion) { renderFrame(wrapFrame(toFrame)); onDone(); return; }
 
       // Compute effective target crossing the boundary when looping
       let effectiveTo = toFrame;
@@ -1077,8 +1090,8 @@
       isTransitioning = true;
       inputCooldown   = true;
 
-      // If resting on a reserved (post-video) frame, start tween from +2 so
-      // the scrubber never passes through the reserved +1 frame going forward.
+      // rawFrom may be a reserved frame (stopFrame+1). Step one more so the
+      // tween starts at stopFrame+2, clearing the reserved slot entirely.
       const rawFrom   = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
       const fromFrame = isReserved(rawFrom) ? wrapFrame(rawFrom + 1) : rawFrom;
       const toFrame   = C.stops[targetIndex].frame;
@@ -1092,8 +1105,6 @@
         playStopVideo(currentStopIndex, () => {
           unlockScroll();
           setTimeout(() => { inputCooldown = false; }, 200);
-        }, () => {
-          renderFrame(wrapFrame(C.stops[currentStopIndex].frame + 1));
         });
       }, forward);
     }
@@ -1179,6 +1190,10 @@
     const CURSOR_RIGHT = makeSVGCursor('M6 16 L22 16 M16 10 L22 16 L16 22', 16, 16, 'e-resize');
     const CURSOR_LEFT  = makeSVGCursor('M26 16 L10 16 M16 10 L10 16 L16 22', 16, 16, 'w-resize');
 
+    // Shared helpers for click-zone and cursor logic used by both stage and overlay.
+    const CLICK_THRESHOLD_PX = 8; // minimum movement to distinguish click from drag
+    function cursorForX(x) { return x < window.innerWidth / 2 ? CURSOR_LEFT : CURSOR_RIGHT; }
+
     stage.addEventListener('mousedown', e => {
       if (isLocked || isTransitioning || inputCooldown) return;
       e.preventDefault();
@@ -1210,21 +1225,22 @@
     });
 
     /* =====================================================
-       CURSOR DIRECTION — left half w-resize, right half e-resize.
-       body.is-dragging overrides this with ew-resize via !important.
+       CURSOR DIRECTION + CLICK ZONES
+       stage: active when no video is playing.
+       stopOverlay: mirrors stage while stop video covers it.
+       body.is-dragging overrides cursor with ew-resize via !important.
     ===================================================== */
+    let _cursorSide = null; // track last side to avoid redundant style writes
     stage.addEventListener('mousemove', e => {
-      if (isDragging) return; // body.is-dragging rule handles cursor during drag
-      stage.style.cursor = e.clientX < window.innerWidth / 2 ? CURSOR_LEFT : CURSOR_RIGHT;
+      if (isDragging) return;
+      const side = e.clientX < window.innerWidth / 2 ? 'L' : 'R';
+      if (side === _cursorSide) return;
+      _cursorSide = side;
+      stage.style.cursor = cursorForX(e.clientX);
     });
 
-    /* =====================================================
-       CLICK ZONES — left half = prev, right half = next.
-       Only fires when mouse barely moved from the press point
-       (< 8px), so drag gestures never trigger it.
-    ===================================================== */
     stage.addEventListener('mouseup', e => {
-      if (Math.abs(e.clientX - dragStartX) >= 8) return; // was a drag, not a click
+      if (Math.abs(e.clientX - dragStartX) >= CLICK_THRESHOLD_PX) return;
       if (isTransitioning || isLocked || inputCooldown) return;
       if (e.clientX < window.innerWidth / 2) goPrev();
       else goNext();
@@ -1232,16 +1248,12 @@
 
     /* =====================================================
        OVERLAY CURSOR + CLICK ZONES
-       While a stop video plays, #stop-overlay covers the stage.
-       These listeners mirror the stage behavior so the arrows
-       and directional clicks remain fully functional.
-
        After skipCurrentVideo() the onDone callback unlocks
        the scroll immediately but resets inputCooldown after
        200ms — the setTimeout(250) waits just past that.
     ===================================================== */
     stopOverlay.addEventListener('mousemove', e => {
-      stopOverlay.style.cursor = e.clientX < window.innerWidth / 2 ? CURSOR_LEFT : CURSOR_RIGHT;
+      stopOverlay.style.cursor = cursorForX(e.clientX);
     });
 
     stopOverlay.addEventListener('mousedown', e => {
@@ -1249,11 +1261,15 @@
     });
 
     stopOverlay.addEventListener('mouseup', e => {
-      if (Math.abs(e.clientX - dragStartX) >= 8) return; // was a drag, not a click
+      if (Math.abs(e.clientX - dragStartX) >= CLICK_THRESHOLD_PX) return;
       if (!isLocked || !skipCurrentVideo) return;
       const forward = e.clientX >= window.innerWidth / 2;
       hideText();
       skipCurrentVideo(); // interrupt video; onDone fires synchronously → isLocked = false
+      // ⚠️  TIMING DEPENDENCY: onDone schedules inputCooldown=false at +200ms.
+      // This timeout must stay > 200ms or goNext/goPrev will hit inputCooldown=true
+      // and silently drop the navigation. Current margin: 250ms (50ms slack).
+      // If you raise the inputCooldown reset delay above 250ms, raise this too.
       setTimeout(() => { if (forward) goNext(); else goPrev(); }, 250);
     });
 
@@ -1315,8 +1331,6 @@
               currentStopIndex = 0;
               unlockScroll();
               enableNav();
-            }, () => {
-              renderFrame(wrapFrame(C.stops[0].frame + 1));
             });
           });
         }, 400);
