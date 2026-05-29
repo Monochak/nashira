@@ -1222,10 +1222,10 @@
         // Dispara texto en el punto medio del video.
         // duration disponible porque los videos están preloaded.
         // windowMs = mitad restante + 1s extra post-video.
-        const dur    = v.duration && isFinite(v.duration) ? v.duration : 8;
-        const halfMs = dur * 500;          // mitad del video en ms
-        const winMs  = halfMs + 1000;      // ventana total de animación del texto
-        midTimer = setTimeout(() => showStopText(stopIndex, winMs), halfMs);
+        const dur      = v.duration && isFinite(v.duration) ? v.duration : 8;
+        const startMs  = Math.max((dur - 2) * 1000, 0); // 2s antes del final (mín. 0)
+        const winMs    = 4000;                           // 2s antes + 2s después = 4s fijos
+        midTimer = setTimeout(() => showStopText(stopIndex, winMs), startMs);
       }, 400);
     }
 
