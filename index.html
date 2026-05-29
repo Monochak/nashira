@@ -176,6 +176,18 @@
       inset: 0;
       display: block;
       background: var(--bg);
+      transform-origin: center center;
+    }
+
+    /* Drift suave mientras el stop video corre encima.
+       El canvas respira en lugar de congelarse. */
+    @keyframes canvasDrift {
+      from { transform: scale(1.00); }
+      to   { transform: scale(1.04); }
+    }
+
+    #canvas.drifting {
+      animation: canvasDrift 16s ease-in-out forwards;
     }
 
     /* Cinematic scrim — three layers anchored to the text zone:
@@ -1195,12 +1207,14 @@
           hideText();
           v.style.display = 'none';
           stopOverlay.style.willChange = '';
+          canvas.classList.remove('drifting');
           onDone();
         } else {
           // Natural end: overlay fade → unlock (texto ya lleva medio video animándose)
           setTimeout(() => {
             v.style.display = 'none';
             stopOverlay.style.willChange = '';
+            canvas.classList.remove('drifting');
             onDone();
           }, 400);
         }
@@ -1216,6 +1230,7 @@
 
       stopOverlay.style.willChange = 'opacity';
       stopOverlay.classList.add('in');
+      canvas.classList.add('drifting');
       startTimer = setTimeout(() => {
         v.play().catch(() => finish(false));
 
