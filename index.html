@@ -176,6 +176,24 @@
       inset: 0;
       display: block;
       background: var(--bg);
+      transform-origin: center center;
+    }
+
+    /* Settle — oscilación amortiguada al entrar al frame reservado.
+       Amplitud decrece en cada ciclo hasta quedar completamente still.
+       Estado final: scale(1) exacto — sin posición residual. */
+    @keyframes settle {
+      0%   { transform: scale(1.014); }
+      20%  { transform: scale(0.998); }
+      40%  { transform: scale(1.006); }
+      58%  { transform: scale(0.999); }
+      74%  { transform: scale(1.002); }
+      88%  { transform: scale(1.000); }
+      100% { transform: scale(1.000); }
+    }
+
+    #canvas.settling {
+      animation: settle 4s linear forwards;
     }
 
     /* Cinematic scrim — three layers anchored to the text zone:
@@ -1197,7 +1215,14 @@
           stopOverlay.style.willChange = '';
           onDone();
         } else {
-          // Natural end: overlay fade → unlock (texto ya lleva medio video animándose)
+          // Natural end: settle — oscilación amortiguada visible al hacer fade el overlay
+          canvas.classList.remove('settling');
+          void canvas.offsetWidth; // reflow para reiniciar si había animación previa
+          canvas.classList.add('settling');
+          canvas.addEventListener('animationend', () => {
+            canvas.classList.remove('settling');
+          }, { once: true });
+
           setTimeout(() => {
             v.style.display = 'none';
             stopOverlay.style.willChange = '';
@@ -1293,6 +1318,7 @@
       if (isTransitioning || isLocked || inputCooldown) return;
       if (targetIndex === currentStopIndex) return;
 
+      canvas.classList.remove('settling'); // cancela settle si estaba activo
       hideTextFade(); // dissolve current stop card as navigation begins
 
       isTransitioning = true;
@@ -1342,6 +1368,7 @@
 
     function interruptAndGo(forward) {
       if (!isLocked || !skipCurrentVideo) return;
+      canvas.classList.remove('settling');
       hideText();
       skipCurrentVideo();
       setTimeout(() => { if (forward) goNext(); else goPrev(); }, 250);
