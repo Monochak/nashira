@@ -1295,6 +1295,11 @@
       const duration = Math.min(Math.max(distance * 20, 1800), 3200);
       const startTime = performance.now();
 
+      // Ghost offset: cuántos frames atrás va el fantasma.
+      // Escala con la distancia del tween — más rápido = más trail.
+      const ghostOffset  = Math.max(2, Math.round(distance * 0.07));
+      const goingForward = effectiveTo >= fromFrame;
+
       (function tick(now) {
         const t     = Math.min((now - startTime) / duration, 1);
         const eased = t < 0.5          // ease-in-out-cubic — starts and ends gently
@@ -1303,8 +1308,22 @@
         let f = wrapFrame(Math.round(fromFrame + (effectiveTo - fromFrame) * eased));
         if (isReserved(f)) f = wrapFrame(effectiveTo >= fromFrame ? f + 1 : f - 1);
         renderFrame(f);
+
+        // Ghost frame — curva de seno: 0 al inicio, pico en centro, 0 al final.
+        // Solo se dibuja si el bitmap fantasma está disponible.
+        const ghostOpacity = Math.sin(t * Math.PI) * 0.22;
+        if (ghostOpacity > 0.02) {
+          const ghostIdx = wrapFrame(f - (goingForward ? ghostOffset : -ghostOffset));
+          const ghostBmp = bitmaps[ghostIdx];
+          if (ghostBmp) {
+            ctx.globalAlpha = ghostOpacity;
+            drawCover(ghostBmp, ghostBmp.width, ghostBmp.height);
+            ctx.globalAlpha = 1.0;
+          }
+        }
+
         if (t < 1) requestAnimationFrame(tick);
-        else { renderFrame(wrapFrame(effectiveTo)); onDone(); }
+        else { renderFrame(wrapFrame(effectiveTo)); onDone(); } // final limpio, sin ghost
       })(performance.now());
     }
 
