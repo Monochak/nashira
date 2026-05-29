@@ -176,22 +176,6 @@
       inset: 0;
       display: block;
       background: var(--bg);
-      transform-origin: center center;
-    }
-
-    /* Ingravity — aparece cuando el frame reservado queda visible.
-       El canvas deriva suavemente hacia arriba con sway lateral,
-       como si gravitara cero. scale(1.02) evita bordes negros. */
-    @keyframes ingravity {
-      0%   { transform: scale(1.02) translate( 0px,   0px); }
-      20%  { transform: scale(1.02) translate(-2px,  -5px); }
-      50%  { transform: scale(1.02) translate( 3px, -11px); }
-      78%  { transform: scale(1.02) translate(-1px,  -8px); }
-      100% { transform: scale(1.02) translate( 1px,  -6px); }
-    }
-
-    #canvas.floating {
-      animation: ingravity 5s ease-in-out forwards;
     }
 
     /* Cinematic scrim — three layers anchored to the text zone:
@@ -1213,16 +1197,7 @@
           stopOverlay.style.willChange = '';
           onDone();
         } else {
-          // Natural end: el canvas queda visible — activa ingravity.
-          // La animación empieza mientras el overlay hace fade (400ms),
-          // así el frame aparece ya en movimiento.
-          canvas.classList.remove('floating'); // reset si había una anterior
-          void canvas.offsetWidth;             // fuerza reflow para reiniciar animación
-          canvas.classList.add('floating');
-          canvas.addEventListener('animationend', () => {
-            canvas.classList.remove('floating');
-          }, { once: true });
-
+          // Natural end: overlay fade → unlock (texto ya lleva medio video animándose)
           setTimeout(() => {
             v.style.display = 'none';
             stopOverlay.style.willChange = '';
@@ -1318,7 +1293,6 @@
       if (isTransitioning || isLocked || inputCooldown) return;
       if (targetIndex === currentStopIndex) return;
 
-      canvas.classList.remove('floating'); // cancela ingravity si estaba activo
       hideTextFade(); // dissolve current stop card as navigation begins
 
       isTransitioning = true;
@@ -1368,7 +1342,6 @@
 
     function interruptAndGo(forward) {
       if (!isLocked || !skipCurrentVideo) return;
-      canvas.classList.remove('floating'); // cancela ingravity si estaba activo
       hideText();
       skipCurrentVideo();
       setTimeout(() => { if (forward) goNext(); else goPrev(); }, 250);
