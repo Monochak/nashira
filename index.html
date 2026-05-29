@@ -831,6 +831,7 @@
     let touchTriggered    = false;
     let prevChapterZone   = -1;    // last zone passed to updateChapters
     let textVisible       = false; // guard: skip hideText work when already hidden
+    let textTimers        = [];   // active setTimeout handles from showStopText — cancelled on hideText
     let cssWidth          = 0;     // logical canvas size (excludes DPR)
     let cssHeight         = 0;
     let resizeTimer       = null;  // debounce handle for resize
@@ -1022,8 +1023,14 @@
        Called from playStopVideo after the overlay fades in.
        hideText() kills everything instantly for scroll.
     ===================================================== */
-    function showStopText(stopIndex) {
+    // windowMs: total time (ms) from this call until the last word should finish appearing.
+    // Defaults to 3000ms if not provided (fallback for edge cases).
+    function showStopText(stopIndex, windowMs) {
+      // Cancel any in-flight timers from a previous call
+      textTimers.forEach(clearTimeout);
+      textTimers = [];
       textVisible = true;
+
       // Reset all — instant, no transitions
       textEls.forEach(el => {
         el.style.opacity = '0';
@@ -1041,21 +1048,34 @@
         el.style.setProperty('--bd-opacity', '1');
       });
 
-      const queue = [];
+      const words  = Array.from(el.querySelectorAll('.word'));
       const numEl  = el.querySelector('.stop-num');
       const headEl = el.querySelector('.stop-heading');
+
+      // Distribute words across the available window.
+      // num=0, heading=160, words start at 420ms.
+      // Last word starts at (windowMs - 850ms) so its 0.85s transition ends at windowMs.
+      const totalWindow  = windowMs || 3000;
+      const wordsStart   = 420;
+      const lastWordAt   = Math.max(totalWindow - 850, wordsStart + words.length * 60);
+      const wordStagger  = words.length > 1
+        ? (lastWordAt - wordsStart) / (words.length - 1)
+        : 0;
+
+      const queue = [];
       if (numEl)  queue.push({ node: numEl,  delay: 0   });
       if (headEl) queue.push({ node: headEl, delay: 160 });
-      el.querySelectorAll('.word').forEach((w, wi) => {
-        queue.push({ node: w, delay: 420 + wi * 150 });
+      words.forEach((w, wi) => {
+        queue.push({ node: w, delay: wordsStart + wi * wordStagger });
       });
 
       queue.forEach(({ node, delay }) => {
-        setTimeout(() => {
+        const t = setTimeout(() => {
           node.style.transition = 'opacity 0.85s ease, transform 0.85s ease';
           node.style.opacity    = '1';
           node.style.transform  = 'translateY(0)';
         }, delay);
+        textTimers.push(t);
       });
     }
 
@@ -1071,6 +1091,8 @@
 
     // Hide all text instantly — for interrupt and boot.
     function hideText() {
+      textTimers.forEach(clearTimeout);
+      textTimers = [];
       if (!textVisible) return;
       textVisible = false;
       textEls.forEach(el => {
@@ -1088,6 +1110,8 @@
     // clean on the next stop.
     let hideTextFadeTimer = null;
     function hideTextFade() {
+      textTimers.forEach(clearTimeout);
+      textTimers = [];
       if (!textVisible) return;
       textVisible = false;
       textEls.forEach(el => {
@@ -1151,11 +1175,13 @@
 
       let done       = false;
       let startTimer = null;
+      let midTimer   = null;  // fires at video midpoint to start text animation
 
       function finish(immediate) {
         if (done) return;
         done = true;
         clearTimeout(startTimer);
+        clearTimeout(midTimer);
         skipCurrentVideo = null;
         v.removeEventListener('ended', onEnded);
         v.removeEventListener('error', onError);
@@ -1165,16 +1191,16 @@
         renderFrame(wrapFrame(C.stops[stopIndex].frame + 1));
         v.pause();
         if (immediate) {
-          // Interrupted: navega sin mostrar texto — el usuario ya se fue
+          // Interrupted: cancela texto en vuelo y navega
+          hideText();
           v.style.display = 'none';
           stopOverlay.style.willChange = '';
           onDone();
         } else {
-          // Natural end: overlay fade → texto aparece → unlock
+          // Natural end: overlay fade → unlock (texto ya lleva medio video animándose)
           setTimeout(() => {
             v.style.display = 'none';
             stopOverlay.style.willChange = '';
-            showStopText(stopIndex);
             onDone();
           }, 400);
         }
@@ -1192,6 +1218,14 @@
       stopOverlay.classList.add('in');
       startTimer = setTimeout(() => {
         v.play().catch(() => finish(false));
+
+        // Dispara texto en el punto medio del video.
+        // duration disponible porque los videos están preloaded.
+        // windowMs = mitad restante + 1s extra post-video.
+        const dur    = v.duration && isFinite(v.duration) ? v.duration : 8;
+        const halfMs = dur * 500;          // mitad del video en ms
+        const winMs  = halfMs + 1000;      // ventana total de animación del texto
+        midTimer = setTimeout(() => showStopText(stopIndex, winMs), halfMs);
       }, 400);
     }
 
