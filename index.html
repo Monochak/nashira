@@ -392,7 +392,6 @@
        On first enableNav(), pulse 3 times to reveal presence.
     ===================================================== */
     .nav-chevron {
-      position: relative; /* contains the ::before glow layer */
       position: fixed;
       top: 50%;
       transform: translateY(-50%);
@@ -422,33 +421,30 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       fill: none;
-      position: relative; /* above the glow layer */
-      z-index: 1;
     }
 
-    /* Glow pulse — 3 parpadeos al mostrar por primera vez.
-       Desaparece solo al terminar o al primer click. */
-    .nav-chevron.pulsing::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      background: radial-gradient(circle,
-        oklch(from var(--text) l c h / 0.70) 0%,
-        oklch(from var(--text) l c h / 0.22) 45%,
-        transparent 70%);
-      pointer-events: none;
-      animation: chevronGlow 1s ease-in-out 3 forwards;
+    /* Bounce — 3 nudges en la dirección del chevron al primer enableNav().
+       Se anima el SVG para no interferir con el translateY(-50%) del botón. */
+    .nav-chevron--right.pulsing svg {
+      animation: bounceRight 0.65s ease-out 3 forwards;
     }
 
-    @keyframes chevronGlow {
-      0%   { opacity: 0;    transform: translate(-50%, -50%) scale(0.7); }
-      40%  { opacity: 1;    transform: translate(-50%, -50%) scale(1);   }
-      100% { opacity: 0;    transform: translate(-50%, -50%) scale(1.1); }
+    .nav-chevron--left.pulsing svg {
+      animation: bounceLeft 0.65s ease-out 3 forwards;
+    }
+
+    @keyframes bounceRight {
+      0%   { transform: translateX(0);   }
+      35%  { transform: translateX(7px); }
+      65%  { transform: translateX(2px); }
+      100% { transform: translateX(0);   }
+    }
+
+    @keyframes bounceLeft {
+      0%   { transform: translateX(0);    }
+      35%  { transform: translateX(-7px); }
+      65%  { transform: translateX(-2px); }
+      100% { transform: translateX(0);    }
     }
 
     /* =====================================================
