@@ -208,18 +208,18 @@
       z-index: 1;
       pointer-events: none;
       background:
+        linear-gradient(to bottom,
+          oklch(from var(--bg) l c h / 0.22) 0%,
+          oklch(from var(--bg) l c h / 0.10) 22%,
+          transparent 42%),
         linear-gradient(to top,
-          oklch(from var(--bg) l c h / 0.10) 0%,
-          oklch(from var(--bg) l c h / 0.09) 28%,
-          oklch(from var(--bg) l c h / 0.03) 55%,
-          transparent 70%),
+          oklch(from var(--bg) l c h / 0.14) 0%,
+          oklch(from var(--bg) l c h / 0.06) 20%,
+          transparent 40%),
         linear-gradient(to right,
-          oklch(from var(--bg) l c h / 0.18) 0%,
-          oklch(from var(--bg) l c h / 0.05) 42%,
-          transparent 60%),
-        radial-gradient(ellipse 70% 55% at 10% 96%,
-          oklch(from var(--bg) l c h / 0.19) 0%,
-          transparent 100%);
+          oklch(from var(--bg) l c h / 0.22) 0%,
+          oklch(from var(--bg) l c h / 0.08) 38%,
+          transparent 58%);
     }
 
     /* =====================================================
@@ -229,39 +229,27 @@
     ===================================================== */
     #text-overlay {
       position: fixed;
-      left: 50%;
-      bottom: 110px;
-      transform: translateX(-50%);
+      left: 64px;
+      top: 0;
+      bottom: 0;
       z-index: 45;
       pointer-events: none;
-      width: 600px;
-      text-align: center;
+      width: 500px;
     }
 
 
     .stop-text {
       position: absolute;
-      bottom: 0;
-      left: 0;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 14% 0 120px 0; /* heading arriba, body abajo */
       opacity: 0;
-      isolation: isolate; /* stacking context so ::before z-index: -1 stays local */
+      isolation: isolate;
     }
 
-    /* Pill backdrop — dark frosted panel behind the text.
-       opacity and transition-duration are driven by JS custom
-       properties so show = slow fade-in, hide = instant. */
-    .stop-text::before {
-      content: '';
-      position: absolute;
-      inset: -18px -28px -22px -28px;
-      z-index: -1;
-      background: oklch(from var(--bg) l c h / 0.28);
-      backdrop-filter: blur(4px) saturate(0.6);
-      -webkit-backdrop-filter: blur(4px) saturate(0.6);
-      border-radius: 20px;
-      opacity: var(--bd-opacity, 0);
-      transition: opacity var(--bd-dur, 0s) ease;
-    }
+    /* Backdrop desactivado en split layout — texto tiene text-shadow propio */
+    .stop-text::before { display: none; }
 
     .stop-num {
       font-size: 0.625rem;
@@ -274,14 +262,14 @@
 
     .stop-heading {
       font-family: var(--font-display);
-      font-size: clamp(2rem, 4vw, 3.6rem);
+      font-size: clamp(3rem, 5.5vw, 5.5rem);
       font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -0.01em;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
       color: var(--text);
-      margin-bottom: 16px;
+      margin-bottom: 0;
       text-wrap: balance;
-      text-shadow: 0 2px 24px oklch(0% 0 0 / 0.55);
+      text-shadow: 0 2px 32px oklch(0% 0 0 / 0.65);
     }
 
     .stop-body {
@@ -289,10 +277,11 @@
       font-weight: 400;
       color: var(--text-secondary);
       line-height: 1.75;
-      max-width: 360px;
+      max-width: 380px;
       letter-spacing: 0.01em;
       text-wrap: pretty;
       text-shadow: 0 1px 8px oklch(0% 0 0 / 0.60);
+      margin-top: auto; /* empuja al fondo del flex container */
     }
 
     .word {
@@ -604,14 +593,19 @@
         align-items: center;
       }
 
-      /* Text overlay — opción B: centro horizontal, bottom */
+      /* Text overlay — opción C: split editorial, móvil */
       #text-overlay {
         left: 24px;
         right: 24px;
-        bottom: 90px;
-        transform: none;
         width: auto;
-        text-align: center;
+      }
+
+      .stop-text {
+        padding: 20% 0 100px 0;
+      }
+
+      .stop-heading {
+        font-size: clamp(2.5rem, 8vw, 4rem);
       }
 
       .stop-body {
@@ -667,9 +661,8 @@
        Pull text and chapters up less to prevent crowding.
     ===================================================== */
     @media (max-height: 500px) {
-      #text-overlay {
-        bottom: 60px;
-        transform: none;
+      .stop-text {
+        padding: 12% 0 70px 0;
       }
 
       #chapters {
