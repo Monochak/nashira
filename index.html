@@ -229,12 +229,13 @@
     ===================================================== */
     #text-overlay {
       position: fixed;
-      left: 64px;
-      top: 50%;
-      transform: translateY(-50%);
+      left: 50%;
+      bottom: 110px;
+      transform: translateX(-50%);
       z-index: 45;
       pointer-events: none;
-      width: 400px;
+      width: 600px;
+      text-align: center;
     }
 
 
@@ -603,13 +604,14 @@
         align-items: center;
       }
 
-      /* Text overlay — opción A: centro vertical izquierdo */
+      /* Text overlay — opción B: centro horizontal, bottom */
       #text-overlay {
         left: 24px;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
+        right: 24px;
+        bottom: 90px;
+        transform: none;
         width: auto;
+        text-align: center;
       }
 
       .stop-body {
@@ -666,8 +668,8 @@
     ===================================================== */
     @media (max-height: 500px) {
       #text-overlay {
-        top: 50%;
-        transform: translateY(-50%);
+        bottom: 60px;
+        transform: none;
       }
 
       #chapters {
