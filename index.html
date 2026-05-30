@@ -208,18 +208,15 @@
       z-index: 1;
       pointer-events: none;
       background:
+        radial-gradient(ellipse 80% 60% at 50% 50%,
+          oklch(from var(--bg) l c h / 0.18) 0%,
+          transparent 100%),
         linear-gradient(to bottom,
-          oklch(from var(--bg) l c h / 0.22) 0%,
-          oklch(from var(--bg) l c h / 0.10) 22%,
-          transparent 42%),
+          oklch(from var(--bg) l c h / 0.12) 0%,
+          transparent 35%),
         linear-gradient(to top,
-          oklch(from var(--bg) l c h / 0.14) 0%,
-          oklch(from var(--bg) l c h / 0.06) 20%,
-          transparent 40%),
-        linear-gradient(to right,
-          oklch(from var(--bg) l c h / 0.22) 0%,
-          oklch(from var(--bg) l c h / 0.08) 38%,
-          transparent 58%);
+          oklch(from var(--bg) l c h / 0.12) 0%,
+          transparent 35%);
     }
 
     /* =====================================================
@@ -229,27 +226,36 @@
     ===================================================== */
     #text-overlay {
       position: fixed;
-      left: 64px;
-      top: 0;
-      bottom: 0;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       z-index: 45;
       pointer-events: none;
-      width: 500px;
+      width: 560px;
+      text-align: center;
     }
-
 
     .stop-text {
       position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      padding: 14% 0 120px 0; /* heading arriba, body abajo */
+      bottom: 0;
+      left: 0;
       opacity: 0;
       isolation: isolate;
     }
 
-    /* Backdrop desactivado en split layout — texto tiene text-shadow propio */
-    .stop-text::before { display: none; }
+    /* Pill backdrop restaurado */
+    .stop-text::before {
+      content: '';
+      position: absolute;
+      inset: -18px -28px -22px -28px;
+      z-index: -1;
+      background: oklch(from var(--bg) l c h / 0.28);
+      backdrop-filter: blur(4px) saturate(0.6);
+      -webkit-backdrop-filter: blur(4px) saturate(0.6);
+      border-radius: 20px;
+      opacity: var(--bd-opacity, 0);
+      transition: opacity var(--bd-dur, 0s) ease;
+    }
 
     .stop-num {
       font-size: 0.625rem;
@@ -262,12 +268,12 @@
 
     .stop-heading {
       font-family: var(--font-display);
-      font-size: clamp(3rem, 5.5vw, 5.5rem);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
       font-weight: 700;
-      line-height: 1.0;
+      line-height: 1.05;
       letter-spacing: -0.02em;
       color: var(--text);
-      margin-bottom: 0;
+      margin-bottom: 20px;
       text-wrap: balance;
       text-shadow: 0 2px 32px oklch(0% 0 0 / 0.65);
     }
@@ -277,11 +283,11 @@
       font-weight: 400;
       color: var(--text-secondary);
       line-height: 1.75;
-      max-width: 380px;
+      max-width: 420px;
+      margin: 0 auto;
       letter-spacing: 0.01em;
       text-wrap: pretty;
       text-shadow: 0 1px 8px oklch(0% 0 0 / 0.60);
-      margin-top: auto; /* empuja al fondo del flex container */
     }
 
     .word {
@@ -593,19 +599,13 @@
         align-items: center;
       }
 
-      /* Text overlay — opción C: split editorial, móvil */
+      /* Text overlay — centrado */
       #text-overlay {
-        left: 24px;
-        right: 24px;
-        width: auto;
+        width: calc(100% - 48px);
       }
 
-      .stop-text {
-        padding: 20% 0 100px 0;
-      }
-
-      .stop-heading {
-        font-size: clamp(2.5rem, 8vw, 4rem);
+      .stop-body {
+        max-width: none;
       }
 
       .stop-body {
@@ -661,8 +661,9 @@
        Pull text and chapters up less to prevent crowding.
     ===================================================== */
     @media (max-height: 500px) {
-      .stop-text {
-        padding: 12% 0 70px 0;
+      #text-overlay {
+        top: 50%;
+        transform: translate(-50%, -50%);
       }
 
       #chapters {
