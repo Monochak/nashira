@@ -1088,6 +1088,9 @@
     // windowMs: total time (ms) from this call until the last word should finish appearing.
     // Defaults to 3000ms if not provided (fallback for edge cases).
     function showStopText(stopIndex, windowMs) {
+      // Guard: reject stale timers that survived a navigation
+      if (stopIndex !== currentStopIndex) return;
+
       // Cancel any in-flight timers from a previous call
       textTimers.forEach(clearTimeout);
       textTimers = [];
@@ -1155,6 +1158,7 @@
 
     // Hide all text instantly — for interrupt and boot.
     function hideText() {
+      clearTimeout(hideTextFadeTimer);   // kill any pending fade-reset (prevents stale resets on next stop)
       textTimers.forEach(clearTimeout);
       textTimers = [];
       if (!textVisible) return;
@@ -1282,6 +1286,8 @@
       stopOverlay.style.willChange = 'opacity';
       stopOverlay.classList.add('in');
       startTimer = setTimeout(() => {
+        if (done) return;  // finish() may have fired in the same event-loop tick
+
         v.play().catch(() => finish(false));
 
         // Dispara texto en el punto medio del video.
