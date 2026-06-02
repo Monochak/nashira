@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FORMA</title>
+  <title>GEOMETRIA</title>
   <!-- Fonts: Big Shoulders Display (display headings) + Barlow (body + UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,8 +72,8 @@
       position: fixed;
       inset: 0;
       z-index: 100;
-      background: var(--bg);
-      transition: opacity 1.2s ease;
+      background: oklch(18% 0.008 250); /* grafito — mismo tono que el heading */
+      /* transitions manejadas por JS para poder secuenciarlas */
     }
 
     #loading.out {
@@ -104,9 +104,8 @@
       font-weight: 700;
       letter-spacing: 0.5em;
       line-height: 1;
-      color: var(--text);
+      color: oklch(18% 0.008 250); /* grafito — invisible sobre fondo grafito, se revela al aclarar */
       white-space: nowrap;
-      text-shadow: 0 2px 40px oklch(0% 0 0 / 0.70);
       opacity: 0;
       filter: blur(20px);
       z-index: 2;
@@ -120,7 +119,7 @@
       transform: translateX(-50%);
       font-size: 0.8125rem;
       font-weight: 400;
-      color: var(--muted);
+      color: oklch(28% 0.009 250); /* grafito medio — legible sobre blanco beige */
       letter-spacing: 0.04em;
       white-space: nowrap;
       z-index: 2;
@@ -443,6 +442,12 @@
     /* CTA sits on --accent background — use --text so the outline is visible */
     .nav-cta:focus-visible { outline-color: var(--text); }
 
+    /* Wrapper — transparent on desktop, becomes the fixed container on mobile */
+    #nav-wrapper { display: contents; }
+
+    /* Mobile dropdown — hidden on desktop, revealed in mobile media query */
+    #nav-mobile-dropdown { display: none; }
+
     /* =====================================================
        SCROLL HINT
     ===================================================== */
@@ -633,21 +638,112 @@
       #loading-brand { left: 24px; }
       #loading-pct   { right: 24px; }
 
-      /* Nav collapse */
-      .nav-links {
-        display: none;
+      /* Wrapper toma el control del posicionamiento fijo en móvil */
+      #nav-wrapper {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 180px;
+        z-index: 55;
       }
+
+      /* Nav collapse — links ocultos; pill cede posición al wrapper */
+      .nav-links { display: none; }
 
       #nav {
+        position: relative;
+        top: auto; left: auto;
+        transform: none;
+        z-index: 2;
+        width: 100%;
+        justify-content: center;
         gap: 16px;
         padding: 9px 16px;
+        min-height: 62px;
+        border-radius: 100px;
+        transition: background 0.4s;
       }
 
-      .nav-cta {
-        padding: 9px 16px;
-        min-height: 44px;
-        display: inline-flex;
+      /* CTA oculto del pill en móvil — vive en la extensión */
+      .nav-cta { display: none; }
+
+      /* Brand toggle indicator */
+      .nav-brand::after {
+        content: '▾';
+        margin-left: 5px;
+        font-size: 0.5rem;
+        opacity: 0.40;
+        display: inline-block;
+        transition: transform 0.2s ease;
+        vertical-align: middle;
+      }
+      .nav-brand[aria-expanded="true"]::after {
+        transform: rotate(180deg);
+        opacity: 0.70;
+      }
+
+      /* Extensión — emerge desde detrás del pill (z-index menor, margin-top negativo) */
+      #nav-mobile-dropdown {
+        display: block;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        margin-top: -31px;
+        padding-top: 31px;
+        background: oklch(17% 0.01 250 / 0.78);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        border: 1px solid var(--glass-border);
+        border-top: none;
+        border-radius: 0 0 28px 28px;
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: max-height 0.30s ease-out, opacity 0.22s ease;
+      }
+
+      #nav-mobile-dropdown.open {
+        max-height: 280px;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Links dentro de la extensión */
+      .nav-mobile-links {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0 6px;
+      }
+
+      .nav-mobile-links a {
+        display: block;
+        padding: 9px 0;
+        font-size: 0.6875rem;
+        font-weight: 500;
+        color: oklch(93% 0.005 250 / 0.65);
+        text-decoration: none;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        text-align: center;
+        transition: color 0.2s;
+      }
+
+      .nav-mobile-links a:hover { color: oklch(93% 0.005 250 / 0.95); }
+
+      /* CTA dentro de la extensión */
+      #nav-mobile-dropdown .nav-cta {
+        display: flex;
         align-items: center;
+        justify-content: center;
+        margin: 6px 16px 14px;
+        padding: 10px 0;
+        min-height: 44px;
+        width: calc(100% - 32px);
+        font-size: 0.6875rem;
       }
 
       /* Text overlay — centrado */
@@ -744,7 +840,7 @@
   ====================================================== -->
   <script type="application/json" id="site-config">
   {
-    "brand": "FORMA",
+    "brand": "GEOMETRIA",
 
     "totalFrames": 360,
     "frameDir":    "content/images/sequence/",
@@ -768,23 +864,36 @@
   </script>
 
   <!-- Page-level heading (screen readers only) -->
-  <h1 class="sr-only">FORMA</h1>
+  <h1 class="sr-only">GEOMETRIA</h1>
 
   <!-- NAV -->
-  <nav id="nav" aria-label="Main navigation">
-    <a href="#" class="nav-brand" aria-label="FORMA — home">FORMA</a>
-    <ul class="nav-links">
-      <li><a href="#">Emotion</a></li>
-      <li><a href="#">Ownership</a></li>
-      <li><a href="#">Action</a></li>
-      <li><a href="#">Location</a></li>
-    </ul>
-    <a href="#" class="nav-cta">Contact</a>
-  </nav>
+  <div id="nav-wrapper">
+    <nav id="nav" aria-label="Main navigation">
+      <a href="#" class="nav-brand" aria-label="GEOMETRIA — home" aria-expanded="false" aria-controls="nav-mobile-dropdown">GEOMETRIA</a>
+      <ul class="nav-links">
+        <li><a href="#">Emotion</a></li>
+        <li><a href="#">Ownership</a></li>
+        <li><a href="#">Action</a></li>
+        <li><a href="#">Location</a></li>
+      </ul>
+      <a href="#" class="nav-cta">Contact</a>
+    </nav>
+
+    <!-- Mobile nav extension (only active on ≤767px) -->
+    <div id="nav-mobile-dropdown" role="menu" aria-label="Navigation menu">
+      <nav class="nav-mobile-links" aria-label="Site sections">
+        <a href="#" role="menuitem">Emotion</a>
+        <a href="#" role="menuitem">Ownership</a>
+        <a href="#" role="menuitem">Action</a>
+        <a href="#" role="menuitem">Location</a>
+      </nav>
+      <a href="#" class="nav-cta" role="menuitem">Contact</a>
+    </div>
+  </div>
 
   <!-- LOADING -->
   <div id="loading">
-    <span id="loading-brand">FORMA</span>
+    <span id="loading-brand">GEOMETRIA</span>
     <h2 id="loading-heading">Stillness</h2>
     <p id="loading-tagline"><span class="loading-word">Every</span> <span class="loading-word">motion</span> <span class="loading-word">begins</span> <span class="loading-word">in</span> <span class="loading-word">stillness.</span></p>
     <div id="loading-track"><div id="loading-fill"></div></div>
@@ -1693,21 +1802,28 @@
       }
       loaderRaf = requestAnimationFrame(animateLoader);
 
-      // "Stillness" + gradiente — aparecen juntos
+      // ── REVEAL 1: fondo grafito → blanco-beige en 3s (comienza de inmediato)
+      loadingEl.style.transition       = 'background-color 3s ease';
+      loadingEl.style.backgroundColor  = 'oklch(96% 0.006 80)';
+
+      // ── REVEAL 2: "Stillness" emerge mientras el fondo aclara
+      //    El blur se disipa sobre 2.5s; el grafito del texto se hace visible
+      //    a medida que el fondo se aleja de él hacia el blanco-beige.
       const loadingHeading = document.getElementById('loading-heading');
       setTimeout(() => {
-        loadingHeading.style.transition = 'opacity 2.2s ease, filter 2.2s ease';
+        loadingHeading.style.transition = 'opacity 2.5s ease, filter 2.5s ease';
         loadingHeading.style.opacity    = '1';
         loadingHeading.style.filter     = 'blur(0px)';
       }, 300);
 
-      // Tagline — aparece palabra por palabra, misma lógica que stop text
+      // ── REVEAL 3: Tagline — aparece palabra por palabra después de que
+      //    el fondo llegó a su destino (~3s) para que el copy se lea sobre blanco.
       document.querySelectorAll('.loading-word').forEach((word, i) => {
         setTimeout(() => {
           word.style.transition = 'opacity 0.85s ease, transform 0.85s ease';
           word.style.opacity    = '1';
           word.style.transform  = 'translateY(0)';
-        }, 1400 + i * 220);
+        }, 3200 + i * 220);
       });
 
       const minWait = new Promise(resolve => setTimeout(resolve, LOADER_MS + 400));
@@ -1718,33 +1834,83 @@
         loadingFill.style.width      = '100%';
         loadingPct.textContent       = '100%';
 
-        // Pausa en 100% para que el usuario lo vea, luego fade-out completo.
+        // Pausa en 100%, luego secuencia de salida:
+        // 1) fondo aclara → oscurece (1.5s) antes de que la página aparezca
+        // 2) fade de opacidad (1.2s)
         setTimeout(() => {
           renderFrame(0);
-          loadingEl.classList.add('out'); // fade 1.2s
 
-          setTimeout(loadRemainingFrames, 200);
+          // Oscurecer el fondo antes del fade — el blanco-beige vuelve al negro
+          loadingEl.style.transition      = 'background-color 1.5s ease';
+          loadingEl.style.backgroundColor = 'oklch(9% 0.008 250)';
 
-          // Esperar a que el fade termine antes de arrancar la experiencia
           setTimeout(() => {
-            loadingEl.style.display = 'none';
-            showChevrons();
-            navStopPill.classList.add('visible');
-            updateNavPill(0);
+            loadingEl.style.transition = 'opacity 1.2s ease';
+            loadingEl.classList.add('out'); // fade 1.2s
 
-            playIntro(() => {
-              hideText();
-              lockScroll();
-              playStopVideo(0, () => {
-                currentStopIndex = 0;
-                unlockScroll();
-                enableNav();
+            setTimeout(loadRemainingFrames, 200);
+
+            // Esperar a que el fade termine antes de arrancar la experiencia
+            setTimeout(() => {
+              loadingEl.style.display = 'none';
+              showChevrons();
+              navStopPill.classList.add('visible');
+              updateNavPill(0);
+
+              playIntro(() => {
+                hideText();
+                lockScroll();
+                playStopVideo(0, () => {
+                  currentStopIndex = 0;
+                  unlockScroll();
+                  enableNav();
+                });
               });
-            });
-          }, 1400); // 1.2s fade + 200ms margen
-        }, 800); // pausa en 100% antes del fade
+            }, 1400); // 1.2s fade + 200ms margen
+          }, 1500); // esperar oscurecimiento del fondo
+        }, 800); // pausa en 100% antes de salir
       });
     }
+
+    /* =====================================================
+       MOBILE NAV TOGGLE
+       FORMA pill → tap → extensión desliza como cola del pill.
+       Solo activo en ≤767px (matchMedia guard).
+    ===================================================== */
+    (function () {
+      const mq          = window.matchMedia('(max-width: 767px)');
+      const navBrand    = document.querySelector('.nav-brand');
+      const navEl       = document.getElementById('nav');
+      const navDropdown = document.getElementById('nav-mobile-dropdown');
+      const navWrapper  = document.getElementById('nav-wrapper');
+
+      function closeDropdown() {
+        navDropdown.classList.remove('open');
+        navBrand.setAttribute('aria-expanded', 'false');
+      }
+
+      navBrand.addEventListener('click', (e) => {
+        if (!mq.matches) return;
+        e.preventDefault();
+        if (navDropdown.classList.contains('open')) {
+          closeDropdown();
+        } else {
+          navDropdown.classList.add('open');
+          navBrand.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      // Cerrar al tocar fuera del wrapper completo
+      document.addEventListener('pointerdown', (e) => {
+        if (!navDropdown.classList.contains('open')) return;
+        if (!navWrapper.contains(e.target)) closeDropdown();
+      });
+
+      // Cerrar con Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDropdown();
+      });
+    })();
 
     boot();
   </script>
