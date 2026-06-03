@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FORMA</title>
+  <!-- Fonts: Big Shoulders Display (display headings) + Barlow (body + UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:             oklch(9%  0.008 250);   /* near-black background          */
+      --text:           oklch(93% 0.005 250);   /* primary text                   */
+      --text-secondary: oklch(88% 0.006 250);   /* body text, slightly dimmer     */
+      --muted:          oklch(48% 0.01  250);   /* inactive UI elements           */
+      --dim:            oklch(28% 0.009 250);   /* loading label                  */
+      --accent:         oklch(70% 0.175  52);   /* warm amber                     */
+      --border:         oklch(17% 0.01  250);   /* borders, inactive dots         */
+      --glass-bg:       oklch(13% 0.01  250 / 0.72); /* nav pill background       */
+      --glass-border:   oklch(25% 0.012 250 / 0.55); /* nav pill border           */
+
+      /* display headings / body + UI */
+      --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
+      --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
+    }
+
+    html {
+      scrollbar-width: none; /* Firefox */
+    }
+    html::-webkit-scrollbar {
+      display: none; /* Chrome / Safari / Edge */
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* navigation is gesture-driven; no page scroll */
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-optical-sizing: auto;
+      font-kerning: normal;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* =====================================================
+       UTILITIES
+    ===================================================== */
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 3px;
+    }
+
+    /* =====================================================
+       INTRO VIDEO
+    ===================================================== */
+    #intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: var(--bg);
+      transition: opacity 0.5s ease;
+    }
+
+    #intro-overlay.out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* =====================================================
+       STOP VIDEO
+    ===================================================== */
+    #stop-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: var(--bg);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      contain: paint; /* isolate repaint from canvas below */
+    }
+
+    #stop-overlay.in {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Shared video styles */
+    #intro-video,
+    .pool-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* =====================================================
+       CANVAS
+    ===================================================== */
+    #scroll-wrapper { /* height set by JS */ }
+
+    #stage {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh; /* mobile browsers: excludes address bar */
+      overflow: hidden;
+      contain: paint; /* limit repaint to this element's bounds */
+      cursor: ew-resize;
+      user-select: none;
+    }
+
+    /* While dragging: override cursor for the whole page */
+    body.is-dragging,
+    body.is-dragging * { cursor: ew-resize !important; }
+
+    #canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      background: var(--bg);
+      transform-origin: center center;
+    }
+
+    /* Cinematic scrim — three layers anchored to the text zone:
+       1. Vertical  (bottom → up)  : covers the text area solidly.
+       2. Horizontal (left → right): adds left-side depth.
+       3. Radial    (bottom-left)  : concentrated dark well exactly
+          where heading + body live, survives any background tone. */
+    #stage::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 50%,
+          oklch(from var(--bg) l c h / 0.18) 0%,
+          transparent 100%),
+        linear-gradient(to bottom,
+          oklch(from var(--bg) l c h / 0.12) 0%,
+          transparent 35%),
+        linear-gradient(to top,
+          oklch(from var(--bg) l c h / 0.12) 0%,
+          transparent 35%);
+    }
+
+    /* =====================================================
+       TEXT OVERLAY
+       Sits above the stop video (z-index 45 > 40).
+       Visible during stop videos and scroll scrubbing.
+    ===================================================== */
+    #text-overlay {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 45;
+      pointer-events: none;
+      width: 560px;
+      text-align: center;
+    }
+
+    .stop-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      opacity: 0;
+      isolation: isolate;
+    }
+
+    /* Pill backdrop — fade-in + subtle scale desde el centro */
+    .stop-text::before {
+      content: '';
+      position: absolute;
+      inset: -18px -28px -22px -28px;
+      z-index: -1;
+      background: oklch(from var(--bg) l c h / 0.28);
+      backdrop-filter: blur(4px) saturate(0.6);
+      -webkit-backdrop-filter: blur(4px) saturate(0.6);
+      border-radius: 20px;
+      opacity: var(--bd-opacity, 0);
+      transform: scale(var(--bd-scale, 0.92));
+      transform-origin: center center;
+      transition: opacity var(--bd-dur, 0s) ease,
+                  transform var(--bd-dur, 0s) cubic-bezier(0.34, 1.04, 0.64, 1);
+    }
+
+    .stop-num {
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .stop-heading {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 20px;
+      text-wrap: balance;
+      text-shadow: 0 2px 32px oklch(0% 0 0 / 0.65);
+    }
+
+    .stop-body {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 1.75;
+      max-width: 420px;
+      margin: 0 auto;
+      letter-spacing: 0.01em;
+      text-wrap: pretty;
+      text-shadow: 0 1px 8px oklch(0% 0 0 / 0.60);
+    }
+
+    .word {
+      display: inline;
+      opacity: 0;
+    }
+
+    /* =====================================================
+       CHAPTER INDICATORS (bottom center)
+    ===================================================== */
+    #chapters {
+      position: fixed;
+      bottom: 40px;
+      left: 64px;
+      z-index: 45;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .chap-dot {
+      height: 2px;
+      width: 20px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: width 0.4s ease, background 0.4s ease, opacity 0.4s ease;
+      opacity: 0.5;
+    }
+
+    .chap-dot.is-active {
+      width: 40px;
+      background: var(--accent);
+      opacity: 1;
+    }
+
+    .chap-dot.is-done {
+      background: var(--muted);
+      opacity: 0.6;
+    }
+
+    /* =====================================================
+       NAV — floating glass pill
+    ===================================================== */
+    #nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 55;
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      padding: 11px 24px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      white-space: nowrap;
+      transition: background 0.4s;
+    }
+
+    .nav-brand {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: oklch(93% 0.005 250 / 0.6);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-brand:hover { color: oklch(93% 0.005 250 / 0.9); }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: oklch(93% 0.005 250);
+      opacity: 0.40;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: opacity 0.2s;
+    }
+
+    .nav-links a:hover  { opacity: 0.80; }
+    .nav-links a.active { opacity: 1; }
+
+    .nav-cta {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      padding: 7px 18px;
+      border-radius: 100px;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+      text-decoration: none;
+    }
+
+    .nav-cta:hover { opacity: 0.85; transform: scale(1.03); }
+    /* CTA sits on --accent background — use --text so the outline is visible */
+    .nav-cta:focus-visible { outline-color: var(--text); }
+
+    /* Wrapper — transparent on desktop, becomes the fixed container on mobile */
+    #nav-wrapper { display: contents; }
+
+    /* Mobile dropdown — hidden on desktop, revealed in mobile media query */
+    #nav-mobile-dropdown { display: none; }
+
+    /* =====================================================
+       SCROLL HINT
+    ===================================================== */
+    /* =====================================================
+       OPTION A — SIDE CHEVRONS
+       Visible immediately after boot; stay permanently.
+       On first enableNav(), pulse 3 times to reveal presence.
+    ===================================================== */
+    .nav-chevron {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 45;
+      background: none;
+      border: none;
+      padding: 32px 18px;
+      cursor: pointer;
+      color: var(--text);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .nav-chevron.visible        { opacity: 0.60; pointer-events: auto; }
+    .nav-chevron.visible:hover  { opacity: 1.00; }
+
+    .nav-chevron--left  { left: 0; }
+    .nav-chevron--right { right: 0; }
+
+    /* Circular glass backdrop behind each chevron icon */
+    .nav-chevron::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: oklch(93% 0.005 250 / 0.12);
+      backdrop-filter: blur(14px) saturate(1.3);
+      -webkit-backdrop-filter: blur(14px) saturate(1.3);
+      border: 1px solid oklch(93% 0.005 250 / 0.22);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, background 0.25s ease, border-color 0.25s ease;
+    }
+
+    .nav-chevron.visible:hover::before,
+    .nav-chevron.visible:focus-visible::before {
+      opacity: 1;
+      background: oklch(93% 0.005 250 / 0.20);
+      border-color: oklch(93% 0.005 250 / 0.40);
+    }
+
+    .nav-chevron svg {
+      display: block;
+      width: 28px;
+      height: 28px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      position: relative; /* above the ::before disc */
+      z-index: 1;
+    }
+
+    /* Bounce — 3 nudges en la dirección del chevron al primer enableNav().
+       Se anima el SVG para no interferir con el translateY(-50%) del botón. */
+    .nav-chevron--right.pulsing svg {
+      animation: bounceRight 0.65s ease-out 3 forwards;
+    }
+
+    .nav-chevron--left.pulsing svg {
+      animation: bounceLeft 0.65s ease-out 3 forwards;
+    }
+
+    @keyframes bounceRight {
+      0%   { transform: translateX(0);   }
+      35%  { transform: translateX(7px); }
+      65%  { transform: translateX(2px); }
+      100% { transform: translateX(0);   }
+    }
+
+    @keyframes bounceLeft {
+      0%   { transform: translateX(0);    }
+      35%  { transform: translateX(-7px); }
+      65%  { transform: translateX(-2px); }
+      100% { transform: translateX(0);    }
+    }
+
+    /* =====================================================
+       OPTION B — STOP NAVIGATION PILL
+       Glass pill at bottom-center; always visible after enableNav().
+       Shows current stop / total with prev–next buttons.
+    ===================================================== */
+    #nav-stop-pill {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 8px 6px 14px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      white-space: nowrap;
+    }
+
+    #nav-stop-pill.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #pill-counter {
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .pill-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 10px;
+      color: var(--text);
+      opacity: 0.45;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 100px;
+    }
+
+    .pill-btn:hover  { opacity: 1; }
+    .pill-btn:disabled { opacity: 0.18 !important; cursor: default; pointer-events: none; }
+
+    .nav-chevron.is-disabled { opacity: 0.12 !important; pointer-events: none !important; cursor: default; }
+
+    .pill-btn svg {
+      display: block;
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    /* Mobile pill + chevron overrides live in the main ≤767px block below */
+
+    /* =====================================================
+       REDUCED MOTION
+       Kills all animations for users who prefer it.
+       Stops still play (content), transitions go instant.
+    ===================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration:       0.01ms !important;
+        animation-iteration-count: 1     !important;
+        transition-duration:      0.01ms !important;
+      }
+    }
+
+    /* =====================================================
+       TABLET  768px – 1023px
+       Tighten left gutter slightly; everything else holds.
+    ===================================================== */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      #chapters { left: 40px; }
+    }
+
+    /* =====================================================
+       MOBILE  ≤ 767px
+    ===================================================== */
+    @media (max-width: 767px) {
+      /* Wrapper toma el control del posicionamiento fijo en móvil */
+      #nav-wrapper {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 180px;
+        z-index: 55;
+      }
+
+      /* Nav collapse — links ocultos; pill cede posición al wrapper */
+      .nav-links { display: none; }
+
+      #nav {
+        position: relative;
+        top: auto; left: auto;
+        transform: none;
+        z-index: 2;
+        width: 100%;
+        justify-content: center;
+        gap: 16px;
+        padding: 9px 16px;
+        min-height: 62px;
+        border-radius: 100px;
+        transition: background 0.4s;
+      }
+
+      /* CTA oculto del pill en móvil — vive en la extensión */
+      .nav-cta { display: none; }
+
+      /* Brand toggle indicator */
+      .nav-brand::after {
+        content: '▾';
+        margin-left: 5px;
+        font-size: 0.5rem;
+        opacity: 0.40;
+        display: inline-block;
+        transition: transform 0.2s ease;
+        vertical-align: middle;
+      }
+      .nav-brand[aria-expanded="true"]::after {
+        transform: rotate(180deg);
+        opacity: 0.70;
+      }
+
+      /* Extensión — emerge desde detrás del pill (z-index menor, margin-top negativo) */
+      #nav-mobile-dropdown {
+        display: block;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        margin-top: -31px;
+        padding-top: 31px;
+        background: oklch(17% 0.01 250 / 0.78);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        border: 1px solid var(--glass-border);
+        border-top: none;
+        border-radius: 0 0 28px 28px;
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: max-height 0.30s ease-out, opacity 0.22s ease;
+      }
+
+      #nav-mobile-dropdown.open {
+        max-height: 280px;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Links dentro de la extensión */
+      .nav-mobile-links {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0 6px;
+      }
+
+      .nav-mobile-links a {
+        display: block;
+        padding: 9px 0;
+        font-size: 0.6875rem;
+        font-weight: 500;
+        color: oklch(93% 0.005 250);
+        opacity: 0.45;
+        text-decoration: none;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        text-align: center;
+        transition: opacity 0.2s;
+      }
+
+      .nav-mobile-links a:hover  { opacity: 0.85; }
+      .nav-mobile-links a.active { opacity: 1; }
+
+      /* CTA dentro de la extensión */
+      #nav-mobile-dropdown .nav-cta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 6px 16px 14px;
+        padding: 10px 0;
+        min-height: 44px;
+        width: calc(100% - 32px);
+        font-size: 0.6875rem;
+      }
+
+      /* Text overlay — centrado */
+      #text-overlay {
+        width: calc(100% - 48px);
+      }
+
+      .stop-body {
+        max-width: none;
+      }
+
+      /* Chapter dots */
+      #chapters {
+        left: 24px;
+        bottom: 24px;
+      }
+
+      /* Chevrones — más grandes y más opacos en táctil */
+      .nav-chevron {
+        padding: 28px 20px;
+      }
+
+      .nav-chevron::before {
+        display: none;
+      }
+
+      .nav-chevron svg {
+        width: 36px;
+        height: 36px;
+      }
+
+      .nav-chevron.visible {
+        opacity: 0.85;
+      }
+
+      /* Pill — reposicionado, botones con área táctil cómoda */
+      #nav-stop-pill {
+        bottom: 32px;
+        gap: 6px;
+        padding: 8px 10px 8px 16px;
+      }
+
+      .pill-btn {
+        padding: 10px 14px;
+        opacity: 0.70;
+      }
+
+      .pill-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    /* =====================================================
+       SHORT VIEWPORT  ≤ 500px tall
+       Landscape mobile and compact tablet landscape.
+       Pull text and chapters up less to prevent crowding.
+    ===================================================== */
+    @media (max-height: 500px) {
+      #text-overlay {
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      #chapters {
+        bottom: 12px;
+      }
+
+      /* Landscape mobile: pill sube para no tapar texto */
+      #nav-stop-pill {
+        bottom: 16px;
+      }
+
+      /* Chevrones más compactos en landscape */
+      .nav-chevron {
+        padding: 20px 16px;
+      }
+
+      .nav-chevron svg {
+        width: 28px;
+        height: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================================================
+       SITE CONFIG — edit all content here
+  ====================================================== -->
+  <script type="application/json" id="site-config">
+  {
+    "brand": "FORMA",
+
+    "totalFrames": 360,
+    "frameDir":    "content/images/sequence/",
+    "framePrefix": "frame_",
+    "framePad":    3,
+    "frameExt":    ".jpg",
+
+    "scrollPerFrame": 8,
+
+    "intro": "content/videos/intro.mp4",
+
+    "stops": [
+      { "frame": 0,   "video": "content/videos/video-01.mp4", "num": "01", "label": "Origin",  "body": "Every motion begins in stillness. The pause before a gesture holds all its potential energy." },
+      { "frame": 60,  "video": "content/videos/video-02.mp4", "num": "02", "label": "Impulse", "body": "Stillness choosing direction. The invisible decision that precedes the visible act." },
+      { "frame": 120, "video": "content/videos/video-03.mp4", "num": "03", "label": "Tension", "body": "Force meeting resistance creates form. The point of maximum stress is where beauty lives." },
+      { "frame": 180, "video": "content/videos/video-04.mp4", "num": "04", "label": "Release", "body": "The moment tension becomes flow. Not an ending, but a transition into something new." },
+      { "frame": 240, "video": "content/videos/video-05.mp4", "num": "05", "label": "Trace",   "body": "The line motion leaves in passing. Gesture becoming geometry before it dissolves." },
+      { "frame": 300, "video": "content/videos/video-06.mp4", "num": "06", "label": "Echo",    "body": "What remains after movement passes. The shape the air holds after the hand has gone." }
+    ]
+  }
+  </script>
+
+  <!-- Page-level heading (screen readers only) -->
+  <h1 class="sr-only">FORMA</h1>
+
+  <!-- NAV -->
+  <div id="nav-wrapper">
+    <nav id="nav" aria-label="Main navigation">
+      <a href="#" class="nav-brand" aria-label="FORMA — home" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
+      <ul class="nav-links">
+        <li><a href="emotion.html" class="active">Emotion</a></li>
+        <li><a href="ownership.html">Ownership</a></li>
+        <li><a href="action.html">Action</a></li>
+        <li><a href="location.html">Location</a></li>
+      </ul>
+      <a href="#" class="nav-cta">Contact</a>
+    </nav>
+
+    <!-- Mobile nav extension (only active on ≤767px) -->
+    <div id="nav-mobile-dropdown" role="menu" aria-label="Navigation menu">
+      <nav class="nav-mobile-links" aria-label="Site sections">
+        <a href="emotion.html" role="menuitem" class="active">Emotion</a>
+        <a href="ownership.html" role="menuitem">Ownership</a>
+        <a href="action.html" role="menuitem">Action</a>
+        <a href="location.html" role="menuitem">Location</a>
+      </nav>
+      <a href="#" class="nav-cta" role="menuitem">Contact</a>
+    </div>
+  </div>
+
+  <!-- INTRO VIDEO — ambient/visual only, no dialogue or meaningful audio -->
+  <div id="intro-overlay">
+    <video id="intro-video" muted playsinline preload="auto"
+           aria-label="Intro sequence — ambient visual, no audio content"></video>
+  </div>
+
+  <!-- STOP VIDEO — pool built in JS -->
+  <div id="stop-overlay"></div>
+
+  <!-- CANVAS -->
+  <div id="scroll-wrapper">
+    <div id="stage"
+         tabindex="0"
+         role="application"
+         aria-label="Motion sequence — use the navigation buttons to move between stops">
+      <canvas id="canvas" role="img" aria-label="Scroll-driven motion sequence"></canvas>
+    </div>
+  </div>
+
+  <!-- TEXT OVERLAY (above stop video) -->
+  <div id="text-overlay"></div>
+
+  <!-- CHAPTER INDICATORS -->
+  <div id="chapters" aria-hidden="true"></div>
+
+  <!-- SCROLL HINT -->
+  <!-- OPTION A — SIDE CHEVRONS -->
+  <button class="nav-chevron nav-chevron--left"  id="chevron-prev" aria-label="Previous stop">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button class="nav-chevron nav-chevron--right" id="chevron-next" aria-label="Next stop">
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+
+  <!-- OPTION B — STOP NAVIGATION PILL -->
+  <div id="nav-stop-pill" aria-label="Stop navigation">
+    <button class="pill-btn" id="pill-prev" aria-label="Previous stop">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span id="pill-counter" aria-live="polite">1 / 6</span>
+    <button class="pill-btn" id="pill-next" aria-label="Next stop">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <script>
+    /* =====================================================
+       CONFIG
+    ===================================================== */
+    const C = JSON.parse(document.getElementById('site-config').textContent);
+
+    // Frames reserved for the post-video state (stopFrame + 1).
+    // The scrubber skips these — they only appear when a video ends naturally.
+    const reservedFrames = new Set(C.stops.map(s => ((s.frame + 1) % C.totalFrames)));
+    // Callers must pass a wrapFrame()-normalized value — no internal re-normalization needed.
+    function isReserved(f) { return reservedFrames.has(f); }
+
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
+    const introOverlay = document.getElementById('intro-overlay');
+    const introVideo   = document.getElementById('intro-video');
+    const stopOverlay  = document.getElementById('stop-overlay');
+    const canvas       = document.getElementById('canvas');
+    const ctx          = canvas.getContext('2d');
+    const textOverlay  = document.getElementById('text-overlay');
+    const chaptersEl   = document.getElementById('chapters');
+
+    /* =====================================================
+       STOP VIDEO POOL — one <video> per stop, preloaded at boot.
+       All elements live in #stop-overlay; only the active one
+       is visible (display block). The overlay fade handles
+       the cinematic in/out — individual elements just show/hide.
+    ===================================================== */
+    // video-01 se precarga de inmediato (ya está en caché desde Stillness).
+    // videos 02-06 arrancan en 'none' y se cargan secuencialmente vía loadRemainingVideos().
+    const preloadedVideos = C.stops.map((stop, i) => {
+      const v = document.createElement('video');
+      v.className   = 'pool-video';
+      v.muted       = true;
+      v.setAttribute('playsinline', '');
+      v.setAttribute('aria-label', `${stop.label} — ambient visual, no audio content`);
+      v.preload     = i === 0 ? 'auto' : 'none';
+      v.src         = stop.video;
+      v.style.display = 'none';
+      stopOverlay.appendChild(v);
+      return v;
+    });
+
+    document.title = C.brand;
+
+    /* =====================================================
+       STATE
+    ===================================================== */
+    const frames          = new Array(C.totalFrames); // raw Image elements
+    const bitmaps         = new Array(C.totalFrames); // pre-decoded ImageBitmaps (off-thread)
+    let currentFrame      = -1;
+    let isLocked          = false;
+    let currentStopIndex  = 0;     // which stop the user is currently at
+    let isTransitioning   = false; // true while frame tween is running
+    let inputCooldown     = true;  // blocks nav until boot stop-0 finishes
+    let isDragging        = false; // true during click-hold drag scrubbing
+    let dragStartX        = 0;
+    let dragStartFrame    = 0;
+    let dragLastDy        = 0;    // last vertical delta — used to detect direction on release
+    let touchStartY       = 0;
+    let touchTriggered    = false;
+    let prevChapterZone   = -1;    // last zone passed to updateChapters
+    let textVisible       = false; // guard: skip hideText work when already hidden
+    let textTimers        = [];   // active setTimeout handles from showStopText — cancelled on hideText
+    let cssWidth          = 0;     // logical canvas size (excludes DPR)
+    let cssHeight         = 0;
+    let resizeTimer       = null;  // debounce handle for resize
+    let skipCurrentVideo  = null;  // set during playStopVideo; call to interrupt
+
+    /* =====================================================
+       CANVAS RESIZE — HiDPI-aware, debounced 150ms
+    ===================================================== */
+    function resizeCanvas() {
+      const dpr  = window.devicePixelRatio || 1;
+      cssWidth   = window.innerWidth;
+      cssHeight  = window.innerHeight;
+      canvas.width          = Math.round(cssWidth  * dpr);
+      canvas.height         = Math.round(cssHeight * dpr);
+      canvas.style.width    = cssWidth  + 'px';
+      canvas.style.height   = cssHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in logical pixels
+      if (currentFrame >= 0) renderFrame(currentFrame);
+    }
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resizeCanvas, 150);
+    });
+    resizeCanvas();
+
+    /* =====================================================
+       FRAME PATH
+    ===================================================== */
+    function framePath(i) {
+      return C.frameDir
+           + C.framePrefix
+           + String(i).padStart(C.framePad, '0')
+           + C.frameExt;
+    }
+
+    /* =====================================================
+       RENDER FRAME — bitmap → img → placeholder
+       Draws with object-fit: cover behavior: scales to fill
+       the canvas while preserving aspect ratio, cropping center.
+    ===================================================== */
+    function drawCover(source, srcW, srcH) {
+      const scale   = Math.max(cssWidth / srcW, cssHeight / srcH);
+      const drawW   = srcW * scale;
+      const drawH   = srcH * scale;
+      const offsetX = (cssWidth  - drawW) / 2;
+      const offsetY = (cssHeight - drawH) / 2;
+      ctx.drawImage(source, 0, 0, srcW, srcH, offsetX, offsetY, drawW, drawH);
+    }
+
+    function renderFrame(index) {
+      currentFrame = index;
+      const bmp = bitmaps[index];
+      if (bmp) {
+        drawCover(bmp, bmp.width, bmp.height);
+        return;
+      }
+      const img = frames[index];
+      if (img && img.complete && img.naturalWidth > 0) {
+        drawCover(img, img.naturalWidth, img.naturalHeight);
+      } else {
+        // Gradient placeholder while assets are being produced
+        const hue = 230 + (index / C.totalFrames) * 25;
+        const l   = 10 + (index / C.totalFrames) * 6;
+        ctx.fillStyle = `oklch(${l.toFixed(1)}% 0.015 ${hue.toFixed(0)})`;
+        ctx.fillRect(0, 0, cssWidth, cssHeight);
+      }
+    }
+
+    /* =====================================================
+       LOAD FRAMES — two-phase strategy
+
+       Phase 1 — Critical (stop frames only, 6 images):
+         Loaded with createImageBitmap so they're GPU-ready.
+         Loading bar reflects only these. Experience starts
+         as soon as they're all settled.
+
+       Phase 2 — Background (remaining 354 frames):
+         Loaded in batches of 12 after the experience starts
+         so the browser connection pool isn't saturated.
+         No bitmaps — raw Image fallback is fast enough for
+         the tween animation between stops.
+    ===================================================== */
+
+    // Load a single frame, return a Promise that resolves when done.
+    // useBitmap=true → also decodes an ImageBitmap (for stop frames).
+    function loadFrame(i, useBitmap) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          frames[i] = img;
+          if (useBitmap && typeof createImageBitmap === 'function') {
+            createImageBitmap(img)
+              .then(bmp  => { bitmaps[i] = bmp; })
+              .catch(()  => {})
+              .finally(resolve);
+          } else {
+            resolve();
+          }
+        };
+        img.onerror = resolve; // 404s don't block
+        img.src = framePath(i);
+        frames[i] = img;
+      });
+    }
+
+    // Phase 1: load only the 6 stop frames; update the loading bar.
+    function loadCriticalFrames() {
+      const indices = C.stops.map(s => s.frame);
+      return Promise.all(indices.map(idx => loadFrame(idx, true)));
+    }
+
+    // Phase 2: load everything else in batches — low priority, no bitmap.
+    function loadRemainingFrames() {
+      const criticalSet = new Set(C.stops.map(s => s.frame));
+      const queue = [];
+      for (let i = 0; i < C.totalFrames; i++) {
+        if (!criticalSet.has(i)) queue.push(i);
+      }
+
+      const BATCH = 12;
+      let pos = 0;
+
+      function nextBatch() {
+        if (pos >= queue.length) return;
+        const batch = queue.slice(pos, pos + BATCH);
+        pos += BATCH;
+        let done = 0;
+        batch.forEach(i => {
+          loadFrame(i, false).then(() => {
+            if (i === currentFrame) renderFrame(i); // refresh if visible
+            if (++done === batch.length) nextBatch();
+          });
+        });
+      }
+
+      nextBatch();
+    }
+
+    // Phase 3 (video): load stop videos 02-06 sequentially after the experience starts.
+    // Each video waits for the previous to be ready (canplaythrough) before starting,
+    // so they don't compete for bandwidth. 30s safety timeout per video.
+    function loadRemainingVideos() {
+      const remaining = preloadedVideos.slice(1); // video-01 already loaded
+
+      function loadNext(i) {
+        if (i >= remaining.length) return;
+        const v = remaining[i];
+
+        let advanced = false;
+        const advance = () => {
+          if (advanced) return;
+          advanced = true;
+          loadNext(i + 1);
+        };
+
+        v.addEventListener('canplaythrough', advance, { once: true });
+        v.addEventListener('error',          advance, { once: true });
+        setTimeout(advance, 30000); // 30s de timeout máximo por video
+
+        v.preload = 'auto';
+        v.load();
+      }
+
+      loadNext(0);
+    }
+
+    /* =====================================================
+       BUILD TEXT OVERLAY
+       Creates one .stop-text div per stop, stacked.
+    ===================================================== */
+    const textEls = [];
+
+    C.stops.forEach((stop, i) => {
+      const div = document.createElement('div');
+      div.className = 'stop-text';
+      const wordSpans = stop.body
+        ? stop.body.split(' ').map(w => `<span class="word">${w}</span>`).join(' ')
+        : '';
+      div.innerHTML = stop.label
+        ? `<p class="stop-num">${stop.num}</p>
+           <h2 class="stop-heading">${stop.label}</h2>
+           ${wordSpans ? `<p class="stop-body">${wordSpans}</p>` : ''}`
+        : `<p class="stop-num">${stop.num}</p>`;
+      textOverlay.appendChild(div);
+      textEls.push(div);
+    });
+
+    /* =====================================================
+       BUILD CHAPTER INDICATORS
+    ===================================================== */
+    const chapDots = [];
+
+    C.stops.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'chap-dot';
+      chaptersEl.appendChild(dot);
+      chapDots.push(dot);
+    });
+
+    /* =====================================================
+       SHOW STOP TEXT — time-driven, plays during stop video
+
+       Stagger schedule:
+         0 ms  : num label fades + rises
+         120 ms: heading fades + rises
+         320 ms + (wi × 45 ms): each body word, one by one
+
+       Called from playStopVideo after the overlay fades in.
+       hideText() kills everything instantly for scroll.
+    ===================================================== */
+    // windowMs: total time (ms) from this call until the last word should finish appearing.
+    // Defaults to 3000ms if not provided (fallback for edge cases).
+    function showStopText(stopIndex, windowMs) {
+      // Guard: reject stale timers that survived a navigation
+      if (stopIndex !== currentStopIndex) return;
+
+      // Cancel any in-flight timers from a previous call
+      textTimers.forEach(clearTimeout);
+      textTimers = [];
+      textVisible = true;
+
+      // Reset all — instant, no transitions
+      textEls.forEach(el => {
+        el.style.opacity = '0';
+        el.style.setProperty('--bd-dur',     '0s');
+        el.style.setProperty('--bd-opacity', '0');
+        el.style.setProperty('--bd-scale',   '0.92');
+        resetTextChildren(el);
+      });
+
+      const el = textEls[stopIndex];
+      el.style.opacity = '1';
+
+      // Next frame: fade-in + scale del backdrop
+      requestAnimationFrame(() => {
+        el.style.setProperty('--bd-dur',     '0.65s');
+        el.style.setProperty('--bd-opacity', '1');
+        el.style.setProperty('--bd-scale',   '1');
+      });
+
+      const words  = Array.from(el.querySelectorAll('.word'));
+      const numEl  = el.querySelector('.stop-num');
+      const headEl = el.querySelector('.stop-heading');
+
+      // Distribute words across the available window.
+      // num=0, heading=160, words start at 420ms.
+      // Last word starts at (windowMs - 850ms) so its 0.85s transition ends at windowMs.
+      const totalWindow  = windowMs || 3000;
+      const wordsStart   = 420;
+      const lastWordAt   = Math.max(totalWindow - 850, wordsStart + words.length * 60);
+      const wordStagger  = words.length > 1
+        ? (lastWordAt - wordsStart) / (words.length - 1)
+        : 0;
+
+      const queue = [];
+      if (numEl)  queue.push({ node: numEl,  delay: 0   });
+      if (headEl) queue.push({ node: headEl, delay: 160 });
+      words.forEach((w, wi) => {
+        queue.push({ node: w, delay: wordsStart + wi * wordStagger });
+      });
+
+      queue.forEach(({ node, delay }) => {
+        const t = setTimeout(() => {
+          node.style.transition = 'opacity 0.85s ease, transform 0.85s ease';
+          node.style.opacity    = '1';
+          node.style.transform  = 'translateY(0)';
+        }, delay);
+        textTimers.push(t);
+      });
+    }
+
+    // Shared child-element reset — used by hideText, hideTextFade, and showStopText.
+    // Adding a new animated child to .stop-text only needs updating here.
+    function resetTextChildren(el) {
+      el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
+        c.style.transition = 'none';
+        c.style.opacity    = '0';
+        c.style.transform  = 'translateY(10px)';
+      });
+    }
+
+    // Hide all text instantly — for interrupt and boot.
+    function hideText() {
+      clearTimeout(hideTextFadeTimer);   // kill any pending fade-reset (prevents stale resets on next stop)
+      textTimers.forEach(clearTimeout);
+      textTimers = [];
+      if (!textVisible) return;
+      textVisible = false;
+      textEls.forEach(el => {
+        el.style.transition = '';
+        el.style.opacity    = '0';
+        el.style.setProperty('--bd-dur',     '0s');
+        el.style.setProperty('--bd-opacity', '0');
+        el.style.setProperty('--bd-scale',   '0.92');
+        resetTextChildren(el);
+      });
+    }
+
+    // Fade text out over 0.5s — called when navigation begins so the
+    // card dissolves while the frame tween runs. Internal elements are
+    // snapped to reset state after the fade so showStopText() starts
+    // clean on the next stop.
+    let hideTextFadeTimer = null;
+    function hideTextFade() {
+      textTimers.forEach(clearTimeout);
+      textTimers = [];
+      if (!textVisible) return;
+      textVisible = false;
+      textEls.forEach(el => {
+        el.style.transition = 'opacity 0.5s ease';
+        el.style.opacity    = '0';
+        el.style.setProperty('--bd-dur',     '0.5s');
+        el.style.setProperty('--bd-opacity', '0');
+        el.style.setProperty('--bd-scale',   '0.92');
+      });
+      clearTimeout(hideTextFadeTimer);
+      hideTextFadeTimer = setTimeout(() => {
+        textEls.forEach(el => {
+          el.style.transition = '';
+          resetTextChildren(el);
+        });
+      }, 520);
+    }
+
+    /* =====================================================
+       UPDATE CHAPTER DOTS
+       Takes the zone index directly (0–5) so it can short-circuit
+       when the zone hasn't changed — avoids 6 classList mutations
+       every RAF frame during scroll.
+    ===================================================== */
+    function updateChapters(zone) {
+      if (zone === prevChapterZone) return;
+      prevChapterZone = zone;
+      chapDots.forEach((dot, i) => {
+        dot.classList.toggle('is-active', i === zone);
+        dot.classList.toggle('is-done',   i < zone);
+      });
+      if (typeof updateNavPill === 'function') updateNavPill(zone);
+    }
+
+    /* =====================================================
+       SCROLL LOCK / UNLOCK
+    ===================================================== */
+    function lockScroll() {
+      isLocked = true;
+      document.documentElement.style.overflow = 'hidden';
+    }
+
+    function unlockScroll() {
+      document.documentElement.style.overflow = '';
+      isLocked = false;
+    }
+
+    /* =====================================================
+       PLAY STOP VIDEO — will-change promoted/demoted per animation
+
+       finish(immediate):
+         false — natural end: wait 400 ms for overlay fade, then onDone()
+         true  — user-interrupted: unlock scroll immediately, fade runs in bg
+
+       startTimer / showTimer are stored so both can be cancelled if the
+       user interrupts before the video or text animation begins.
+    ===================================================== */
+    function playStopVideo(stopIndex, onDone) {
+      const v = preloadedVideos[stopIndex];
+      v.currentTime = 0;   // rewind in case this stop was visited before
+      v.style.display = 'block';
+
+      let done       = false;
+      let startTimer = null;
+      let midTimer   = null;  // fires at video midpoint to start text animation
+
+      function finish(immediate) {
+        if (done) return;
+        done = true;
+        clearTimeout(startTimer);
+        clearTimeout(midTimer);
+        skipCurrentVideo = null;
+        v.removeEventListener('ended', onEnded);
+        v.removeEventListener('error', onError);
+        stopOverlay.classList.remove('in');
+        // Pre-render the reserved frame (stopFrame+1) while the overlay fades —
+        // by the time it reaches 0 opacity, the correct canvas frame is already painted.
+        renderFrame(wrapFrame(C.stops[stopIndex].frame + 1));
+        v.pause();
+        if (immediate) {
+          // Interrupted: cancela texto en vuelo y navega
+          hideText();
+          v.style.display = 'none';
+          stopOverlay.style.willChange = '';
+          onDone();
+        } else {
+          setTimeout(() => {
+            v.style.display = 'none';
+            stopOverlay.style.willChange = '';
+            onDone();
+          }, 400);
+        }
+      }
+
+      function onEnded() { finish(false); }
+      function onError() { finish(false); }
+
+      skipCurrentVideo = () => finish(true);
+
+      v.addEventListener('ended', onEnded);
+      v.addEventListener('error', onError);
+
+      stopOverlay.style.willChange = 'opacity';
+      stopOverlay.classList.add('in');
+      startTimer = setTimeout(() => {
+        if (done) return;  // finish() may have fired in the same event-loop tick
+
+        v.play().catch(() => finish(false));
+
+        // Dispara texto en el punto medio del video.
+        // duration disponible porque los videos están preloaded.
+        // windowMs = mitad restante + 1s extra post-video.
+        const dur      = v.duration && isFinite(v.duration) ? v.duration : 8;
+        const startMs  = Math.max((dur - 2) * 1000, 0); // 2s antes del final (mín. 0)
+        const winMs    = 4000;                           // 2s antes + 2s después = 4s fijos
+        midTimer = setTimeout(() => showStopText(stopIndex, winMs), startMs);
+      }, 400);
+    }
+
+    /* =====================================================
+       ZONE HELPER — for chapter dot tracking only
+    ===================================================== */
+    function getZone(frame) {
+      for (let i = C.stops.length - 1; i >= 0; i--) {
+        if (frame >= C.stops[i].frame) return i;
+      }
+      return 0;
+    }
+
+    /* =====================================================
+       FRAME ANIMATION
+       Tweens canvas from one frame to another.
+       Ease-out-quart; duration scales with distance (250–650 ms).
+    ===================================================== */
+    // Wraps a raw frame number into [0, totalFrames)
+    function wrapFrame(f) {
+      return ((f % C.totalFrames) + C.totalFrames) % C.totalFrames;
+    }
+
+    // forward: true  → animate forward even if toFrame < fromFrame (loop)
+    //          false → animate backward even if toFrame > fromFrame (loop)
+    //          undefined → pick shortest path (non-loop calls)
+    // Checked once at boot; assumed stable for the session lifetime.
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function animateToFrame(fromFrame, toFrame, onDone, forward) {
+      if (fromFrame === toFrame) { onDone(); return; }
+
+      // Skip tween entirely for users who prefer reduced motion.
+      if (prefersReducedMotion) { renderFrame(wrapFrame(toFrame)); onDone(); return; }
+
+      // Compute effective target crossing the boundary when looping
+      let effectiveTo = toFrame;
+      if (forward === true  && toFrame < fromFrame) effectiveTo = toFrame + C.totalFrames;
+      if (forward === false && toFrame > fromFrame) effectiveTo = toFrame - C.totalFrames;
+
+      const distance = Math.abs(effectiveTo - fromFrame);
+      const duration = Math.min(Math.max(distance * 20, 1800), 3200);
+      const startTime = performance.now();
+
+      // Ghost offset: cuántos frames atrás va el fantasma.
+      // Escala con la distancia del tween — más rápido = más trail.
+      const ghostOffset  = Math.max(2, Math.round(distance * 0.07));
+      const goingForward = effectiveTo >= fromFrame;
+
+      (function tick(now) {
+        const t     = Math.min((now - startTime) / duration, 1);
+        const eased = t < 0.5          // ease-in-out-cubic — starts and ends gently
+          ? 4 * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        let f = wrapFrame(Math.round(fromFrame + (effectiveTo - fromFrame) * eased));
+        if (isReserved(f)) f = wrapFrame(effectiveTo >= fromFrame ? f + 1 : f - 1);
+        renderFrame(f);
+
+        // Ghost frame — curva de seno: 0 al inicio, pico en centro, 0 al final.
+        // Solo se dibuja si el bitmap fantasma está disponible.
+        const ghostOpacity = Math.sin(t * Math.PI) * 0.22;
+        if (ghostOpacity > 0.02) {
+          const ghostIdx = wrapFrame(f - (goingForward ? ghostOffset : -ghostOffset));
+          const ghostBmp = bitmaps[ghostIdx];
+          if (ghostBmp) {
+            ctx.globalAlpha = ghostOpacity;
+            drawCover(ghostBmp, ghostBmp.width, ghostBmp.height);
+            ctx.globalAlpha = 1.0;
+          }
+        }
+
+        if (t < 1) requestAnimationFrame(tick);
+        else { renderFrame(wrapFrame(effectiveTo)); onDone(); } // final limpio, sin ghost
+      })(performance.now());
+    }
+
+    /* =====================================================
+       NAVIGATION
+       One gesture = advance one stop (forward or backward).
+       Both directions: tween + play stop video.
+    ===================================================== */
+    // forward is passed explicitly so loop wraps animate in the right direction
+    function goToStop(targetIndex, forward) {
+      if (isTransitioning || isLocked || inputCooldown) return;
+      if (targetIndex === currentStopIndex) return;
+
+      hideTextFade(); // dissolve current stop card as navigation begins
+
+      isTransitioning = true;
+      inputCooldown   = true;
+
+      // rawFrom may be a reserved frame (stopFrame+1). Step one more so the
+      // tween starts at stopFrame+2, clearing the reserved slot entirely.
+      const rawFrom   = currentFrame >= 0 ? currentFrame : C.stops[currentStopIndex].frame;
+      const fromFrame = isReserved(rawFrom) ? wrapFrame(rawFrom + 1) : rawFrom;
+      const toFrame   = C.stops[targetIndex].frame;
+
+      animateToFrame(fromFrame, toFrame, () => {
+        currentStopIndex = targetIndex;
+        isTransitioning  = false;
+        updateChapters(currentStopIndex);
+
+        lockScroll();
+        playStopVideo(currentStopIndex, () => {
+          unlockScroll();
+          setTimeout(() => { inputCooldown = false; }, 200);
+        });
+      }, forward);
+    }
+
+    function goNext() {
+      if (currentStopIndex >= C.stops.length - 1) return;
+      goToStop(currentStopIndex + 1, true);
+    }
+    function goPrev() {
+      if (currentStopIndex <= 0) return;
+      goToStop(currentStopIndex - 1, false);
+    }
+
+    /* =====================================================
+       VIDEO INTERRUPT
+       Two variants:
+       · tryInterrupt()        — skip video only (overlay click handles its own nav)
+       · interruptAndGo(fwd)   — skip video AND navigate in the gesture's direction.
+         Used by wheel, touch, keyboard and drag so every directional gesture during
+         a video both clears it and moves to the intended stop.
+         Same 200ms/250ms timing dependency as the overlay click handler.
+    ===================================================== */
+    function tryInterrupt() {
+      if (!isLocked || !skipCurrentVideo) return;
+      hideText();
+      skipCurrentVideo();
+    }
+
+    function interruptAndGo(forward) {
+      if (!isLocked || !skipCurrentVideo) return;
+      hideText();
+      skipCurrentVideo();
+      setTimeout(() => { if (forward) goNext(); else goPrev(); }, 250);
+    }
+
+    /* =====================================================
+       INPUT HANDLERS — wheel · touch · keyboard
+       TEMPORARILY DISABLED for button-only navigation evaluation.
+       Re-enable by removing the block comments.
+    ===================================================== */
+    /*
+    window.addEventListener('wheel', e => {
+      const forward = e.deltaY > 0;
+      if (isLocked) { interruptAndGo(forward); return; }
+      if (forward) goNext();
+      else if (e.deltaY < 0) goPrev();
+    }, { passive: true });
+
+    window.addEventListener('touchstart', e => {
+      touchStartY    = e.touches[0].clientY;
+      touchTriggered = false;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', e => {
+      if (touchTriggered) return;
+      const dy = touchStartY - e.touches[0].clientY;
+      if (Math.abs(dy) < 24) return;
+      touchTriggered = true;
+      const forward = dy > 0;
+      if (isLocked) { interruptAndGo(forward); return; }
+      if (forward) goNext();
+      else         goPrev();
+    }, { passive: true });
+
+    window.addEventListener('keydown', e => {
+      const down = ['ArrowDown', 'PageDown', ' '].includes(e.key);
+      const up   = ['ArrowUp',   'PageUp'       ].includes(e.key);
+      if (!down && !up) return;
+      e.preventDefault();
+      if (isLocked) { interruptAndGo(down); return; }
+      if (down) goNext();
+      else      goPrev();
+    });
+    */
+
+    /* =====================================================
+       MOUSE DRAG — gesture mode
+       Mirrors wheel/swipe: one drag gesture (≥24px) triggers
+       goNext() or goPrev(), identical feel to scroll.
+    ===================================================== */
+    const stage = document.getElementById('stage');
+
+    /* =====================================================
+       CUSTOM CURSORS — SVG arrows built at runtime.
+       Double-stroke (dark shadow + white arrow) ensures
+       visibility against any frame color.
+       Fallback: e-resize / w-resize if SVG fails to load.
+    ===================================================== */
+    function makeSVGCursor(d, hotX, hotY, fallback) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">`
+               + `<path d="${d}" stroke="black" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.4"/>`
+               + `<path d="${d}" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`
+               + `</svg>`;
+      return `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${hotX} ${hotY}, ${fallback}`;
+    }
+
+    // Arrow stem + chevron head, centered in 32×32
+    const CURSOR_RIGHT = makeSVGCursor('M6 16 L22 16 M16 10 L22 16 L16 22', 16, 16, 'e-resize');
+    const CURSOR_LEFT  = makeSVGCursor('M26 16 L10 16 M16 10 L10 16 L16 22', 16, 16, 'w-resize');
+
+    // Shared helpers for click-zone and cursor logic used by both stage and overlay.
+    const CLICK_THRESHOLD_PX = 8; // minimum movement to distinguish click from drag
+    function cursorForX(x) { return x < window.innerWidth / 2 ? CURSOR_LEFT : CURSOR_RIGHT; }
+
+    /*
+    stage.addEventListener('mousedown', e => {
+      if (isLocked || isTransitioning || inputCooldown) return;
+      e.preventDefault();
+      isDragging = true;
+      dragStartX = e.clientX;
+      document.body.classList.add('is-dragging');
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      if (e.buttons === 0) {
+        isDragging = false;
+        document.body.classList.remove('is-dragging');
+        return;
+      }
+      const dx = e.clientX - dragStartX;
+      if (Math.abs(dx) < 24) return;
+      isDragging = false;
+      document.body.classList.remove('is-dragging');
+      if (isLocked) { interruptAndGo(dx < 0); return; }
+      if (dx < 0) goNext();
+      else        goPrev();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      document.body.classList.remove('is-dragging');
+    });
+    */
+
+    /* =====================================================
+       CURSOR DIRECTION + CLICK ZONES — DISABLED
+    ===================================================== */
+    /*
+    let _cursorSide = null;
+    stage.addEventListener('mousemove', e => {
+      if (isDragging) return;
+      const side = e.clientX < window.innerWidth / 2 ? 'L' : 'R';
+      if (side === _cursorSide) return;
+      _cursorSide = side;
+      stage.style.cursor = cursorForX(e.clientX);
+    });
+
+    stage.addEventListener('mouseup', e => {
+      if (Math.abs(e.clientX - dragStartX) >= CLICK_THRESHOLD_PX) return;
+      if (isTransitioning || isLocked || inputCooldown) return;
+      if (e.clientX < window.innerWidth / 2) goPrev();
+      else goNext();
+    });
+
+    stopOverlay.addEventListener('mousemove', e => {
+      stopOverlay.style.cursor = cursorForX(e.clientX);
+    });
+
+    stopOverlay.addEventListener('mousedown', e => {
+      dragStartX = e.clientX;
+    });
+
+    stopOverlay.addEventListener('mouseup', e => {
+      if (Math.abs(e.clientX - dragStartX) >= CLICK_THRESHOLD_PX) return;
+      if (!isLocked || !skipCurrentVideo) return;
+      const forward = e.clientX >= window.innerWidth / 2;
+      hideText();
+      skipCurrentVideo();
+      // ⚠️  TIMING DEPENDENCY: onDone schedules inputCooldown=false at +200ms.
+      // This timeout must stay > 200ms or goNext/goPrev will hit inputCooldown=true
+      // and silently drop the navigation. Current margin: 250ms (50ms slack).
+      // If you raise the inputCooldown reset delay above 250ms, raise this too.
+      setTimeout(() => { if (forward) goNext(); else goPrev(); }, 250);
+    });
+    */
+
+    /* =====================================================
+       PLAY INTRO
+    ===================================================== */
+    function playIntro(onDone) {
+      introVideo.src = C.intro;
+      let done = false;
+
+      function finish() {
+        if (done) return;
+        done = true;
+        introOverlay.removeEventListener('click', finish);
+        introVideo.removeEventListener('ended', finish);
+        introVideo.removeEventListener('error', finish);
+        introOverlay.classList.add('out');
+        setTimeout(() => { introOverlay.style.display = 'none'; onDone(); }, 500);
+      }
+
+      introOverlay.addEventListener('click', finish);
+      introVideo.addEventListener('ended', finish, { once: true });
+      introVideo.addEventListener('error', finish, { once: true });
+      introVideo.load();
+      introVideo.play().catch(finish);
+    }
+
+    /* =====================================================
+       OPTION A — SIDE CHEVRONS
+       Appear after 3s idle; hide on any interaction.
+    ===================================================== */
+    const chevronPrev = document.getElementById('chevron-prev');
+    const chevronNext = document.getElementById('chevron-next');
+
+    function navPrev() {
+      if (currentStopIndex <= 0) return;
+      if (isLocked) interruptAndGo(false); else goPrev();
+    }
+    function navNext() {
+      if (currentStopIndex >= C.stops.length - 1) return;
+      if (isLocked) interruptAndGo(true); else goNext();
+    }
+
+    chevronPrev.addEventListener('click', navPrev);
+    chevronNext.addEventListener('click', navNext);
+
+    function showChevrons() {
+      chevronPrev.classList.add('visible');
+      chevronNext.classList.add('visible');
+    }
+    function hideChevrons() {
+      chevronPrev.classList.remove('visible');
+      chevronNext.classList.remove('visible');
+    }
+
+    /* =====================================================
+       OPTION B — STOP NAVIGATION PILL
+       Always visible after enableNav(); counter updates on every stop.
+    ===================================================== */
+    const navStopPill = document.getElementById('nav-stop-pill');
+    const pillCounter = document.getElementById('pill-counter');
+    const pillPrev    = document.getElementById('pill-prev');
+    const pillNext    = document.getElementById('pill-next');
+
+    pillPrev.addEventListener('click', navPrev);
+    pillNext.addEventListener('click', navNext);
+
+    function updateNavPill(stopIndex) {
+      pillCounter.textContent = `${stopIndex + 1} / ${C.stops.length}`;
+      const atFirst = stopIndex === 0;
+      const atLast  = stopIndex === C.stops.length - 1;
+      pillPrev.disabled = atFirst;
+      pillNext.disabled = atLast;
+      chevronPrev.classList.toggle('is-disabled', atFirst);
+      chevronNext.classList.toggle('is-disabled', atLast);
+    }
+
+    /* =====================================================
+       ENABLE NAVIGATION — called once after boot stop-0
+    ===================================================== */
+    function enableNav() {
+      inputCooldown = false;
+      navStopPill.classList.add('visible');
+      updateNavPill(currentStopIndex);
+      showChevrons();
+
+      // Glow pulse — 3 parpadeos ámbar, revela la presencia de los chevrones.
+      // Se detiene solo al terminar la animación o al primer click.
+      setTimeout(() => {
+        chevronPrev.classList.add('pulsing');
+        chevronNext.classList.add('pulsing');
+
+        const stopPulse = () => {
+          chevronPrev.classList.remove('pulsing');
+          chevronNext.classList.remove('pulsing');
+        };
+
+        // Animación termina sola: 3 iteraciones × 1s = 3s
+        chevronNext.addEventListener('animationend', stopPulse, { once: true });
+        // O el usuario hace click antes de que termine
+        chevronPrev.addEventListener('click', stopPulse, { once: true });
+        chevronNext.addEventListener('click', stopPulse, { once: true });
+      }, 500);
+    }
+
+    /* =====================================================
+       BOOT
+       Los frames críticos llegan pre-cacheados desde Stillness (index.html).
+       Si el usuario accede directamente a emotion.html, loadCriticalFrames()
+       los carga aquí antes de arrancar la experiencia.
+    ===================================================== */
+    function boot() {
+      document.getElementById('scroll-wrapper').style.height = window.innerHeight + 'px';
+
+      // El intro overlay no se usa (no hay intro.mp4) — ocultarlo de inmediato
+      introOverlay.style.display = 'none';
+
+      renderFrame(0);
+      updateChapters(0);
+
+      // Frames críticos pre-cacheados por Stillness; si acceso directo, los carga aquí.
+      loadCriticalFrames().then(() => {
+        renderFrame(0);
+        showChevrons();
+        navStopPill.classList.add('visible');
+        updateNavPill(0);
+
+        setTimeout(loadRemainingFrames, 200);
+
+        hideText();
+        lockScroll();
+        playStopVideo(0, () => {
+          currentStopIndex = 0;
+          unlockScroll();
+          enableNav();
+        });
+
+        // Inicia carga progresiva de videos 02-06 mientras video-01 reproduce.
+        // 2s de margen para que video-01 arranque sin competencia de ancho de banda.
+        setTimeout(loadRemainingVideos, 2000);
+      });
+    }
+
+    /* =====================================================
+       MOBILE NAV TOGGLE
+       FORMA pill → tap → extensión desliza como cola del pill.
+       Solo activo en ≤767px (matchMedia guard).
+    ===================================================== */
+    (function () {
+      const mq          = window.matchMedia('(max-width: 767px)');
+      const navBrand    = document.querySelector('.nav-brand');
+      const navEl       = document.getElementById('nav');
+      const navDropdown = document.getElementById('nav-mobile-dropdown');
+      const navWrapper  = document.getElementById('nav-wrapper');
+
+      function closeDropdown() {
+        navDropdown.classList.remove('open');
+        navBrand.setAttribute('aria-expanded', 'false');
+      }
+
+      navBrand.addEventListener('click', (e) => {
+        if (!mq.matches) return;
+        e.preventDefault();
+        if (navDropdown.classList.contains('open')) {
+          closeDropdown();
+        } else {
+          navDropdown.classList.add('open');
+          navBrand.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      // Cerrar al tocar fuera del wrapper completo
+      document.addEventListener('pointerdown', (e) => {
+        if (!navDropdown.classList.contains('open')) return;
+        if (!navWrapper.contains(e.target)) closeDropdown();
+      });
+
+      // Cerrar con Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDropdown();
+      });
+    })();
+
+    boot();
+  </script>
+</body>
+</html>
