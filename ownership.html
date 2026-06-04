@@ -11,14 +11,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:           oklch(9%  0.008 250);
-      --text:         oklch(93% 0.005 250);
-      --muted:        oklch(48% 0.01  250);
-      --accent:       oklch(70% 0.175  52);
-      --glass-bg:     oklch(13% 0.01  250 / 0.72);
-      --glass-border: oklch(25% 0.012 250 / 0.55);
-      --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
-      --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
+      --bg:             oklch(9%  0.008 250);
+      --text:           oklch(93% 0.005 250);
+      --text-secondary: oklch(88% 0.006 250);
+      --muted:          oklch(48% 0.01  250);
+      --dim:            oklch(28% 0.009 250);
+      --accent:         oklch(70% 0.175  52);
+      --border:         oklch(17% 0.01  250);
+      --glass-bg:       oklch(13% 0.01  250 / 0.72);
+      --glass-border:   oklch(25% 0.012 250 / 0.55);
+      --font-display:   'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
+      --font-body:      'Barlow', system-ui, -apple-system, sans-serif;
     }
 
     html, body {
@@ -30,7 +33,451 @@
       overflow: hidden;
     }
 
-    /* ── NAV ── */
+    /* ── CANVAS ─────────────────────────────────────────────────────────── */
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.9s ease-out;
+    }
+    #canvas-container.visible { opacity: 1; }
+
+    #three-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── CANVAS DIM (unit panel backdrop) ──────────────────────────────── */
+    #canvas-dim {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-out;
+      z-index: 10;
+    }
+    #canvas-dim.active {
+      opacity: 0.55;
+      pointer-events: auto;
+    }
+
+    /* ── LOADING ─────────────────────────────────────────────────────────── */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity 0.7s ease-out;
+    }
+    #loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 4vw, 3rem);
+      font-weight: 700;
+      letter-spacing: 0.32em;
+      color: oklch(93% 0.005 250 / 0.12);
+      text-transform: uppercase;
+    }
+
+    .loading-bar-track {
+      width: 180px;
+      height: 1px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    #loading-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.08s linear;
+    }
+
+    .loading-label {
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    /* ── FLOOR LIST (left sidebar) ──────────────────────────────────────── */
+    #floor-list {
+      position: fixed;
+      left: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+    }
+    #floor-list.visible { opacity: 1; }
+
+    .floor-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      padding: 3px 0;
+      user-select: none;
+    }
+
+    .floor-number {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      color: var(--muted);
+      min-width: 22px;
+      text-align: right;
+      transition: color 0.2s ease-out;
+    }
+
+    .floor-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: oklch(38% 0.01 250);
+      flex-shrink: 0;
+      transition: background 0.2s ease-out, transform 0.2s ease-out;
+    }
+
+    .floor-item:hover .floor-number { color: var(--muted); }
+    .floor-item:hover .floor-dot    { background: oklch(48% 0.01 250 / 0.6); }
+
+    .floor-item.has-available .floor-dot { background: oklch(70% 0.175 52 / 0.3); }
+
+    .floor-item.hover-highlight .floor-number { color: oklch(82% 0.005 250); }
+    .floor-item.hover-highlight .floor-dot    { background: oklch(60% 0.01 250 / 0.55); transform: scale(1.3); }
+
+    .floor-item.active .floor-number { color: var(--accent); }
+    .floor-item.active .floor-dot    { background: var(--accent); transform: scale(1.8); }
+
+    /* ── BACK BUTTON ─────────────────────────────────────────────────────── */
+    #back-btn {
+      position: fixed;
+      top: 84px;
+      left: 32px;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    #back-btn.visible { display: flex; }
+    #back-btn:hover   { color: var(--text); border-color: var(--muted); }
+
+    .back-arrow {
+      font-size: 0.6rem;
+      line-height: 1;
+      display: inline-block;
+      transform: translateY(-0.5px);
+    }
+
+    /* ── UNIT HOVER LABEL ────────────────────────────────────────────────── */
+    #unit-label {
+      position: fixed;
+      z-index: 30;
+      pointer-events: none;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(14px) saturate(1.3);
+      -webkit-backdrop-filter: blur(14px) saturate(1.3);
+      border-radius: 7px;
+      padding: 7px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      opacity: 0;
+      transform: translate(14px, -50%);
+      transition: opacity 0.12s ease-out;
+    }
+    #unit-label.visible { opacity: 1; }
+
+    .unit-label-id {
+      font-size: 0.5625rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: var(--text);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .unit-label-status {
+      font-size: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .unit-label-status.disponible { color: var(--accent); }
+
+    /* ── UNIT PANEL ──────────────────────────────────────────────────────── */
+    #unit-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 360px;
+      height: 100%;
+      z-index: 40;
+      background: oklch(11% 0.009 250);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #unit-panel.open { transform: translateX(0); }
+
+    .panel-header {
+      padding: 80px 32px 28px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    #panel-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      line-height: 1;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s, border-color 0.2s;
+      padding: 0;
+    }
+    #panel-close:hover { color: var(--text); border-color: var(--muted); }
+
+    .panel-floor-label {
+      display: block;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .panel-unit-name {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text);
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .panel-body {
+      padding: 28px 32px 32px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .panel-stats { display: flex; flex-direction: column; }
+
+    .panel-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-stat:first-child { border-top: 1px solid var(--border); }
+
+    .stat-label {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .stat-value.accent { color: var(--accent); }
+
+    .panel-note {
+      font-size: 0.6875rem;
+      color: var(--dim);
+      line-height: 1.65;
+      letter-spacing: 0.02em;
+    }
+
+    .panel-cta {
+      display: block;
+      text-align: center;
+      padding: 13px 24px;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: var(--font-body);
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .panel-cta:hover { opacity: 0.85; }
+
+    /* ── PANEL STATES ────────────────────────────────────────────────────── */
+    .panel-section {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 24px;
+    }
+    .panel-section[hidden] { display: none; }
+
+    #panel-detail { justify-content: space-between; }
+
+    /* ── CONTACT FORM ────────────────────────────────────────────────────── */
+    .panel-back {
+      align-self: flex-start;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.2s;
+    }
+    .panel-back:hover { color: var(--text); }
+
+    #contact-form {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 24px;
+    }
+
+    .form-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .form-label {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .form-input {
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 400;
+      padding: 9px 0;
+      transition: border-color 0.2s;
+      -webkit-font-smoothing: antialiased;
+    }
+    .form-input:focus {
+      outline: none;
+      border-bottom-color: var(--accent);
+    }
+    .form-input::placeholder { color: var(--dim); }
+
+    /* ── SUCCESS STATE ───────────────────────────────────────────────────── */
+    #panel-success {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 14px;
+    }
+
+    .success-ring {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .success-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      text-transform: uppercase;
+    }
+
+    .success-body {
+      font-size: 0.6875rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── NAV ─────────────────────────────────────────────────────────────── */
     #nav {
       position: fixed;
       top: 20px;
@@ -60,11 +507,7 @@
     }
     .nav-brand:hover { color: oklch(93% 0.005 250 / 0.9); }
 
-    .nav-links {
-      display: flex;
-      gap: 28px;
-      list-style: none;
-    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
 
     .nav-links a {
       font-size: 0.75rem;
@@ -94,41 +537,10 @@
     }
     .nav-cta:hover { opacity: 0.85; }
 
-    /* Wrapper — transparente en desktop, contenedor fijo en móvil */
-    #nav-wrapper { display: contents; }
-
-    /* Dropdown — oculto en desktop, visible en móvil */
+    #nav-wrapper        { display: contents; }
     #nav-mobile-dropdown { display: none; }
 
-    /* ── PLACEHOLDER ── */
-    .coming-soon {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-    }
-
-    .coming-soon-label {
-      font-size: 0.625rem;
-      font-weight: 700;
-      letter-spacing: 0.25em;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
-    .coming-soon-title {
-      font-family: var(--font-display);
-      font-size: clamp(2.5rem, 6vw, 6rem);
-      font-weight: 700;
-      letter-spacing: 0.3em;
-      color: oklch(93% 0.005 250 / 0.08);
-      text-transform: uppercase;
-    }
-
-    /* ── MOBILE ≤ 767px ── */
+    /* ── MOBILE ≤ 767px ─────────────────────────────────────────────────── */
     @media (max-width: 767px) {
       #nav-wrapper {
         display: flex;
@@ -154,7 +566,6 @@
         padding: 9px 16px;
         min-height: 62px;
         border-radius: 100px;
-        transition: background 0.4s;
       }
 
       .nav-cta { display: none; }
@@ -232,14 +643,43 @@
         width: calc(100% - 32px);
         font-size: 0.6875rem;
       }
+
+      #floor-list {
+        left: 14px;
+        gap: 4px;
+      }
+
+      #back-btn {
+        top: 84px;
+        left: 14px;
+        font-size: 0.5rem;
+        padding: 6px 11px;
+      }
+
+      #unit-panel {
+        width: 100%;
+        height: 68%;
+        top: auto;
+        bottom: 0;
+        right: 0;
+        transform: translateY(100%);
+        border-left: none;
+        border-top: 1px solid var(--border);
+        border-radius: 20px 20px 0 0;
+      }
+      #unit-panel.open { transform: translateY(0); }
+
+      .panel-header { padding: 28px 24px 20px; }
+      #panel-close  { top: 20px; right: 18px; }
     }
   </style>
 </head>
 <body>
 
+  <!-- ── NAV ────────────────────────────────────────────────────────────── -->
   <div id="nav-wrapper">
     <nav id="nav" aria-label="Main navigation">
-      <a href="#" class="nav-brand" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
+      <a href="index.html" class="nav-brand" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
       <ul class="nav-links">
         <li><a href="emotion.html">Emotion</a></li>
         <li><a href="ownership.html" class="active">Ownership</a></li>
@@ -260,11 +700,770 @@
     </div>
   </div>
 
-  <div class="coming-soon">
-    <span class="coming-soon-label">Coming soon</span>
-    <h1 class="coming-soon-title">Ownership</h1>
+  <!-- ── LOADING ─────────────────────────────────────────────────────────── -->
+  <div id="loading-overlay">
+    <span class="loading-title">Ownership</span>
+    <div class="loading-bar-track">
+      <div id="loading-bar"></div>
+    </div>
+    <span class="loading-label">Cargando torre</span>
   </div>
 
+  <!-- ── CANVAS ──────────────────────────────────────────────────────────── -->
+  <div id="canvas-container">
+    <canvas id="three-canvas"></canvas>
+  </div>
+
+  <!-- ── CANVAS DIM ──────────────────────────────────────────────────────── -->
+  <div id="canvas-dim"></div>
+
+  <!-- ── FLOOR LIST ──────────────────────────────────────────────────────── -->
+  <div id="floor-list" role="navigation" aria-label="Navegación por pisos"></div>
+
+  <!-- ── BACK BUTTON ─────────────────────────────────────────────────────── -->
+  <button id="back-btn" aria-label="Volver a vista orbital">
+    <span class="back-arrow">&#8592;</span> Torre
+  </button>
+
+  <!-- ── UNIT HOVER LABEL ────────────────────────────────────────────────── -->
+  <div id="unit-label" role="tooltip">
+    <span class="unit-label-id"  id="label-id"></span>
+    <span class="unit-label-status" id="label-status"></span>
+  </div>
+
+  <!-- ── UNIT PANEL ──────────────────────────────────────────────────────── -->
+  <div id="unit-panel" role="complementary" aria-label="Detalle de unidad">
+    <div class="panel-header">
+      <button id="panel-close" aria-label="Cerrar panel">&#215;</button>
+      <span class="panel-floor-label" id="panel-floor-label"></span>
+      <h2  class="panel-unit-name"   id="panel-unit-name"></h2>
+    </div>
+    <div class="panel-body">
+
+      <!-- Estado: detalle de unidad -->
+      <div id="panel-detail" class="panel-section">
+        <div class="panel-stats" id="panel-stats"></div>
+        <button class="panel-cta" id="panel-cta-contact">Hablar con un asesor</button>
+      </div>
+
+      <!-- Estado: formulario de contacto -->
+      <div id="panel-form" class="panel-section" hidden>
+        <button class="panel-back" id="panel-back">&#8592; Volver</button>
+        <form id="contact-form" novalidate>
+          <div class="form-fields">
+            <div class="form-field">
+              <label class="form-label" for="f-nombre">Nombre</label>
+              <input class="form-input" id="f-nombre" name="nombre"
+                     type="text" required autocomplete="name"
+                     placeholder="Tu nombre completo">
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-email">Email</label>
+              <input class="form-input" id="f-email" name="email"
+                     type="email" required autocomplete="email"
+                     placeholder="tu@email.com">
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="f-tel">Teléfono</label>
+              <input class="form-input" id="f-tel" name="tel"
+                     type="tel" autocomplete="tel"
+                     placeholder="+52 000 000 0000">
+            </div>
+          </div>
+          <button type="submit" class="panel-cta">Enviar solicitud</button>
+        </form>
+      </div>
+
+      <!-- Estado: confirmación de envío -->
+      <div id="panel-success" class="panel-section" hidden>
+        <div class="success-ring">&#10003;</div>
+        <span class="success-title">Enviado</span>
+        <p class="success-body">
+          Tu solicitud fue enviada.<br>
+          Un asesor te contactará en breve.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── THREE.JS ────────────────────────────────────────────────────────── -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three":          "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ── CONSTANTS ────────────────────────────────────────────────────────────
+    const FLOORS          = 10;
+    const UNITS_PER_FLOOR = 4;
+    const FLOOR_SPACING   = 1.55;   // y distance floor-to-floor (center of slab)
+    const SLAB_H          = 0.10;   // slab thickness
+    const UNIT_H          = 1.05;   // unit block height
+    const UNIT_W          = 1.48;   // unit block width / depth
+    const UNIT_GAP        = 0.16;   // gap between adjacent units
+    const SLAB_W          = 4.0;    // slab width / depth
+    const TOWER_MID_Y     = ((FLOORS - 1) * FLOOR_SPACING) / 2;
+
+    // Floor view camera — tweak these two values to control the angle:
+    // ISO_XZ → horizontal distance from tower center (smaller = more top-down)
+    // ISO_Y  → height above the selected floor    (larger  = more top-down)
+    const ISO_XZ = 3;
+    const ISO_Y  = 13;
+
+    // Three.js color equivalents of FORMA palette
+    const C_BASE    = new THREE.Color(0x1e1e2e); // lifted from bg for contrast
+    const C_BASE_HL = new THREE.Color(0x2a2a3e); // hover state
+    const C_ACCENT  = new THREE.Color(0xc8791a); // amber ~oklch(70% 0.175 52)
+    const C_MUTED   = new THREE.Color(0x5e5e6e); // gray  ~oklch(48% 0.01 250)
+
+    // Unit positions in the 2×2 grid (relative to slab center)
+    const half  = UNIT_W / 2 + UNIT_GAP / 2;
+    const unitY = SLAB_H / 2 + UNIT_H / 2;
+    const UNIT_OFFSETS = [
+      new THREE.Vector3(-half, unitY, -half),
+      new THREE.Vector3( half, unitY, -half),
+      new THREE.Vector3(-half, unitY,  half),
+      new THREE.Vector3( half, unitY,  half),
+    ];
+
+    // ── STATE ────────────────────────────────────────────────────────────────
+    let mode            = 'orbital';
+    let selectedFloor   = null;
+    let hoveredFloor    = null;
+    let hoveredUnit     = null;
+    let isTransitioning = false;
+    let panelOpen       = false;
+    let panelState      = 'detail'; // 'detail' | 'form' | 'success'
+    let currentUnitData = null;
+    let disponibilidad  = {};
+
+    // ── RENDERER ─────────────────────────────────────────────────────────────
+    const canvas    = document.getElementById('three-canvas');
+    const container = document.getElementById('canvas-container');
+    const W = () => window.innerWidth;
+    const H = () => window.innerHeight;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(W(), H());
+    renderer.outputColorSpace  = THREE.SRGBColorSpace;
+    renderer.toneMapping       = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+
+    // ── SCENE ────────────────────────────────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x090910);
+    scene.fog = new THREE.Fog(0x090910, 30, 80); // linear fog, less aggressive
+
+    // ── CAMERA ───────────────────────────────────────────────────────────────
+    const camera = new THREE.PerspectiveCamera(36, W() / H(), 0.1, 200);
+    camera.position.set(19.5, TOWER_MID_Y + 4, 19.5);
+    camera.lookAt(0, TOWER_MID_Y, 0);
+
+    // ── CONTROLS ─────────────────────────────────────────────────────────────
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, TOWER_MID_Y, 0);
+    controls.enableDamping   = true;
+    controls.dampingFactor   = 0.07;
+    controls.minDistance     = 20;
+    controls.maxDistance     = 32;
+    controls.minPolarAngle   = 0.15;
+    controls.maxPolarAngle   = Math.PI * 0.72;
+    controls.enablePan       = false;
+    controls.update();
+
+    // ── LIGHTS ───────────────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55)); // lifted for legibility
+
+    const sun = new THREE.DirectionalLight(0xfff4e0, 1.8);
+    sun.position.set(8, 15, 6);
+    scene.add(sun);
+
+    const fill = new THREE.DirectionalLight(0xdde8ff, 0.5);
+    fill.position.set(-7, 3, -9);
+    scene.add(fill);
+
+    const rim = new THREE.PointLight(0xc8791a, 0.35, 40);
+    rim.position.set(0, -1.5, 0);
+    scene.add(rim);
+
+    // ── TOWER GEOMETRY ───────────────────────────────────────────────────────
+    const slabGeo      = new THREE.BoxGeometry(SLAB_W, SLAB_H, SLAB_W);
+    const unitGeo      = new THREE.BoxGeometry(UNIT_W, UNIT_H, UNIT_W);
+    const slabEdgesGeo = new THREE.EdgesGeometry(slabGeo);
+    const slabEdgesMat = new THREE.LineBasicMaterial({
+      color: 0x3e3e58,
+      transparent: true,
+      opacity: 0.7,
+    });
+
+    const floorGroups = [];
+    const slabMeshes  = [];
+
+    for (let i = 0; i < FLOORS; i++) {
+      const floorId = `Floor-${String(i + 1).padStart(2, '0')}`;
+      const group   = new THREE.Group();
+      group.name    = floorId;
+      group.position.y = i * FLOOR_SPACING;
+
+      // Slab
+      const slabMat = new THREE.MeshStandardMaterial({
+        color:            C_BASE.clone(),
+        roughness:        0.78,
+        metalness:        0.22,
+        emissive:         C_ACCENT.clone(),
+        emissiveIntensity: 0,
+      });
+      const slab = new THREE.Mesh(slabGeo, slabMat);
+      slab.name     = floorId;
+      slab.userData = { type: 'floor', floorIndex: i };
+      group.add(slab);
+      slabMeshes.push(slab);
+
+      // Edge lines for slab legibility against dark background
+      const edgeLines = new THREE.LineSegments(slabEdgesGeo, slabEdgesMat);
+      group.add(edgeLines);
+
+      // Units
+      const unitMeshes = [];
+      for (let j = 0; j < UNITS_PER_FLOOR; j++) {
+        const unitId  = `${floorId}_unidad${String(j + 1).padStart(2, '0')}`;
+        const unitMat = new THREE.MeshStandardMaterial({
+          color:            C_MUTED.clone(),
+          roughness:        0.65,
+          metalness:        0.18,
+          transparent:      true,
+          opacity:          0.4,
+          emissive:         C_ACCENT.clone(),
+          emissiveIntensity: 0,
+        });
+        const unit = new THREE.Mesh(unitGeo, unitMat);
+        unit.position.copy(UNIT_OFFSETS[j]);
+        unit.name     = unitId;
+        unit.userData = { type: 'unit', floorIndex: i, unitIndex: j, unitId };
+        unit.visible  = false;
+        group.add(unit);
+        unitMeshes.push(unit);
+      }
+
+      floorGroups.push({ group, slab, slabMat, unitMeshes });
+      scene.add(group);
+    }
+
+    // ── AVAILABILITY ─────────────────────────────────────────────────────────
+    async function loadDisponibilidad() {
+      try {
+        const res  = await fetch('content/data/disponibilidad.json');
+        const data = await res.json();
+        data.unidades.forEach(u => {
+          disponibilidad[u.id] = { estado: u.estado, tipo: u.tipo, m2: u.m2 };
+        });
+      } catch {
+        // Fallback: mark all as available for standalone demo
+        for (let i = 0; i < FLOORS; i++) {
+          for (let j = 0; j < UNITS_PER_FLOOR; j++) {
+            const id = `Floor-${String(i+1).padStart(2,'0')}_unidad${String(j+1).padStart(2,'0')}`;
+            disponibilidad[id] = { estado: 'disponible', tipo: '2D', m2: 80 };
+          }
+        }
+      }
+      applyAvailability();
+      buildFloorList();
+    }
+
+    function applyAvailability() {
+      floorGroups.forEach(({ unitMeshes }) => {
+        unitMeshes.forEach(mesh => {
+          const d = disponibilidad[mesh.name];
+          if (!d) return;
+          if (d.estado === 'disponible') {
+            mesh.material.color.copy(C_ACCENT);
+            mesh.material.opacity          = 1.0;
+            mesh.material.emissiveIntensity = 0.07;
+          } else {
+            mesh.material.color.copy(C_MUTED);
+            mesh.material.opacity          = 0.4;
+            mesh.material.emissiveIntensity = 0;
+          }
+        });
+      });
+    }
+
+    function hasAvailableUnits(i) {
+      return floorGroups[i].unitMeshes.some(
+        m => disponibilidad[m.name]?.estado === 'disponible'
+      );
+    }
+
+    // ── FLOOR LIST UI ─────────────────────────────────────────────────────────
+    const floorListEl = document.getElementById('floor-list');
+
+    function buildFloorList() {
+      floorListEl.innerHTML = '';
+      // Render top floor first (highest number at top)
+      for (let i = FLOORS - 1; i >= 0; i--) {
+        const avail = hasAvailableUnits(i);
+        const item  = document.createElement('div');
+        item.className       = 'floor-item' + (avail ? ' has-available' : '');
+        item.dataset.floorIndex = i;
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', `Piso ${i + 1}`);
+        item.innerHTML = `
+          <span class="floor-number">${String(i + 1).padStart(2, '0')}</span>
+          <span class="floor-dot"></span>
+        `;
+        item.addEventListener('click', () => {
+          if (isTransitioning) return;
+          if (panelOpen) closePanel();
+          if (mode === 'floor' && selectedFloor === i) return;
+          selectFloor(i);
+        });
+
+        item.addEventListener('mouseenter', () => {
+          if (mode !== 'orbital' || isTransitioning) return;
+          const slab = floorGroups[i].slab;
+          if (hoveredFloor && hoveredFloor !== slab) {
+            hoveredFloor.material.emissiveIntensity = 0;
+            hoveredFloor.material.color.copy(C_BASE);
+          }
+          hoveredFloor = slab;
+          slab.material.emissiveIntensity = 0.22;
+          slab.material.color.copy(C_BASE_HL);
+          highlightFloorItem(i);
+        });
+
+        item.addEventListener('mouseleave', () => {
+          if (mode !== 'orbital' || isTransitioning) return;
+          const slab = floorGroups[i].slab;
+          if (hoveredFloor === slab) {
+            slab.material.emissiveIntensity = 0;
+            slab.material.color.copy(C_BASE);
+            hoveredFloor = null;
+            clearFloorHighlight();
+          }
+        });
+        item.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
+        });
+        floorListEl.appendChild(item);
+      }
+      floorListEl.classList.add('visible');
+    }
+
+    function syncFloorList() {
+      document.querySelectorAll('.floor-item').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.floorIndex) === selectedFloor);
+      });
+    }
+
+    function highlightFloorItem(floorIndex) {
+      document.querySelectorAll('.floor-item').forEach(el => {
+        el.classList.toggle('hover-highlight', parseInt(el.dataset.floorIndex) === floorIndex);
+      });
+    }
+
+    function clearFloorHighlight() {
+      document.querySelectorAll('.floor-item.hover-highlight').forEach(el => {
+        el.classList.remove('hover-highlight');
+      });
+    }
+
+    // ── HELPERS ───────────────────────────────────────────────────────────────
+    function parseUnit(meshName) {
+      const [fp, up] = meshName.split('_');
+      const fn = parseInt(fp.replace('Floor-', ''));
+      const un = up ? parseInt(up.replace('unidad', '')) : 0;
+      return {
+        floorLabel: `Piso ${String(fn).padStart(2, '0')}`,
+        unitLabel:  `Unidad ${String(un).padStart(2, '0')}`,
+      };
+    }
+
+    // ── RAYCASTING ────────────────────────────────────────────────────────────
+    const raycaster = new THREE.Raycaster();
+    const mouse     = new THREE.Vector2(-999, -999);
+
+    const unitLabelEl = document.getElementById('unit-label');
+    const labelId     = document.getElementById('label-id');
+    const labelStatus = document.getElementById('label-status');
+
+    function onMouseMove(e) {
+      mouse.x =  (e.clientX / W()) * 2 - 1;
+      mouse.y = -(e.clientY / H()) * 2 + 1;
+
+      unitLabelEl.style.left = e.clientX + 'px';
+      unitLabelEl.style.top  = e.clientY + 'px';
+
+      if (isTransitioning || panelOpen) return;
+      raycaster.setFromCamera(mouse, camera);
+
+      if (mode === 'orbital') {
+        const hit = raycaster.intersectObjects(slabMeshes)[0]?.object ?? null;
+        if (hit !== hoveredFloor) {
+          if (hoveredFloor) {
+            hoveredFloor.material.emissiveIntensity = 0;
+            hoveredFloor.material.color.copy(C_BASE);
+          }
+          hoveredFloor = hit;
+          if (hoveredFloor) {
+            hoveredFloor.material.emissiveIntensity = 0.22;
+            hoveredFloor.material.color.copy(C_BASE_HL);
+            canvas.style.cursor = 'pointer';
+            highlightFloorItem(hoveredFloor.userData.floorIndex);
+          } else {
+            canvas.style.cursor = 'grab';
+            clearFloorHighlight();
+          }
+        }
+        unitLabelEl.classList.remove('visible');
+        return;
+      }
+
+      if (mode === 'floor' && selectedFloor !== null) {
+        const visibleUnits = floorGroups[selectedFloor].unitMeshes.filter(m => m.visible);
+        const hit = raycaster.intersectObjects(visibleUnits)[0]?.object ?? null;
+
+        if (hit !== hoveredUnit) {
+          if (hoveredUnit) {
+            const wasAvail = disponibilidad[hoveredUnit.name]?.estado === 'disponible';
+            hoveredUnit.material.emissiveIntensity = wasAvail ? 0.07 : 0;
+          }
+          hoveredUnit = hit;
+          if (hoveredUnit) {
+            hoveredUnit.material.emissiveIntensity = 0.32;
+            const avail = disponibilidad[hoveredUnit.name]?.estado === 'disponible';
+            canvas.style.cursor = avail ? 'pointer' : 'default';
+          } else {
+            canvas.style.cursor = 'default';
+          }
+        }
+
+        if (hoveredUnit) {
+          const d = disponibilidad[hoveredUnit.name];
+          const { floorLabel, unitLabel } = parseUnit(hoveredUnit.name);
+          labelId.textContent     = `${floorLabel} / ${unitLabel}`;
+          labelStatus.textContent = d?.estado === 'disponible' ? 'Disponible' : 'Vendida';
+          labelStatus.className   = 'unit-label-status' + (d?.estado === 'disponible' ? ' disponible' : '');
+          unitLabelEl.classList.add('visible');
+        } else {
+          unitLabelEl.classList.remove('visible');
+        }
+      }
+    }
+
+    function onClick() {
+      if (isTransitioning || panelOpen) return;
+      raycaster.setFromCamera(mouse, camera);
+
+      if (mode === 'orbital') {
+        const hit = raycaster.intersectObjects(slabMeshes)[0]?.object;
+        if (hit) selectFloor(hit.userData.floorIndex);
+        return;
+      }
+
+      if (mode === 'floor' && selectedFloor !== null) {
+        const visibleUnits = floorGroups[selectedFloor].unitMeshes.filter(m => m.visible);
+        const unitHit = raycaster.intersectObjects(visibleUnits)[0]?.object;
+        if (unitHit) {
+          if (disponibilidad[unitHit.name]?.estado === 'disponible') openPanel(unitHit);
+          return;
+        }
+        // Click on active slab → stay in floor view
+        const slabHit = raycaster.intersectObjects([floorGroups[selectedFloor].slab])[0];
+        if (!slabHit) returnToOrbital();
+      }
+    }
+
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('click', onClick);
+    canvas.addEventListener('mouseleave', () => {
+      if (hoveredFloor) {
+        hoveredFloor.material.emissiveIntensity = 0;
+        hoveredFloor.material.color.copy(C_BASE);
+        hoveredFloor = null;
+        clearFloorHighlight();
+      }
+      if (hoveredUnit) {
+        const wasAvail = disponibilidad[hoveredUnit.name]?.estado === 'disponible';
+        hoveredUnit.material.emissiveIntensity = wasAvail ? 0.07 : 0;
+        hoveredUnit = null;
+      }
+      unitLabelEl.classList.remove('visible');
+    });
+    canvas.style.cursor = 'grab';
+
+    // ── CAMERA TWEEN ── ──────────────────────────────────────────────────────────
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function tweenCamera(fp, ft, tp, tt, duration, onDone) {
+      const start = performance.now();
+      const a = fp.clone(), b = ft.clone();
+
+      (function tick(now) {
+        const t    = Math.min((now - start) / duration, 1);
+        const ease = easeInOutCubic(t);
+        camera.position.lerpVectors(a, tp, ease);
+        controls.target.lerpVectors(b, tt, ease);
+        controls.update();
+        if (t < 1) requestAnimationFrame(tick);
+        else if (onDone) onDone();
+      })(performance.now());
+    }
+
+    // ── FLOOR SELECTION ───────────────────────────────────────────────────────
+    function selectFloor(floorIndex) {
+      if (isTransitioning) return;
+
+      // Clear previous floor units when switching floors in floor mode
+      if (mode === 'floor' && selectedFloor !== null && selectedFloor !== floorIndex) {
+        floorGroups[selectedFloor].unitMeshes.forEach(m => { m.visible = false; });
+        hoveredUnit = null;
+        unitLabelEl.classList.remove('visible');
+      }
+
+      // Clear floor hover
+      if (hoveredFloor) {
+        hoveredFloor.material.emissiveIntensity = 0;
+        hoveredFloor.material.color.copy(C_BASE);
+        hoveredFloor = null;
+        clearFloorHighlight();
+      }
+
+      const floorY   = floorIndex * FLOOR_SPACING;
+      const fromPos  = camera.position.clone();
+      const fromTgt  = controls.target.clone();
+      const toPos    = new THREE.Vector3(ISO_XZ, floorY + ISO_Y, ISO_XZ);
+      const toTarget = new THREE.Vector3(0, floorY, 0);
+
+      isTransitioning  = true;
+      controls.enabled = false;
+      canvas.style.cursor = 'default';
+
+      tweenCamera(fromPos, fromTgt, toPos, toTarget, 1100, () => {
+        isTransitioning = false;
+        mode            = 'floor';
+        selectedFloor   = floorIndex;
+
+        floorGroups[floorIndex].unitMeshes.forEach(m => { m.visible = true; });
+        applyFloorVisibility(floorIndex);
+        syncFloorList();
+        document.getElementById('back-btn').classList.add('visible');
+      });
+    }
+
+    function returnToOrbital() {
+      if (isTransitioning) return;
+      if (panelOpen) closePanel();
+
+      hideAllUnits();
+      resetFloorVisibility();
+      hoveredUnit = null;
+      unitLabelEl.classList.remove('visible');
+
+      const fromPos  = camera.position.clone();
+      const fromTgt  = controls.target.clone();
+      const toPos    = new THREE.Vector3(21, TOWER_MID_Y + 4, 21);
+      const toTarget = new THREE.Vector3(0, TOWER_MID_Y, 0);
+
+      isTransitioning = true;
+
+      tweenCamera(fromPos, fromTgt, toPos, toTarget, 950, () => {
+        isTransitioning  = false;
+        mode             = 'orbital';
+        selectedFloor    = null;
+        controls.enabled = true;
+        canvas.style.cursor = 'grab';
+        syncFloorList();
+        document.getElementById('back-btn').classList.remove('visible');
+      });
+    }
+
+    document.getElementById('back-btn').addEventListener('click', returnToOrbital);
+
+    // ── FLOOR VISIBILITY ──────────────────────────────────────────────────────
+    function applyFloorVisibility(activeIdx) {
+      floorGroups.forEach(({ group, slabMat }, i) => {
+        if (i > activeIdx) {
+          // Floors above: fully hidden
+          group.visible = false;
+        } else if (i === activeIdx) {
+          group.visible       = true;
+          slabMat.transparent = false;
+          slabMat.opacity     = 1;
+        } else {
+          // Floors below: dimmed but visible for context
+          group.visible       = true;
+          slabMat.transparent = true;
+          slabMat.opacity     = 0.30;
+        }
+      });
+    }
+
+    function resetFloorVisibility() {
+      floorGroups.forEach(({ group, slabMat }) => {
+        group.visible       = true;
+        slabMat.transparent = false;
+        slabMat.opacity     = 1;
+      });
+    }
+
+    function hideAllUnits() {
+      floorGroups.forEach(({ unitMeshes }) => unitMeshes.forEach(m => { m.visible = false; }));
+    }
+
+    // ── UNIT PANEL ────────────────────────────────────────────────────────────
+    const unitPanel  = document.getElementById('unit-panel');
+    const canvasDim  = document.getElementById('canvas-dim');
+    const panelClose = document.getElementById('panel-close');
+
+    function setPanelState(state) {
+      document.querySelectorAll('.panel-section').forEach(el => { el.hidden = true; });
+      document.getElementById(`panel-${state}`).hidden = false;
+      panelState = state;
+    }
+
+    function openPanel(mesh) {
+      const d = disponibilidad[mesh.name];
+      const { floorLabel, unitLabel } = parseUnit(mesh.name);
+
+      currentUnitData = { floorLabel, unitLabel, tipo: d?.tipo ?? '—', m2: d?.m2 ?? '—' };
+
+      document.getElementById('panel-floor-label').textContent = floorLabel;
+      document.getElementById('panel-unit-name').textContent   = unitLabel;
+      document.getElementById('panel-stats').innerHTML = `
+        <div class="panel-stat">
+          <span class="stat-label">Tipología</span>
+          <span class="stat-value">${d?.tipo ?? '—'}</span>
+        </div>
+        <div class="panel-stat">
+          <span class="stat-label">Superficie</span>
+          <span class="stat-value">${d?.m2 ?? '—'} m²</span>
+        </div>
+        <div class="panel-stat">
+          <span class="stat-label">Estado</span>
+          <span class="stat-value accent">Disponible</span>
+        </div>
+      `;
+
+      setPanelState('detail');
+      unitPanel.classList.add('open');
+      canvasDim.classList.add('active');
+      unitLabelEl.classList.remove('visible');
+      panelOpen = true;
+    }
+
+    function closePanel() {
+      unitPanel.classList.remove('open');
+      canvasDim.classList.remove('active');
+      panelOpen = false;
+      // Reset form and state after close animation (0.42s)
+      setTimeout(() => {
+        document.getElementById('contact-form').reset();
+        setPanelState('detail');
+      }, 460);
+    }
+
+    panelClose.addEventListener('click', closePanel);
+    canvasDim.addEventListener('click', closePanel);
+
+    // Escape cierra el panel
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && panelOpen) closePanel();
+    });
+
+    // CTA: detalle → formulario
+    document.getElementById('panel-cta-contact').addEventListener('click', () => {
+      setPanelState('form');
+    });
+
+    // Volver: formulario → detalle
+    document.getElementById('panel-back').addEventListener('click', () => {
+      setPanelState('detail');
+    });
+
+    // Submit del formulario
+    document.getElementById('contact-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const nombre   = document.getElementById('f-nombre').value.trim();
+      const email    = document.getElementById('f-email').value.trim();
+      const telefono = document.getElementById('f-tel').value.trim();
+      if (!nombre || !email) return;
+
+      const subject = encodeURIComponent(
+        `Solicitud FORMA — ${currentUnitData.floorLabel}, ${currentUnitData.unitLabel}`
+      );
+      const body = encodeURIComponent(
+        `Nombre: ${nombre}\n` +
+        `Email: ${email}\n` +
+        `Teléfono: ${telefono || '—'}\n\n` +
+        `Unidad de interés:\n` +
+        `${currentUnitData.floorLabel} / ${currentUnitData.unitLabel}\n` +
+        `Tipología: ${currentUnitData.tipo}\n` +
+        `Superficie: ${currentUnitData.m2} m²`
+      );
+      window.location.href = `mailto:asesor@forma.com?subject=${subject}&body=${body}`;
+
+      setPanelState('success');
+      setTimeout(() => closePanel(), 3000);
+    });
+
+    // ── RENDER LOOP ───────────────────────────────────────────────────────────
+    (function render() {
+      requestAnimationFrame(render);
+      controls.update();
+      renderer.render(scene, camera);
+    })();
+
+    // ── RESIZE ────────────────────────────────────────────────────────────────
+    window.addEventListener('resize', () => {
+      camera.aspect = W() / H();
+      camera.updateProjectionMatrix();
+      renderer.setSize(W(), H());
+    });
+
+    // ── LOADING SEQUENCE ──────────────────────────────────────────────────────
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingBar     = document.getElementById('loading-bar');
+
+    function animateBar(duration, cb) {
+      const start = performance.now();
+      (function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        loadingBar.style.width = (easeInOutCubic(t) * 100) + '%';
+        if (t < 1) requestAnimationFrame(tick);
+        else cb();
+      })(performance.now());
+    }
+
+    async function init() {
+      await loadDisponibilidad();
+      animateBar(1500, () => {
+        setTimeout(() => {
+          loadingOverlay.classList.add('hidden');
+          container.classList.add('visible');
+          // Gentle entry auto-rotate for 3.5s
+          controls.autoRotate      = true;
+          controls.autoRotateSpeed = 0.7;
+          setTimeout(() => { controls.autoRotate = false; }, 3500);
+        }, 280);
+      });
+    }
+
+    init();
+  </script>
+
+  <!-- ── NAV TOGGLE (identical IIFE from blueprint) ────────────────────── -->
   <script>
     (function () {
       const mq          = window.matchMedia('(max-width: 767px)');

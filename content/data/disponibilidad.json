@@ -1,0 +1,54 @@
+{
+  "proyecto": "FORMA Torre",
+  "unidades": [
+    { "id": "Floor-01_unidad01", "piso": 1,  "estado": "vendida",    "tipo": "2D", "m2": 78  },
+    { "id": "Floor-01_unidad02", "piso": 1,  "estado": "disponible", "tipo": "3D", "m2": 112 },
+    { "id": "Floor-01_unidad03", "piso": 1,  "estado": "vendida",    "tipo": "2D", "m2": 78  },
+    { "id": "Floor-01_unidad04", "piso": 1,  "estado": "disponible", "tipo": "1D", "m2": 54  },
+
+    { "id": "Floor-02_unidad01", "piso": 2,  "estado": "vendida",    "tipo": "2D", "m2": 78  },
+    { "id": "Floor-02_unidad02", "piso": 2,  "estado": "vendida",    "tipo": "3D", "m2": 112 },
+    { "id": "Floor-02_unidad03", "piso": 2,  "estado": "vendida",    "tipo": "2D", "m2": 78  },
+    { "id": "Floor-02_unidad04", "piso": 2,  "estado": "disponible", "tipo": "1D", "m2": 54  },
+
+    { "id": "Floor-03_unidad01", "piso": 3,  "estado": "disponible", "tipo": "2D", "m2": 82  },
+    { "id": "Floor-03_unidad02", "piso": 3,  "estado": "vendida",    "tipo": "3D", "m2": 115 },
+    { "id": "Floor-03_unidad03", "piso": 3,  "estado": "disponible", "tipo": "2D", "m2": 82  },
+    { "id": "Floor-03_unidad04", "piso": 3,  "estado": "disponible", "tipo": "1D", "m2": 56  },
+
+    { "id": "Floor-04_unidad01", "piso": 4,  "estado": "vendida",    "tipo": "2D", "m2": 82  },
+    { "id": "Floor-04_unidad02", "piso": 4,  "estado": "vendida",    "tipo": "3D", "m2": 115 },
+    { "id": "Floor-04_unidad03", "piso": 4,  "estado": "vendida",    "tipo": "2D", "m2": 82  },
+    { "id": "Floor-04_unidad04", "piso": 4,  "estado": "vendida",    "tipo": "1D", "m2": 56  },
+
+    { "id": "Floor-05_unidad01", "piso": 5,  "estado": "disponible", "tipo": "2D", "m2": 86  },
+    { "id": "Floor-05_unidad02", "piso": 5,  "estado": "vendida",    "tipo": "3D", "m2": 118 },
+    { "id": "Floor-05_unidad03", "piso": 5,  "estado": "disponible", "tipo": "2D", "m2": 86  },
+    { "id": "Floor-05_unidad04", "piso": 5,  "estado": "vendida",    "tipo": "1D", "m2": 58  },
+
+    { "id": "Floor-06_unidad01", "piso": 6,  "estado": "disponible", "tipo": "2D", "m2": 86  },
+    { "id": "Floor-06_unidad02", "piso": 6,  "estado": "disponible", "tipo": "3D", "m2": 118 },
+    { "id": "Floor-06_unidad03", "piso": 6,  "estado": "vendida",    "tipo": "2D", "m2": 86  },
+    { "id": "Floor-06_unidad04", "piso": 6,  "estado": "disponible", "tipo": "1D", "m2": 58  },
+
+    { "id": "Floor-07_unidad01", "piso": 7,  "estado": "disponible", "tipo": "2D", "m2": 90  },
+    { "id": "Floor-07_unidad02", "piso": 7,  "estado": "disponible", "tipo": "3D", "m2": 122 },
+    { "id": "Floor-07_unidad03", "piso": 7,  "estado": "disponible", "tipo": "2D", "m2": 90  },
+    { "id": "Floor-07_unidad04", "piso": 7,  "estado": "disponible", "tipo": "1D", "m2": 60  },
+
+    { "id": "Floor-08_unidad01", "piso": 8,  "estado": "disponible", "tipo": "2D", "m2": 90  },
+    { "id": "Floor-08_unidad02", "piso": 8,  "estado": "disponible", "tipo": "3D", "m2": 122 },
+    { "id": "Floor-08_unidad03", "piso": 8,  "estado": "disponible", "tipo": "2D", "m2": 90  },
+    { "id": "Floor-08_unidad04", "piso": 8,  "estado": "disponible", "tipo": "1D", "m2": 60  },
+
+    { "id": "Floor-09_unidad01", "piso": 9,  "estado": "disponible", "tipo": "2D", "m2": 94  },
+    { "id": "Floor-09_unidad02", "piso": 9,  "estado": "disponible", "tipo": "3D", "m2": 126 },
+    { "id": "Floor-09_unidad03", "piso": 9,  "estado": "disponible", "tipo": "2D", "m2": 94  },
+    { "id": "Floor-09_unidad04", "piso": 9,  "estado": "disponible", "tipo": "1D", "m2": 62  },
+
+    { "id": "Floor-10_unidad01", "piso": 10, "estado": "disponible", "tipo": "PH", "m2": 145 },
+    { "id": "Floor-10_unidad02", "piso": 10, "estado": "disponible", "tipo": "PH", "m2": 148 },
+    { "id": "Floor-10_unidad03", "piso": 10, "estado": "disponible", "tipo": "PH", "m2": 145 },
+    { "id": "Floor-10_unidad04", "piso": 10, "estado": "disponible", "tipo": "PH", "m2": 152 }
+  ]
+}
