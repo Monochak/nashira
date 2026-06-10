@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:             oklch(9%  0.008 250);
+      --bg:             oklch(18% 0.008 250);
       --text:           oklch(93% 0.005 250);
       --text-secondary: oklch(88% 0.006 250);
       --muted:          oklch(48% 0.01  250);
@@ -20,6 +20,8 @@
       --border:         oklch(17% 0.01  250);
       --glass-bg:       oklch(13% 0.01  250 / 0.72);
       --glass-border:   oklch(25% 0.012 250 / 0.55);
+      --label:          oklch(62% 0.01  250);       /* uppercase labels */
+      --panel-border:   oklch(28% 0.012 250 / 0.45);/* panel internal dividers */
       --font-display:   'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
       --font-body:      'Barlow', system-ui, -apple-system, sans-serif;
     }
@@ -61,6 +63,7 @@
     #canvas-dim.active {
       opacity: 0.55;
       pointer-events: auto;
+      cursor: pointer;
     }
 
     /* ── LOADING ─────────────────────────────────────────────────────────── */
@@ -105,10 +108,10 @@
     }
 
     .loading-label {
-      font-size: 0.5rem;
-      font-weight: 700;
-      letter-spacing: 0.28em;
-      color: var(--dim);
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      color: var(--muted);
       text-transform: uppercase;
     }
 
@@ -190,6 +193,10 @@
     }
     #back-btn.visible { display: flex; }
     #back-btn:hover   { color: var(--text); border-color: var(--muted); }
+    #back-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
 
     .back-arrow {
       font-size: 0.6rem;
@@ -219,16 +226,16 @@
     #unit-label.visible { opacity: 1; }
 
     .unit-label-id {
-      font-size: 0.5625rem;
+      font-size: 0.625rem;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       color: var(--text);
       text-transform: uppercase;
       white-space: nowrap;
     }
 
     .unit-label-status {
-      font-size: 0.5rem;
+      font-size: 0.5625rem;
       font-weight: 600;
       letter-spacing: 0.10em;
       color: var(--muted);
@@ -258,7 +265,7 @@
 
     .panel-header {
       padding: 80px 32px 28px;
-      border-bottom: 1px solid oklch(28% 0.012 250 / 0.5);
+      border-bottom: 1px solid oklch(28% 0.012 250 / 0.5); /* header: slightly stronger */
       position: relative;
       flex-shrink: 0;
     }
@@ -284,13 +291,17 @@
       padding: 0;
     }
     #panel-close:hover { color: var(--text); border-color: var(--muted); }
+    #panel-close:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
 
     .panel-floor-label {
       display: block;
       font-size: 0.625rem;
       font-weight: 600;
       letter-spacing: 0.22em;
-      color: oklch(62% 0.01 250);
+      color: var(--label);
       text-transform: uppercase;
       margin-bottom: 10px;
     }
@@ -321,15 +332,15 @@
       justify-content: space-between;
       align-items: center;
       padding: 13px 0;
-      border-bottom: 1px solid oklch(28% 0.012 250 / 0.45);
+      border-bottom: 1px solid var(--panel-border);
     }
-    .panel-stat:first-child { border-top: 1px solid oklch(28% 0.012 250 / 0.45); }
+    .panel-stat:first-child { border-top: 1px solid var(--panel-border); }
 
     .stat-label {
       font-size: 0.625rem;
       font-weight: 600;
       letter-spacing: 0.14em;
-      color: oklch(62% 0.01 250);
+      color: var(--label);
       text-transform: uppercase;
     }
 
@@ -342,7 +353,7 @@
 
     .panel-note {
       font-size: 0.6875rem;
-      color: var(--dim);
+      color: oklch(55% 0.009 250);
       line-height: 1.65;
       letter-spacing: 0.02em;
     }
@@ -365,6 +376,10 @@
       transition: opacity 0.2s;
     }
     .panel-cta:hover { opacity: 0.85; }
+    .panel-cta:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
 
     /* ── PANEL STATES ────────────────────────────────────────────────────── */
     .panel-section {
@@ -389,13 +404,18 @@
       letter-spacing: 0.14em;
       text-transform: uppercase;
       cursor: pointer;
-      padding: 0;
+      padding: 6px 0;
       display: flex;
       align-items: center;
       gap: 5px;
       transition: color 0.2s;
     }
     .panel-back:hover { color: var(--text); }
+    .panel-back:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
 
     #contact-form {
       display: flex;
@@ -418,10 +438,10 @@
     }
 
     .form-label {
-      font-size: 0.5625rem;
+      font-size: 0.6875rem;
       font-weight: 600;
-      letter-spacing: 0.16em;
-      color: var(--muted);
+      letter-spacing: 0.14em;
+      color: var(--label);
       text-transform: uppercase;
     }
 
@@ -440,8 +460,18 @@
     .form-input:focus {
       outline: none;
       border-bottom-color: var(--accent);
+      box-shadow: 0 2px 0 -1px oklch(70% 0.175 52 / 0.25);
     }
     .form-input::placeholder { color: var(--dim); }
+    .form-input.error { border-bottom-color: oklch(60% 0.20 25); }
+
+    .form-error {
+      font-size: 0.5625rem;
+      color: oklch(60% 0.20 25);
+      letter-spacing: 0.06em;
+      display: none;
+    }
+    .form-error.visible { display: block; }
 
     /* ── SUCCESS STATE ───────────────────────────────────────────────────── */
     #panel-success {
@@ -541,6 +571,18 @@
 
     #nav-wrapper        { display: contents; }
     #nav-mobile-dropdown { display: none; }
+
+    /* ── REDUCED MOTION ─────────────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration:  0.01ms !important;
+      }
+      #canvas-container { transition: none; }
+      #loading-overlay  { transition: none; }
+      #unit-panel       { transition: none; }
+      #unit-label       { transition: none; }
+    }
 
     /* ── MOBILE ≤ 767px ─────────────────────────────────────────────────── */
     @media (max-width: 767px) {
@@ -680,7 +722,7 @@
 
   <!-- ── NAV ────────────────────────────────────────────────────────────── -->
   <div id="nav-wrapper">
-    <nav id="nav" aria-label="Main navigation">
+    <nav id="nav" aria-label="Navegación principal">
       <a href="index.html" class="nav-brand" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
       <ul class="nav-links">
         <li><a href="emotion.html">Emotion</a></li>
@@ -691,8 +733,8 @@
       <a href="#" class="nav-cta">Contact</a>
     </nav>
 
-    <div id="nav-mobile-dropdown" role="menu" aria-label="Navigation menu">
-      <nav class="nav-mobile-links" aria-label="Site sections">
+    <div id="nav-mobile-dropdown" role="menu" aria-label="Menú de navegación">
+      <nav class="nav-mobile-links" aria-label="Secciones del sitio">
         <a href="emotion.html" role="menuitem">Emotion</a>
         <a href="ownership.html" role="menuitem" class="active">Ownership</a>
         <a href="action.html" role="menuitem">Action</a>
@@ -713,7 +755,7 @@
 
   <!-- ── CANVAS ──────────────────────────────────────────────────────────── -->
   <div id="canvas-container">
-    <canvas id="three-canvas"></canvas>
+    <canvas id="three-canvas" role="img" aria-label="Visualizador 3D interactivo de la torre FORMA — selecciona un nivel para explorar las unidades disponibles"></canvas>
   </div>
 
   <!-- ── CANVAS DIM ──────────────────────────────────────────────────────── -->
@@ -757,13 +799,17 @@
               <label class="form-label" for="f-nombre">Nombre</label>
               <input class="form-input" id="f-nombre" name="nombre"
                      type="text" required autocomplete="name"
-                     placeholder="Tu nombre completo">
+                     placeholder="Tu nombre completo"
+                     aria-describedby="f-nombre-error">
+              <span class="form-error" id="f-nombre-error" role="alert">Campo requerido</span>
             </div>
             <div class="form-field">
               <label class="form-label" for="f-email">Email</label>
               <input class="form-input" id="f-email" name="email"
                      type="email" required autocomplete="email"
-                     placeholder="tu@email.com">
+                     placeholder="tu@email.com"
+                     aria-describedby="f-email-error">
+              <span class="form-error" id="f-email-error" role="alert">Email válido requerido</span>
             </div>
             <div class="form-field">
               <label class="form-label" for="f-tel">Teléfono</label>
@@ -793,59 +839,44 @@
   <script type="importmap">
   {
     "imports": {
-      "three":          "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-      "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      "three":         "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
     }
   }
   </script>
 
   <script type="module">
     import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+    import { SSAOPass }       from 'three/addons/postprocessing/SSAOPass.js';
+    import { OutputPass }     from 'three/addons/postprocessing/OutputPass.js';
 
-    // ── CONSTANTS ────────────────────────────────────────────────────────────
-    const FLOORS          = 10;
-    const UNITS_PER_FLOOR = 4;
-    const FLOOR_SPACING   = 1.55;   // y distance floor-to-floor (center of slab)
-    const SLAB_H          = 0.10;   // slab thickness
-    const UNIT_H          = 1.05;   // unit block height
-    const UNIT_W          = 1.48;   // unit block width / depth
-    const UNIT_GAP        = 0.16;   // gap between adjacent units
-    const SLAB_W          = 4.0;    // slab width / depth
-    const TOWER_MID_Y     = ((FLOORS - 1) * FLOOR_SPACING) / 2;
-
-    // Floor view camera — tweak these two values to control the angle:
-    // ISO_XZ → horizontal distance from tower center (smaller = more top-down)
-    // ISO_Y  → height above the selected floor    (larger  = more top-down)
-    const ISO_XZ = 3;
-    const ISO_Y  = 13;
-
-    // Three.js color equivalents of FORMA palette
-    const C_BASE    = new THREE.Color(0x1e1e2e); // lifted from bg for contrast
-    const C_BASE_HL = new THREE.Color(0x2a2a3e); // hover state
-    const C_ACCENT  = new THREE.Color(0xc8791a); // amber ~oklch(70% 0.175 52)
-    const C_MUTED   = new THREE.Color(0x5e5e6e); // gray  ~oklch(48% 0.01 250)
-
-    // Unit positions in the 2×2 grid (relative to slab center)
-    const half  = UNIT_W / 2 + UNIT_GAP / 2;
-    const unitY = SLAB_H / 2 + UNIT_H / 2;
-    const UNIT_OFFSETS = [
-      new THREE.Vector3(-half, unitY, -half),
-      new THREE.Vector3( half, unitY, -half),
-      new THREE.Vector3(-half, unitY,  half),
-      new THREE.Vector3( half, unitY,  half),
-    ];
+    // ── MOTION PREFERENCE ────────────────────────────────────────────────────
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // ── STATE ────────────────────────────────────────────────────────────────
     let mode            = 'orbital';
     let selectedFloor   = null;
-    let hoveredFloor    = null;
+    let selectedUnit    = null;
+    let hoveredFloorIdx = null;
+    let floorViewPos    = null;   // posición guardada al entrar a unit
+    let floorViewTgt    = null;
     let hoveredUnit     = null;
     let isTransitioning = false;
     let panelOpen       = false;
+    let glbModel        = null;   // referencia al modelo completo para hide-all
     let panelState      = 'detail'; // 'detail' | 'form' | 'success'
     let currentUnitData = null;
     let disponibilidad  = {};
+    let floorGroups     = [];      // [{label, nodeName, items, y_center, units, meshToUnit}]
+    let meshToFloor     = new Map(); // mesh → floorIndex (para selección desde unidades en orbital)
+    let modelCenter     = new THREE.Vector3();
+    let modelMaxDim     = 1;
+    let azoteaItems     = [];
+    const ghostMeshes   = [];
 
     // ── RENDERER ─────────────────────────────────────────────────────────────
     const canvas    = document.getElementById('three-canvas');
@@ -853,112 +884,69 @@
     const W = () => window.innerWidth;
     const H = () => window.innerHeight;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    // LinearSRGBColorSpace aquí — OutputPass aplica la conversión sRGB final
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setSize(W(), H());
-    renderer.outputColorSpace  = THREE.SRGBColorSpace;
-    renderer.toneMapping       = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
     // ── SCENE ────────────────────────────────────────────────────────────────
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x090910);
-    scene.fog = new THREE.Fog(0x090910, 30, 80); // linear fog, less aggressive
+    scene.background = new THREE.Color().setRGB(0.102, 0.102, 0.133, THREE.LinearSRGBColorSpace);
 
     // ── CAMERA ───────────────────────────────────────────────────────────────
-    const camera = new THREE.PerspectiveCamera(36, W() / H(), 0.1, 200);
-    camera.position.set(19.5, TOWER_MID_Y + 4, 19.5);
-    camera.lookAt(0, TOWER_MID_Y, 0);
+    const camera = new THREE.PerspectiveCamera(15, W() / H(), 0.1, 2000);
 
     // ── CONTROLS ─────────────────────────────────────────────────────────────
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, TOWER_MID_Y, 0);
-    controls.enableDamping   = true;
-    controls.dampingFactor   = 0.07;
-    controls.minDistance     = 20;
-    controls.maxDistance     = 32;
-    controls.minPolarAngle   = 0.15;
-    controls.maxPolarAngle   = Math.PI * 0.72;
-    controls.enablePan       = false;
+    controls.enableDamping  = true;
+    controls.dampingFactor  = 0.07;
+    controls.enablePan      = false;
+    controls.maxPolarAngle  = Math.PI * 0.85;
     controls.update();
 
+    // Cámara sólo ve layer 0 (geometría real).
+    // Ghost volumes van en layer 1 → SSAOPass no los incluye → sin sombras fantasma.
+    camera.layers.set(0);
+
     // ── LIGHTS ───────────────────────────────────────────────────────────────
-    scene.add(new THREE.AmbientLight(0xffffff, 0.55)); // lifted for legibility
-
-    const sun = new THREE.DirectionalLight(0xfff4e0, 1.8);
-    sun.position.set(8, 15, 6);
+    scene.add(new THREE.AmbientLight(0xffffff, 2.2));
+    const sun = new THREE.DirectionalLight(0xfff8f0, 2.8);
+    sun.position.set(60, 100, 50);
     scene.add(sun);
-
-    const fill = new THREE.DirectionalLight(0xdde8ff, 0.5);
-    fill.position.set(-7, 3, -9);
+    const fill = new THREE.DirectionalLight(0xe8f0ff, 1.2);
+    fill.position.set(-50, 30, -70);
     scene.add(fill);
+    const back = new THREE.DirectionalLight(0xffffff, 0.6);
+    back.position.set(0, -20, -60);
+    scene.add(back);
 
-    const rim = new THREE.PointLight(0xc8791a, 0.35, 40);
-    rim.position.set(0, -1.5, 0);
-    scene.add(rim);
+    // ── POST-PROCESSING ──────────────────────────────────────────────────────
+    const composer   = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+    const ssaoPass = new SSAOPass(scene, camera, W(), H());
+    ssaoPass.kernelRadius = 12;
+    ssaoPass.minDistance  = 0.002;
+    ssaoPass.maxDistance  = 0.18;
+    ssaoPass.output = SSAOPass.OUTPUT.Default;
+    composer.addPass(ssaoPass);
+    composer.addPass(new OutputPass());
 
-    // ── TOWER GEOMETRY ───────────────────────────────────────────────────────
-    const slabGeo      = new THREE.BoxGeometry(SLAB_W, SLAB_H, SLAB_W);
-    const unitGeo      = new THREE.BoxGeometry(UNIT_W, UNIT_H, UNIT_W);
-    const slabEdgesGeo = new THREE.EdgesGeometry(slabGeo);
-    const slabEdgesMat = new THREE.LineBasicMaterial({
-      color: 0x3e3e58,
-      transparent: true,
-      opacity: 0.7,
-    });
 
-    const floorGroups = [];
-    const slabMeshes  = [];
+    // ── MATERIALS ────────────────────────────────────────────────────────────
+    const MAT_BASE = new THREE.MeshLambertMaterial({ color: 0xd8d5cf, side: THREE.DoubleSide });
+    const MAT_HOVER = new THREE.MeshLambertMaterial({ color: 0xfaf6ee, side: THREE.DoubleSide });
+    const MAT_UNIT_HOVER = new THREE.MeshLambertMaterial({ color: 0xd0ba8f, side: THREE.DoubleSide });
+    const MAT_UNIT_SEL   = new THREE.MeshLambertMaterial({ color: 0xc8a050, side: THREE.DoubleSide });
+    const MAT_EDGE = new THREE.LineBasicMaterial({ color: 0x1a1820, transparent: true, opacity: 0.22, depthWrite: false });
 
-    for (let i = 0; i < FLOORS; i++) {
-      const floorId = `Floor-${String(i + 1).padStart(2, '0')}`;
-      const group   = new THREE.Group();
-      group.name    = floorId;
-      group.position.y = i * FLOOR_SPACING;
-
-      // Slab
-      const slabMat = new THREE.MeshStandardMaterial({
-        color:            C_BASE.clone(),
-        roughness:        0.78,
-        metalness:        0.22,
-        emissive:         C_ACCENT.clone(),
-        emissiveIntensity: 0,
-      });
-      const slab = new THREE.Mesh(slabGeo, slabMat);
-      slab.name     = floorId;
-      slab.userData = { type: 'floor', floorIndex: i };
-      group.add(slab);
-      slabMeshes.push(slab);
-
-      // Edge lines for slab legibility against dark background
-      const edgeLines = new THREE.LineSegments(slabEdgesGeo, slabEdgesMat);
-      group.add(edgeLines);
-
-      // Units
-      const unitMeshes = [];
-      for (let j = 0; j < UNITS_PER_FLOOR; j++) {
-        const unitId  = `${floorId}_unidad${String(j + 1).padStart(2, '0')}`;
-        const unitMat = new THREE.MeshStandardMaterial({
-          color:            C_MUTED.clone(),
-          roughness:        0.65,
-          metalness:        0.18,
-          transparent:      true,
-          opacity:          0.4,
-          emissive:         C_ACCENT.clone(),
-          emissiveIntensity: 0,
-        });
-        const unit = new THREE.Mesh(unitGeo, unitMat);
-        unit.position.copy(UNIT_OFFSETS[j]);
-        unit.name     = unitId;
-        unit.userData = { type: 'unit', floorIndex: i, unitIndex: j, unitId };
-        unit.visible  = false;
-        group.add(unit);
-        unitMeshes.push(unit);
-      }
-
-      floorGroups.push({ group, slab, slabMat, unitMeshes });
-      scene.add(group);
-    }
+    // ── RAYCASTERS ───────────────────────────────────────────────────────────
+    const raycaster     = new THREE.Raycaster();
+    raycaster.layers.set(1);        // layer 1: ghost volumes (floor picking)
+    const unitRaycaster = new THREE.Raycaster();
+    unitRaycaster.layers.set(0);    // layer 0: geometría real (unit picking)
+    const mouse = new THREE.Vector2(-999, -999);
 
     // ── AVAILABILITY ─────────────────────────────────────────────────────────
     async function loadDisponibilidad() {
@@ -969,297 +957,143 @@
           disponibilidad[u.id] = { estado: u.estado, tipo: u.tipo, m2: u.m2 };
         });
       } catch {
-        // Fallback: mark all as available for standalone demo
-        for (let i = 0; i < FLOORS; i++) {
-          for (let j = 0; j < UNITS_PER_FLOOR; j++) {
-            const id = `Floor-${String(i+1).padStart(2,'0')}_unidad${String(j+1).padStart(2,'0')}`;
-            disponibilidad[id] = { estado: 'disponible', tipo: '2D', m2: 80 };
-          }
-        }
+        // JSON no encontrado — las unidades se mostrarán igual, sin datos de disponibilidad
       }
-      applyAvailability();
-      buildFloorList();
     }
 
-    function applyAvailability() {
-      floorGroups.forEach(({ unitMeshes }) => {
-        unitMeshes.forEach(mesh => {
-          const d = disponibilidad[mesh.name];
-          if (!d) return;
-          if (d.estado === 'disponible') {
-            mesh.material.color.copy(C_ACCENT);
-            mesh.material.opacity          = 1.0;
-            mesh.material.emissiveIntensity = 0.07;
-          } else {
-            mesh.material.color.copy(C_MUTED);
-            mesh.material.opacity          = 0.4;
-            mesh.material.emissiveIntensity = 0;
-          }
-        });
-      });
+    function unitDispo(unit) {
+      return disponibilidad[unit.id] ?? null;
     }
 
-    function hasAvailableUnits(i) {
-      return floorGroups[i].unitMeshes.some(
-        m => disponibilidad[m.name]?.estado === 'disponible'
-      );
+    function hasAvailableUnits(fg) {
+      return (fg.units || []).some(u => unitDispo(u)?.estado === 'disponible');
     }
 
-    // ── FLOOR LIST UI ─────────────────────────────────────────────────────────
-    const floorListEl = document.getElementById('floor-list');
-
-    function buildFloorList() {
-      floorListEl.innerHTML = '';
-      // Render top floor first (highest number at top)
-      for (let i = FLOORS - 1; i >= 0; i--) {
-        const avail = hasAvailableUnits(i);
-        const item  = document.createElement('div');
-        item.className       = 'floor-item' + (avail ? ' has-available' : '');
-        item.dataset.floorIndex = i;
-        item.setAttribute('role', 'button');
-        item.setAttribute('tabindex', '0');
-        item.setAttribute('aria-label', `Piso ${i + 1}`);
-        item.innerHTML = `
-          <span class="floor-number">${String(i + 1).padStart(2, '0')}</span>
-          <span class="floor-dot"></span>
-        `;
-        item.addEventListener('click', () => {
-          if (isTransitioning) return;
-          if (panelOpen) closePanel();
-          if (mode === 'floor' && selectedFloor === i) return;
-          selectFloor(i);
-        });
-
-        item.addEventListener('mouseenter', () => {
-          if (mode !== 'orbital' || isTransitioning) return;
-          const slab = floorGroups[i].slab;
-          if (hoveredFloor && hoveredFloor !== slab) {
-            hoveredFloor.material.emissiveIntensity = 0;
-            hoveredFloor.material.color.copy(C_BASE);
-          }
-          hoveredFloor = slab;
-          slab.material.emissiveIntensity = 0.22;
-          slab.material.color.copy(C_BASE_HL);
-          highlightFloorItem(i);
-        });
-
-        item.addEventListener('mouseleave', () => {
-          if (mode !== 'orbital' || isTransitioning) return;
-          const slab = floorGroups[i].slab;
-          if (hoveredFloor === slab) {
-            slab.material.emissiveIntensity = 0;
-            slab.material.color.copy(C_BASE);
-            hoveredFloor = null;
-            clearFloorHighlight();
-          }
-        });
-        item.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
-        });
-        floorListEl.appendChild(item);
-      }
-      floorListEl.classList.add('visible');
-    }
-
-    function syncFloorList() {
-      document.querySelectorAll('.floor-item').forEach(el => {
-        el.classList.toggle('active', parseInt(el.dataset.floorIndex) === selectedFloor);
-      });
-    }
-
-    function highlightFloorItem(floorIndex) {
-      document.querySelectorAll('.floor-item').forEach(el => {
-        el.classList.toggle('hover-highlight', parseInt(el.dataset.floorIndex) === floorIndex);
-      });
-    }
-
-    function clearFloorHighlight() {
-      document.querySelectorAll('.floor-item.hover-highlight').forEach(el => {
-        el.classList.remove('hover-highlight');
-      });
-    }
-
-    // ── HELPERS ───────────────────────────────────────────────────────────────
-    function parseUnit(meshName) {
-      const [fp, up] = meshName.split('_');
-      const fn = parseInt(fp.replace('Floor-', ''));
-      const un = up ? parseInt(up.replace('unidad', '')) : 0;
-      return {
-        floorLabel: `Piso ${String(fn).padStart(2, '0')}`,
-        unitLabel:  `Unidad ${String(un).padStart(2, '0')}`,
-      };
-    }
-
-    // ── RAYCASTING ────────────────────────────────────────────────────────────
-    const raycaster = new THREE.Raycaster();
-    const mouse     = new THREE.Vector2(-999, -999);
-
+    // ── UI REFS ───────────────────────────────────────────────────────────────
     const unitLabelEl = document.getElementById('unit-label');
     const labelId     = document.getElementById('label-id');
     const labelStatus = document.getElementById('label-status');
 
-    function onMouseMove(e) {
-      mouse.x =  (e.clientX / W()) * 2 - 1;
-      mouse.y = -(e.clientY / H()) * 2 + 1;
-
-      unitLabelEl.style.left = e.clientX + 'px';
-      unitLabelEl.style.top  = e.clientY + 'px';
-
-      if (isTransitioning || panelOpen) return;
-      raycaster.setFromCamera(mouse, camera);
-
-      if (mode === 'orbital') {
-        const hit = raycaster.intersectObjects(slabMeshes)[0]?.object ?? null;
-        if (hit !== hoveredFloor) {
-          if (hoveredFloor) {
-            hoveredFloor.material.emissiveIntensity = 0;
-            hoveredFloor.material.color.copy(C_BASE);
-          }
-          hoveredFloor = hit;
-          if (hoveredFloor) {
-            hoveredFloor.material.emissiveIntensity = 0.22;
-            hoveredFloor.material.color.copy(C_BASE_HL);
-            canvas.style.cursor = 'pointer';
-            highlightFloorItem(hoveredFloor.userData.floorIndex);
-          } else {
-            canvas.style.cursor = 'grab';
-            clearFloorHighlight();
-          }
-        }
-        unitLabelEl.classList.remove('visible');
-        return;
-      }
-
-      if (mode === 'floor' && selectedFloor !== null) {
-        const visibleUnits = floorGroups[selectedFloor].unitMeshes.filter(m => m.visible);
-        const hit = raycaster.intersectObjects(visibleUnits)[0]?.object ?? null;
-
-        if (hit !== hoveredUnit) {
-          if (hoveredUnit) {
-            const wasAvail = disponibilidad[hoveredUnit.name]?.estado === 'disponible';
-            hoveredUnit.material.emissiveIntensity = wasAvail ? 0.07 : 0;
-          }
-          hoveredUnit = hit;
-          if (hoveredUnit) {
-            hoveredUnit.material.emissiveIntensity = 0.32;
-            const avail = disponibilidad[hoveredUnit.name]?.estado === 'disponible';
-            canvas.style.cursor = avail ? 'pointer' : 'default';
-          } else {
-            canvas.style.cursor = 'default';
-          }
-        }
-
-        if (hoveredUnit) {
-          const d = disponibilidad[hoveredUnit.name];
-          const { floorLabel, unitLabel } = parseUnit(hoveredUnit.name);
-          labelId.textContent     = `${floorLabel} / ${unitLabel}`;
-          labelStatus.textContent = d?.estado === 'disponible' ? 'Disponible' : 'Vendida';
-          labelStatus.className   = 'unit-label-status' + (d?.estado === 'disponible' ? ' disponible' : '');
-          unitLabelEl.classList.add('visible');
-        } else {
-          unitLabelEl.classList.remove('visible');
-        }
-      }
-    }
-
-    function onClick() {
-      if (isTransitioning || panelOpen) return;
-      raycaster.setFromCamera(mouse, camera);
-
-      if (mode === 'orbital') {
-        const hit = raycaster.intersectObjects(slabMeshes)[0]?.object;
-        if (hit) selectFloor(hit.userData.floorIndex);
-        return;
-      }
-
-      if (mode === 'floor' && selectedFloor !== null) {
-        const visibleUnits = floorGroups[selectedFloor].unitMeshes.filter(m => m.visible);
-        const unitHit = raycaster.intersectObjects(visibleUnits)[0]?.object;
-        if (unitHit) {
-          if (disponibilidad[unitHit.name]?.estado === 'disponible') openPanel(unitHit);
-          return;
-        }
-        // Click on active slab → stay in floor view
-        const slabHit = raycaster.intersectObjects([floorGroups[selectedFloor].slab])[0];
-        if (!slabHit) returnToOrbital();
-      }
-    }
-
-    canvas.addEventListener('mousemove', onMouseMove);
-    canvas.addEventListener('click', onClick);
-    canvas.addEventListener('mouseleave', () => {
-      if (hoveredFloor) {
-        hoveredFloor.material.emissiveIntensity = 0;
-        hoveredFloor.material.color.copy(C_BASE);
-        hoveredFloor = null;
-        clearFloorHighlight();
-      }
-      if (hoveredUnit) {
-        const wasAvail = disponibilidad[hoveredUnit.name]?.estado === 'disponible';
-        hoveredUnit.material.emissiveIntensity = wasAvail ? 0.07 : 0;
-        hoveredUnit = null;
-      }
-      unitLabelEl.classList.remove('visible');
-    });
-    canvas.style.cursor = 'grab';
-
-    // ── CAMERA TWEEN ── ──────────────────────────────────────────────────────────
+    // ── EASING / TWEEN ───────────────────────────────────────────────────────
     function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
     }
-
-    function tweenCamera(fp, ft, tp, tt, duration, onDone) {
+    function tweenCamera(fp, ft, tp, tt, dur, onDone) {
       const start = performance.now();
       const a = fp.clone(), b = ft.clone();
-
       (function tick(now) {
-        const t    = Math.min((now - start) / duration, 1);
-        const ease = easeInOutCubic(t);
-        camera.position.lerpVectors(a, tp, ease);
-        controls.target.lerpVectors(b, tt, ease);
+        const t = Math.min((now - start) / dur, 1);
+        const e = easeInOutCubic(t);
+        camera.position.lerpVectors(a, tp, e);
+        controls.target.lerpVectors(b, tt, e);
         controls.update();
         if (t < 1) requestAnimationFrame(tick);
         else if (onDone) onDone();
       })(performance.now());
     }
 
-    // ── FLOOR SELECTION ───────────────────────────────────────────────────────
-    function selectFloor(floorIndex) {
+    // ── HIGHLIGHT HELPERS ────────────────────────────────────────────────────
+    function highlightFloorItem(fi) {
+      document.querySelectorAll('.floor-item').forEach(el =>
+        el.classList.toggle('hover-highlight', parseInt(el.dataset.fi) === fi)
+      );
+    }
+    function clearFloorHighlight() {
+      document.querySelectorAll('.floor-item.hover-highlight').forEach(el =>
+        el.classList.remove('hover-highlight')
+      );
+    }
+    function highlightFloor3D(fi) {
+      if (fi === null || !floorGroups[fi]) return;
+      const fg = floorGroups[fi];
+      fg.items.forEach(mesh => { mesh.material = MAT_UNIT_HOVER; });
+      (fg.units || []).forEach(u => u.items.forEach(m => { m.material = MAT_UNIT_HOVER; }));
+    }
+    function clearFloor3DHover(fi) {
+      if (fi === null || !floorGroups[fi]) return;
+      const fg = floorGroups[fi];
+      fg.items.forEach(mesh => { mesh.material = MAT_BASE; });
+      (fg.units || []).forEach(u => u.items.forEach(m => { m.material = MAT_BASE; }));
+    }
+
+    // ── FLOOR VISIBILITY ──────────────────────────────────────────────────────
+    function applyFloorVisibility(activeIdx) {
+      // Ocultar TODO el modelo primero — elimina cualquier geometría
+      // no capturada en floorGroups (muros, columnas, etc.)
+      if (glbModel) glbModel.traverse(obj => { if (obj.isMesh) obj.visible = false; });
+
+      // Mostrar solo los pisos ≤ activeIdx
+      floorGroups.forEach((fg, i) => {
+        if (i > activeIdx) return;
+        fg.items.forEach(mesh => {
+          mesh.visible  = true;
+          mesh.material = MAT_BASE;
+          mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
+        });
+        (fg.units || []).forEach(u =>
+          u.items.forEach(m => { m.visible = true; })
+        );
+      });
+    }
+
+    function resetVisibility() {
+      // Restaurar todo el modelo como visible
+      if (glbModel) glbModel.traverse(obj => { if (obj.isMesh) obj.visible = true; });
+
+      // Asignar materiales correctos a los floors conocidos
+      azoteaItems.forEach(mesh => { mesh.material = MAT_BASE; });
+      floorGroups.forEach(fg => {
+        fg.items.forEach(mesh => {
+          mesh.material = MAT_BASE;
+          mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
+        });
+        (fg.units || []).forEach(u =>
+          u.items.forEach(m => { m.material = MAT_BASE; })
+        );
+      });
+    }
+
+    // ── SELECT FLOOR ─────────────────────────────────────────────────────────
+    function selectFloor(fi) {
       if (isTransitioning) return;
+      if (panelOpen) closePanel();
 
-      // Clear previous floor units when switching floors in floor mode
-      if (mode === 'floor' && selectedFloor !== null && selectedFloor !== floorIndex) {
-        floorGroups[selectedFloor].unitMeshes.forEach(m => { m.visible = false; });
-        hoveredUnit = null;
-        unitLabelEl.classList.remove('visible');
-      }
-
-      // Clear floor hover
-      if (hoveredFloor) {
-        hoveredFloor.material.emissiveIntensity = 0;
-        hoveredFloor.material.color.copy(C_BASE);
-        hoveredFloor = null;
+      // Limpiar hover antes de transicionar
+      if (hoveredFloorIdx !== null) {
+        setGhostHover(hoveredFloorIdx, false);
+        clearFloor3DHover(hoveredFloorIdx);
         clearFloorHighlight();
+        hoveredFloorIdx = null;
       }
 
-      const floorY   = floorIndex * FLOOR_SPACING;
+      selectedFloor = fi;
+      selectedUnit  = null;
+      hoveredUnit   = null;
+      unitLabelEl.classList.remove('visible');
+
+      const fg = floorGroups[fi];
+      applyFloorVisibility(fi);
+      syncFloorList();
+
       const fromPos  = camera.position.clone();
       const fromTgt  = controls.target.clone();
-      const toPos    = new THREE.Vector3(ISO_XZ, floorY + ISO_Y, ISO_XZ);
-      const toTarget = new THREE.Vector3(0, floorY, 0);
+      const offset   = modelMaxDim * 0.5;
+      const fc       = fg.center ?? new THREE.Vector3(modelCenter.x, fg.y_center, modelCenter.z);
+      const toTarget = fc.clone();
+      const toPos    = new THREE.Vector3(
+        fc.x + offset,
+        fc.y + offset * 5.0,
+        fc.z + offset
+      );
 
       isTransitioning  = true;
       controls.enabled = false;
-      canvas.style.cursor = 'default';
+      ghostMeshes.forEach(g => { if (g) { g.visible = false; g.material.opacity = 0; } });
 
-      tweenCamera(fromPos, fromTgt, toPos, toTarget, 1100, () => {
-        isTransitioning = false;
-        mode            = 'floor';
-        selectedFloor   = floorIndex;
-
-        floorGroups[floorIndex].unitMeshes.forEach(m => { m.visible = true; });
-        applyFloorVisibility(floorIndex);
-        syncFloorList();
+      tweenCamera(fromPos, fromTgt, toPos, toTarget, reducedMotion ? 1 : 1100, () => {
+        isTransitioning  = false;
+        mode             = 'floor';
+        controls.enabled = true;
         document.getElementById('back-btn').classList.add('visible');
       });
     }
@@ -1267,61 +1101,205 @@
     function returnToOrbital() {
       if (isTransitioning) return;
       if (panelOpen) closePanel();
-
-      hideAllUnits();
-      resetFloorVisibility();
-      hoveredUnit = null;
+      resetVisibility();
+      selectedUnit  = null;
+      hoveredUnit   = null;
       unitLabelEl.classList.remove('visible');
 
       const fromPos  = camera.position.clone();
       const fromTgt  = controls.target.clone();
-      const toPos    = new THREE.Vector3(21, TOWER_MID_Y + 4, 21);
-      const toTarget = new THREE.Vector3(0, TOWER_MID_Y, 0);
+      const fov  = camera.fov * (Math.PI / 180);
+      const dist = (modelMaxDim / 2) / Math.tan(fov / 2) * 1.5;
+      const toPos    = new THREE.Vector3(
+        modelCenter.x + dist * 0.55,
+        modelCenter.y + dist * 0.38,
+        modelCenter.z + dist * 0.55
+      );
+      const toTarget = modelCenter.clone();
 
       isTransitioning = true;
-
-      tweenCamera(fromPos, fromTgt, toPos, toTarget, 950, () => {
-        isTransitioning  = false;
-        mode             = 'orbital';
-        selectedFloor    = null;
-        controls.enabled = true;
-        canvas.style.cursor = 'grab';
+      tweenCamera(fromPos, fromTgt, toPos, toTarget, reducedMotion ? 1 : 950, () => {
+        isTransitioning = false;
+        mode            = 'orbital';
+        selectedFloor   = null;
+        ghostMeshes.forEach(g => { if (g) g.visible = true; });
         syncFloorList();
         document.getElementById('back-btn').classList.remove('visible');
       });
     }
 
-    document.getElementById('back-btn').addEventListener('click', returnToOrbital);
+    function returnToFloor() {
+      if (isTransitioning || selectedFloor === null) return;
+      if (panelOpen) closePanel();
+      selectedUnit = null; hoveredUnit = null;
+      unitLabelEl.classList.remove('visible');
 
-    // ── FLOOR VISIBILITY ──────────────────────────────────────────────────────
-    function applyFloorVisibility(activeIdx) {
-      floorGroups.forEach(({ group, slabMat }, i) => {
-        if (i > activeIdx) {
-          // Floors above: fully hidden
-          group.visible = false;
-        } else if (i === activeIdx) {
-          group.visible       = true;
-          slabMat.transparent = false;
-          slabMat.opacity     = 1;
-        } else {
-          // Floors below: dimmed but visible for context
-          group.visible       = true;
-          slabMat.transparent = true;
-          slabMat.opacity     = 0.30;
-        }
+      const fg = floorGroups[selectedFloor];
+      fg.units.forEach(u =>
+        u.items.forEach(m => { m.material = MAT_BASE; })
+      );
+
+
+      // Restaurar la posición exacta de la vista por nivel anterior
+      const toPos    = floorViewPos ?? new THREE.Vector3(modelCenter.x + modelMaxDim * 0.35, fg.y_center + modelMaxDim * 1.75, modelCenter.z + modelMaxDim * 0.35);
+      const toTarget = floorViewTgt ?? new THREE.Vector3(modelCenter.x, fg.y_center, modelCenter.z);
+
+      // Tween inline — interpola posición, target Y fov simultáneamente
+      isTransitioning = true; controls.enabled = false;
+      const _fp = camera.position.clone(), _ft = controls.target.clone();
+      const _fovStart = camera.fov, _fovEnd = 15;
+      const _dur = reducedMotion ? 1 : 800, _t0 = performance.now();
+      (function tick(now) {
+        const t = Math.min((now - _t0) / _dur, 1);
+        const e = easeInOutCubic(t);
+        camera.position.lerpVectors(_fp, toPos, e);
+        controls.target.lerpVectors(_ft, toTarget, e);
+        camera.fov = _fovStart + (_fovEnd - _fovStart) * e;
+        camera.updateProjectionMatrix();
+        controls.update();
+        if (t < 1) requestAnimationFrame(tick);
+        else { isTransitioning = false; mode = 'floor'; controls.enabled = true; floorViewPos = null; floorViewTgt = null; }
+      })(performance.now());
+    }
+
+    function syncFloorList() {
+      document.querySelectorAll('.floor-item').forEach(el =>
+        el.classList.toggle('active', parseInt(el.dataset.fi) === selectedFloor)
+      );
+    }
+
+    // ── FLOOR LIST UI ────────────────────────────────────────────────────────
+    function buildFloorList() {
+      const el = document.getElementById('floor-list');
+      el.innerHTML = '';
+      for (let i = floorGroups.length - 1; i >= 0; i--) {
+        const fg   = floorGroups[i];
+        const avail = hasAvailableUnits(fg);
+        const item = document.createElement('div');
+        item.className  = 'floor-item' + (avail ? ' has-available' : '');
+        item.dataset.fi = i;
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', fg.label);
+        item.innerHTML = `
+          <span class="floor-number">${fg.label}</span>
+          <span class="floor-dot"></span>
+        `;
+        item.addEventListener('click', () => {
+          if (isTransitioning) return;
+          if (mode === 'floor' && selectedFloor === i) return;
+          selectFloor(i);
+        });
+        item.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectFloor(i); }
+        });
+        item.addEventListener('mouseenter', () => {
+          if (mode !== 'orbital' || isTransitioning) return;
+          if (hoveredFloorIdx !== null) { setGhostHover(hoveredFloorIdx, false); clearFloor3DHover(hoveredFloorIdx); }
+          hoveredFloorIdx = i;
+          setGhostHover(i, true);
+          highlightFloor3D(i);
+          highlightFloorItem(i);
+        });
+        item.addEventListener('mouseleave', () => {
+          if (mode !== 'orbital' || isTransitioning) return;
+          setGhostHover(hoveredFloorIdx, false);
+          clearFloor3DHover(hoveredFloorIdx);
+          clearFloorHighlight();
+          hoveredFloorIdx = null;
+        });
+        el.appendChild(item);
+      }
+      el.classList.add('visible');
+    }
+
+    // ── GHOST VOLUMES ────────────────────────────────────────────────────────
+    const ghostMat = new THREE.MeshLambertMaterial({
+      color: 0xc8a050, transparent: true, opacity: 0,
+      depthWrite: false, side: THREE.FrontSide,
+    });
+
+    function buildGhostVolumes() {
+      floorGroups.forEach((fg, fi) => {
+        const box = new THREE.Box3();
+        // Incluir meshes estructurales del piso
+        fg.items.forEach(mesh => {
+          mesh.geometry.computeBoundingBox();
+          const wb = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+          box.union(wb);
+        });
+        // Incluir meshes de unidades (pueden estar fuera del bbox estructural)
+        (fg.units || []).forEach(u => u.items.forEach(mesh => {
+          mesh.geometry.computeBoundingBox();
+          const wb = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+          box.union(wb);
+        }));
+        if (box.isEmpty()) { ghostMeshes.push(null); return; }
+        fg.center   = box.getCenter(new THREE.Vector3()); // centro real XYZ del piso
+        fg.y_center = fg.center.y;
+        const size   = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const geo    = new THREE.BoxGeometry(size.x, size.y, size.z);
+        const mat    = ghostMat.clone();
+        const ghost  = new THREE.Mesh(geo, mat);
+        ghost.position.copy(center);
+        ghost.userData.floorIndex = fi;
+        ghost.layers.set(1);
+        scene.add(ghost);
+        ghostMeshes.push(ghost);
       });
     }
 
-    function resetFloorVisibility() {
-      floorGroups.forEach(({ group, slabMat }) => {
-        group.visible       = true;
-        slabMat.transparent = false;
-        slabMat.opacity     = 1;
-      });
+    function setGhostHover(fi, on) {
+      if (fi === null || !ghostMeshes[fi]) return;
+      ghostMeshes[fi].material.opacity = on ? 0.10 : 0;
     }
 
-    function hideAllUnits() {
-      floorGroups.forEach(({ unitMeshes }) => unitMeshes.forEach(m => { m.visible = false; }));
+    // ── SELECT UNIT ──────────────────────────────────────────────────────────
+    function selectUnit(unit) {
+      if (isTransitioning || selectedFloor === null || !unit) return;
+      selectedUnit = unit;
+
+      const fg = floorGroups[selectedFloor];
+      fg.units.forEach(u =>
+        u.items.forEach(m => {
+          m.material = (u === unit) ? MAT_UNIT_SEL : MAT_BASE;
+        })
+      );
+
+      const box = new THREE.Box3();
+      unit.items.forEach(m => box.expandByObject(m));
+      const center = box.getCenter(new THREE.Vector3());
+      const size   = box.getSize(new THREE.Vector3());
+      const dim    = Math.max(size.x, size.y, size.z, modelMaxDim * 0.08);
+
+      // Guardar posición actual (vista por nivel) para poder restaurarla al salir
+      floorViewPos = camera.position.clone();
+      floorViewTgt = controls.target.clone();
+
+      const off = dim * 2.8;
+      const toPos = new THREE.Vector3(
+        center.x + off * 1.0,
+        center.y + off * 4.0,
+        center.z + off * 1.0
+      );
+
+      // Tween inline — interpola posición, target Y fov simultáneamente
+      isTransitioning = true; controls.enabled = false;
+      const _fp = camera.position.clone(), _ft = controls.target.clone();
+      const _fovStart = camera.fov, _fovEnd = 8;
+      const _dur = reducedMotion ? 1 : 900, _t0 = performance.now();
+      (function tick(now) {
+        const t = Math.min((now - _t0) / _dur, 1);
+        const e = easeInOutCubic(t);
+        camera.position.lerpVectors(_fp, toPos, e);
+        controls.target.lerpVectors(_ft, center, e);
+        camera.fov = _fovStart + (_fovEnd - _fovStart) * e;
+        camera.updateProjectionMatrix();
+        controls.update();
+        if (t < 1) requestAnimationFrame(tick);
+        else { isTransitioning = false; mode = 'unit'; controls.enabled = true; openPanel(unit); }
+      })(performance.now());
     }
 
     // ── UNIT PANEL ────────────────────────────────────────────────────────────
@@ -1335,9 +1313,11 @@
       panelState = state;
     }
 
-    function openPanel(mesh) {
-      const d = disponibilidad[mesh.name];
-      const { floorLabel, unitLabel } = parseUnit(mesh.name);
+    function openPanel(unit) {
+      const fg = floorGroups[selectedFloor];
+      const d  = unitDispo(unit);
+      const floorLabel = fg ? fg.label : '—';
+      const unitLabel  = unit.label;
 
       currentUnitData = { floorLabel, unitLabel, tipo: d?.tipo ?? '—', m2: d?.m2 ?? '—' };
 
@@ -1350,7 +1330,7 @@
         </div>
         <div class="panel-stat">
           <span class="stat-label">Superficie</span>
-          <span class="stat-value">${d?.m2 ?? '—'} m²</span>
+          <span class="stat-value">${d?.m2 ? d.m2 + ' m²' : '—'}</span>
         </div>
         <div class="panel-stat">
           <span class="stat-label">Estado</span>
@@ -1379,9 +1359,20 @@
     panelClose.addEventListener('click', closePanel);
     canvasDim.addEventListener('click', closePanel);
 
-    // Escape cierra el panel
+    // Escape: cierra el panel si abierto, o navega hacia atrás en la vista
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && panelOpen) closePanel();
+      if (e.key !== 'Escape') return;
+      if (panelOpen) { closePanel(); return; }
+      if (mode === 'unit')  returnToFloor();
+      else if (mode === 'floor') returnToOrbital();
+    });
+
+    // Limpiar errores al corregir
+    ['f-nombre', 'f-email'].forEach(id => {
+      document.getElementById(id).addEventListener('input', function() {
+        this.classList.remove('error');
+        document.getElementById(id + '-error').classList.remove('visible');
+      });
     });
 
     // CTA: detalle → formulario
@@ -1397,10 +1388,28 @@
     // Submit del formulario
     document.getElementById('contact-form').addEventListener('submit', e => {
       e.preventDefault();
-      const nombre   = document.getElementById('f-nombre').value.trim();
-      const email    = document.getElementById('f-email').value.trim();
+      const nombreEl = document.getElementById('f-nombre');
+      const emailEl  = document.getElementById('f-email');
+      const nombre   = nombreEl.value.trim();
+      const email    = emailEl.value.trim();
       const telefono = document.getElementById('f-tel').value.trim();
-      if (!nombre || !email) return;
+
+      // Inline validation
+      let valid = true;
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      nombreEl.classList.toggle('error', !nombre);
+      document.getElementById('f-nombre-error').classList.toggle('visible', !nombre);
+      if (!nombre) { valid = false; nombreEl.focus(); }
+
+      emailEl.classList.toggle('error', !email || !emailRe.test(email));
+      document.getElementById('f-email-error').classList.toggle('visible', !email || !emailRe.test(email));
+      if (!email || !emailRe.test(email)) {
+        valid = false;
+        if (nombre) emailEl.focus();
+      }
+
+      if (!valid) return;
 
       const subject = encodeURIComponent(
         `Solicitud FORMA — ${currentUnitData.floorLabel}, ${currentUnitData.unitLabel}`
@@ -1420,11 +1429,122 @@
       setTimeout(() => closePanel(), 3000);
     });
 
+    // ── MOUSE EVENTS ─────────────────────────────────────────────────────────
+    canvas.addEventListener('mousemove', e => {
+      mouse.x =  (e.clientX / W()) * 2 - 1;
+      mouse.y = -(e.clientY / H()) * 2 + 1;
+
+      // Update hover-label position (cursor-following)
+      unitLabelEl.style.left = (e.clientX + 16) + 'px';
+      unitLabelEl.style.top  = (e.clientY - 8)  + 'px';
+
+      if (isTransitioning) return;
+
+      // ── Orbital: hover de pisos via ghost volumes + meshes de unidades ──
+      if (mode === 'orbital' && ghostMeshes.length) {
+        raycaster.setFromCamera(mouse, camera);
+        const ghostHit = raycaster.intersectObjects(ghostMeshes.filter(Boolean), false)[0];
+        let fi = ghostHit ? ghostHit.object.userData.floorIndex : null;
+
+        // Si no hay ghost hit, intentar con meshes de unidades
+        if (fi === null && meshToFloor.size) {
+          unitRaycaster.setFromCamera(mouse, camera);
+          const allUnitMeshes = floorGroups.flatMap(fg => fg.units?.flatMap(u => u.items) ?? []);
+          const unitHit = unitRaycaster.intersectObjects(allUnitMeshes, false)[0];
+          if (unitHit) fi = meshToFloor.get(unitHit.object) ?? null;
+        }
+
+        if (fi !== hoveredFloorIdx) {
+          if (hoveredFloorIdx !== null) { setGhostHover(hoveredFloorIdx, false); clearFloor3DHover(hoveredFloorIdx); clearFloorHighlight(); }
+          hoveredFloorIdx = fi;
+          if (fi !== null) { setGhostHover(fi, true); highlightFloor3D(fi); highlightFloorItem(fi); canvas.style.cursor = 'pointer'; }
+          else canvas.style.cursor = 'grab';
+        }
+        unitLabelEl.classList.remove('visible');
+      }
+
+      // ── Floor / Unit: hover de unidades ──
+      if ((mode === 'floor' || mode === 'unit') && selectedFloor !== null && !panelOpen) {
+        const fg = floorGroups[selectedFloor];
+        if (!fg.units?.length) return;
+
+        unitRaycaster.setFromCamera(mouse, camera);
+        const allUnitMeshes = fg.units.flatMap(u => u.items);
+        const hit     = unitRaycaster.intersectObjects(allUnitMeshes, false)[0];
+        const newUnit = hit ? fg.meshToUnit.get(hit.object) ?? null : null;
+
+        if (newUnit !== hoveredUnit) {
+          if (hoveredUnit && hoveredUnit !== selectedUnit)
+            hoveredUnit.items.forEach(m => { m.material = MAT_BASE; });
+          hoveredUnit = newUnit;
+          if (newUnit && newUnit !== selectedUnit)
+            newUnit.items.forEach(m => { m.material = MAT_UNIT_HOVER; });
+          canvas.style.cursor = newUnit ? 'pointer' : 'grab';
+        }
+
+        if (hoveredUnit && mode !== 'unit') {
+          const d = unitDispo(hoveredUnit);
+          labelId.textContent     = `${floorGroups[selectedFloor].label} / ${hoveredUnit.label}`;
+          labelStatus.textContent = d?.estado === 'disponible' ? 'Disponible' : (d ? 'Vendida' : 'Disponible');
+          labelStatus.className   = 'unit-label-status disponible';
+          unitLabelEl.classList.add('visible');
+        } else {
+          unitLabelEl.classList.remove('visible');
+        }
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      if (hoveredFloorIdx !== null) {
+        setGhostHover(hoveredFloorIdx, false);
+        clearFloor3DHover(hoveredFloorIdx);
+        clearFloorHighlight();
+        hoveredFloorIdx = null;
+      }
+      if (hoveredUnit && hoveredUnit !== selectedUnit)
+        hoveredUnit.items.forEach(m => { m.material = MAT_BASE; });
+      hoveredUnit = null;
+      unitLabelEl.classList.remove('visible');
+      canvas.style.cursor = 'grab';
+    });
+
+    // Distinguir click real de fin-de-drag
+    let mouseDownPos = { x: 0, y: 0 };
+    let wasDragging  = false;
+    const DRAG_THRESHOLD = 5;
+    canvas.addEventListener('mousedown', e => { mouseDownPos = {x: e.clientX, y: e.clientY}; wasDragging = false; });
+    canvas.addEventListener('mousemove', e => {
+      if (e.buttons === 1) {
+        const dx = e.clientX - mouseDownPos.x;
+        const dy = e.clientY - mouseDownPos.y;
+        if (Math.hypot(dx, dy) > DRAG_THRESHOLD) wasDragging = true;
+      }
+    });
+    canvas.addEventListener('click', () => {
+      if (wasDragging || isTransitioning || panelOpen) return;
+      if (mode === 'orbital' && hoveredFloorIdx !== null) {
+        selectFloor(hoveredFloorIdx);
+      } else if (mode === 'floor' && hoveredUnit !== null) {
+        selectUnit(hoveredUnit);
+      } else if (mode === 'floor' && hoveredUnit === null && hoveredFloorIdx === null) {
+        returnToOrbital();
+      } else if (mode === 'unit' && hoveredUnit === null) {
+        returnToFloor();
+      }
+    });
+    canvas.style.cursor = 'grab';
+
+    // Back button
+    document.getElementById('back-btn').addEventListener('click', () => {
+      if (mode === 'unit')  returnToFloor();
+      else                  returnToOrbital();
+    });
+
     // ── RENDER LOOP ───────────────────────────────────────────────────────────
     (function render() {
       requestAnimationFrame(render);
       controls.update();
-      renderer.render(scene, camera);
+      composer.render();
     })();
 
     // ── RESIZE ────────────────────────────────────────────────────────────────
@@ -1432,37 +1552,151 @@
       camera.aspect = W() / H();
       camera.updateProjectionMatrix();
       renderer.setSize(W(), H());
+      composer.setSize(W(), H());
     });
 
-    // ── LOADING SEQUENCE ──────────────────────────────────────────────────────
+    // ── LOAD ─────────────────────────────────────────────────────────────────
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingBar     = document.getElementById('loading-bar');
 
-    function animateBar(duration, cb) {
-      const start = performance.now();
-      (function tick(now) {
-        const t = Math.min((now - start) / duration, 1);
-        loadingBar.style.width = (easeInOutCubic(t) * 100) + '%';
-        if (t < 1) requestAnimationFrame(tick);
-        else cb();
-      })(performance.now());
-    }
-
     async function init() {
+      // 1. Load disponibilidad (non-blocking — continues even if missing)
       await loadDisponibilidad();
-      animateBar(1500, () => {
-        setTimeout(() => {
-          loadingOverlay.classList.add('hidden');
-          container.classList.add('visible');
-          // Gentle entry auto-rotate for 3.5s
-          controls.autoRotate      = true;
-          controls.autoRotateSpeed = 0.7;
-          setTimeout(() => { controls.autoRotate = false; }, 3500);
-        }, 280);
+
+      // 2. Load floor labels JSON
+      const floorData = await fetch('content/data/nashira_floors.json').then(r => r.json());
+      const labelMap  = new Map();
+      floorData.floors.forEach(fd => labelMap.set(fd.nodeName, fd.label));
+
+      // 3. Load GLB
+      const gltf = await new Promise((resolve, reject) => {
+        new GLTFLoader().load(
+          'content/models/Nashira_Modelo_Web.glb?v=6',
+          resolve,
+          xhr => {
+            if (xhr.lengthComputable)
+              loadingBar.style.width = ((xhr.loaded / xhr.total) * 90) + '%';
+          },
+          reject
+        );
       });
+
+      const model = gltf.scene;
+      glbModel = model;
+      scene.add(model);
+      model.updateMatrixWorld(true);
+
+      // 4. Find floor group nodes (Floor-01 … Floor-10, Floor-Azotea)
+      const floorNodeMap = new Map();
+      model.traverse(obj => {
+        if (!obj.isMesh && obj.name && /^Floor-/.test(obj.name))
+          floorNodeMap.set(obj.name, obj);
+      });
+
+      const sortedNames = [...floorNodeMap.keys()].sort((a, b) => {
+        const na = a.replace('Floor-', '');
+        const nb = b.replace('Floor-', '');
+        const ia = /^\d+$/.test(na) ? parseInt(na) : 999;
+        const ib = /^\d+$/.test(nb) ? parseInt(nb) : 999;
+        return ia - ib;
+      });
+
+      // 5. Build floor groups + materials + edge lines
+      floorGroups = sortedNames.map(nodeName => {
+        const floorObj = floorNodeMap.get(nodeName);
+        const items    = [];
+        floorObj.traverse(obj => {
+          if (!obj.isMesh) return;
+          obj.material = MAT_BASE;
+          const edges = new THREE.EdgesGeometry(obj.geometry, 15);
+          obj.add(new THREE.LineSegments(edges, MAT_EDGE));
+          items.push(obj);
+        });
+        const label = labelMap.get(nodeName) || nodeName.replace('Floor-', 'N');
+        if (label === 'Azotea') { azoteaItems = items; return null; }
+        return { label, nodeName, items, y_center: 0 };
+      }).filter(Boolean);
+
+      // 6. Discover units (Unit-NN-ID) and associate to floors by name
+      const unitsByFloor = new Map();
+      model.traverse(obj => {
+        if (obj.isMesh || !obj.name) return;
+        const name = obj.name.trim();
+        if (!/^Unit-/.test(name)) return;
+        const parts    = name.split('-');
+        const floorNum = parts[1];
+        const unitNum  = parts[2] || '01';
+        const floorLbl = 'N' + floorNum.padStart(2, '0');
+        const unitLbl  = `Unidad ${parseInt(unitNum, 10)}`;
+        const items = [];
+        obj.traverse(child => {
+          if (!child.isMesh) return;
+          child.material = MAT_BASE;
+          child.add(new THREE.LineSegments(new THREE.EdgesGeometry(child.geometry, 15), MAT_EDGE));
+          items.push(child);
+        });
+        if (!unitsByFloor.has(floorLbl)) unitsByFloor.set(floorLbl, []);
+        unitsByFloor.get(floorLbl).push({ id: name, label: unitLbl, items });
+      });
+
+      meshToFloor = new Map();
+      floorGroups.forEach((fg, fi) => {
+        fg.units = (unitsByFloor.get(fg.label) || []).sort((a, b) => a.id.localeCompare(b.id));
+        fg.meshToUnit = new Map();
+        fg.units.forEach(u => u.items.forEach(m => {
+          fg.meshToUnit.set(m, u);
+          meshToFloor.set(m, fi);   // lookup global: mesh → índice de piso
+        }));
+      });
+
+      // 7. Camera auto-fit
+      const box = new THREE.Box3().setFromObject(model);
+      modelCenter = box.getCenter(new THREE.Vector3());
+      const size  = box.getSize(new THREE.Vector3());
+      modelMaxDim = Math.max(size.x, size.y, size.z);
+      const fov  = camera.fov * (Math.PI / 180);
+      const dist = (modelMaxDim / 2) / Math.tan(fov / 2) * 1.5;
+      controls.target.copy(modelCenter);
+      camera.position.set(
+        modelCenter.x + dist * 0.55,
+        modelCenter.y + dist * 0.38,
+        modelCenter.z + dist * 0.55
+      );
+      camera.near = modelMaxDim * 0.001;
+      camera.far  = modelMaxDim * 20;
+      camera.updateProjectionMatrix();
+      controls.minDistance = modelMaxDim * 0.05;
+      controls.maxDistance = modelMaxDim * 5;
+      controls.update();
+
+      // 8. Calibrate SSAO to model scale
+      ssaoPass.kernelRadius = Math.max(4, modelMaxDim * 0.015);
+      ssaoPass.minDistance  = modelMaxDim * 0.00004;
+      ssaoPass.maxDistance  = modelMaxDim * 0.006;
+
+      // 9. Ghost volumes
+      buildGhostVolumes();
+
+      // 10. Floor list UI
+      buildFloorList();
+      loadingBar.style.width = '100%';
+
+      setTimeout(() => {
+        loadingOverlay.classList.add('hidden');
+        container.classList.add('visible');
+        if (!reducedMotion) {
+          controls.autoRotate      = true;
+          controls.autoRotateSpeed = 0.4;
+          setTimeout(() => { controls.autoRotate = false; }, 4500);
+        }
+      }, 300);
     }
 
-    init();
+    init().catch(err => {
+      const lbl = document.querySelector('#loading-overlay .loading-label');
+      if (lbl) lbl.textContent = 'Error al cargar: ' + err.message;
+      console.error(err);
+    });
   </script>
 
   <!-- ── NAV TOGGLE (identical IIFE from blueprint) ────────────────────── -->

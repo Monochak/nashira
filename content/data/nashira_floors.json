@@ -1,0 +1,114 @@
+{
+  "floors": [
+    {
+      "index": 0,
+      "label": "N01",
+      "nodeName": "Floor-01",
+      "nodeIndex": 18,
+      "meshIndex": 9,
+      "y_min": -18.641,
+      "y_max": 22.595,
+      "y_center": 1.977
+    },
+    {
+      "index": 1,
+      "label": "N02",
+      "nodeName": "Floor-02",
+      "nodeIndex": 16,
+      "meshIndex": 8,
+      "y_min": -13.088,
+      "y_max": 9.863,
+      "y_center": -1.613
+    },
+    {
+      "index": 2,
+      "label": "N03",
+      "nodeName": "Floor-03",
+      "nodeIndex": 14,
+      "meshIndex": 7,
+      "y_min": -11.25,
+      "y_max": 10.15,
+      "y_center": -0.55
+    },
+    {
+      "index": 3,
+      "label": "N04",
+      "nodeName": "Floor-04",
+      "nodeIndex": 12,
+      "meshIndex": 6,
+      "y_min": -11.25,
+      "y_max": 10.15,
+      "y_center": -0.55
+    },
+    {
+      "index": 4,
+      "label": "N05",
+      "nodeName": "Floor-05",
+      "nodeIndex": 10,
+      "meshIndex": 5,
+      "y_min": -11.25,
+      "y_max": 10.15,
+      "y_center": -0.55
+    },
+    {
+      "index": 5,
+      "label": "N06",
+      "nodeName": "Floor-06",
+      "nodeIndex": 20,
+      "meshIndex": 10,
+      "y_min": -11.457,
+      "y_max": 10.143,
+      "y_center": -0.657
+    },
+    {
+      "index": 6,
+      "label": "N07",
+      "nodeName": "Floor-07",
+      "nodeIndex": 0,
+      "meshIndex": 0,
+      "y_min": -11.25,
+      "y_max": 10.15,
+      "y_center": -0.55
+    },
+    {
+      "index": 7,
+      "label": "N08",
+      "nodeName": "Floor-08",
+      "nodeIndex": 8,
+      "meshIndex": 4,
+      "y_min": -11.25,
+      "y_max": 10.15,
+      "y_center": -0.55
+    },
+    {
+      "index": 8,
+      "label": "N09",
+      "nodeName": "Floor-09",
+      "nodeIndex": 6,
+      "meshIndex": 3,
+      "y_min": -8.704,
+      "y_max": 12.672,
+      "y_center": 1.984
+    },
+    {
+      "index": 9,
+      "label": "N10",
+      "nodeName": "Floor-10",
+      "nodeIndex": 2,
+      "meshIndex": 1,
+      "y_min": -8.325,
+      "y_max": 13.075,
+      "y_center": 2.375
+    },
+    {
+      "index": 10,
+      "label": "Azotea",
+      "nodeName": "Floor-Azotea",
+      "nodeIndex": 4,
+      "meshIndex": 2,
+      "y_min": -10.165,
+      "y_max": 10.165,
+      "y_center": 0.0
+    }
+  ]
+}
