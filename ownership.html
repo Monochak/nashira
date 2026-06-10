@@ -169,6 +169,52 @@
     .floor-item.active .floor-number { color: var(--accent); }
     .floor-item.active .floor-dot    { background: var(--accent); transform: scale(1.8); }
 
+    /* ── UNIT SUB-LIST ───────────────────────────────────────────────────── */
+    .unit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.35s ease-out, opacity 0.25s ease-out;
+    }
+    .unit-list.expanded {
+      max-height: 400px;
+      opacity: 1;
+    }
+
+    .unit-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      padding: 2px 0;
+      padding-left: 5px;
+      user-select: none;
+    }
+    .unit-item .unit-name {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      color: oklch(32% 0.008 250);
+      min-width: 22px;
+      text-align: right;
+      transition: color 0.2s ease-out;
+    }
+    .unit-item .unit-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: oklch(34% 0.01 250);
+      flex-shrink: 0;
+      transition: background 0.2s ease-out, transform 0.2s ease-out;
+    }
+    .unit-item:hover .unit-name  { color: oklch(72% 0.12 52); }
+    .unit-item:hover .unit-dot   { background: oklch(65% 0.14 52); transform: scale(1.3); }
+    .unit-item.active .unit-name { color: var(--accent); }
+    .unit-item.active .unit-dot  { background: var(--accent); transform: scale(1.6); }
+
     /* ── BACK BUTTON ─────────────────────────────────────────────────────── */
     #back-btn {
       position: fixed;
@@ -930,6 +976,7 @@
     ssaoPass.minDistance  = 0.002;
     ssaoPass.maxDistance  = 0.18;
     ssaoPass.output = SSAOPass.OUTPUT.Default;
+    ssaoPass.enabled = false; // DIAGNÓSTICO: desactivado temporalmente
     composer.addPass(ssaoPass);
     composer.addPass(new OutputPass());
 
@@ -1166,6 +1213,14 @@
       document.querySelectorAll('.floor-item').forEach(el =>
         el.classList.toggle('active', parseInt(el.dataset.fi) === selectedFloor)
       );
+      // Expandir sub-lista del nivel activo, colapsar las demás
+      document.querySelectorAll('.unit-list').forEach(ul => {
+        ul.classList.toggle('expanded', parseInt(ul.dataset.fi) === selectedFloor);
+      });
+      // Marcar unidad activa
+      document.querySelectorAll('.unit-item').forEach(ui =>
+        ui.classList.toggle('active', ui.dataset.unitId === (selectedUnit?.id ?? ''))
+      );
     }
 
     // ── FLOOR LIST UI ────────────────────────────────────────────────────────
@@ -1209,6 +1264,49 @@
           hoveredFloorIdx = null;
         });
         el.appendChild(item);
+
+        // ── Sub-lista de unidades ──
+        const unitList = document.createElement('div');
+        unitList.className = 'unit-list';
+        unitList.dataset.fi = i;
+
+        (fg.units || []).forEach(u => {
+          const uItem = document.createElement('div');
+          uItem.className = 'unit-item';
+          uItem.dataset.unitId = u.id;
+          uItem.setAttribute('role', 'button');
+          uItem.setAttribute('tabindex', '0');
+          uItem.setAttribute('aria-label', u.label || u.id);
+          uItem.innerHTML = `
+            <span class="unit-name">${u.label || u.id}</span>
+            <span class="unit-dot"></span>
+          `;
+
+          uItem.addEventListener('mouseenter', () => {
+            if (isTransitioning) return;
+            // Limpiar hover previo
+            if (hoveredUnit && hoveredUnit !== selectedUnit)
+              hoveredUnit.items.forEach(m => { m.material = MAT_BASE; });
+            hoveredUnit = u;
+            u.items.forEach(m => { m.material = MAT_UNIT_HOVER; });
+          });
+          uItem.addEventListener('mouseleave', () => {
+            if (hoveredUnit === u && u !== selectedUnit)
+              u.items.forEach(m => { m.material = MAT_BASE; });
+            if (hoveredUnit === u) hoveredUnit = null;
+          });
+          uItem.addEventListener('click', () => {
+            if (isTransitioning) return;
+            selectUnit(u);
+          });
+          uItem.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectUnit(u); }
+          });
+
+          unitList.appendChild(uItem);
+        });
+
+        el.appendChild(unitList);
       }
       el.classList.add('visible');
     }
@@ -1343,12 +1441,14 @@
       canvasDim.classList.add('active');
       unitLabelEl.classList.remove('visible');
       panelOpen = true;
+      syncFloorList();
     }
 
     function closePanel() {
       unitPanel.classList.remove('open');
       canvasDim.classList.remove('active');
       panelOpen = false;
+      syncFloorList();
       // Reset form and state after close animation (0.42s)
       setTimeout(() => {
         document.getElementById('contact-form').reset();
@@ -1524,7 +1624,7 @@
       if (wasDragging || isTransitioning || panelOpen) return;
       if (mode === 'orbital' && hoveredFloorIdx !== null) {
         selectFloor(hoveredFloorIdx);
-      } else if (mode === 'floor' && hoveredUnit !== null) {
+      } else if ((mode === 'floor' || mode === 'unit') && hoveredUnit !== null && hoveredUnit !== selectedUnit) {
         selectUnit(hoveredUnit);
       } else if (mode === 'floor' && hoveredUnit === null && hoveredFloorIdx === null) {
         returnToOrbital();
