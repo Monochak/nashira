@@ -1176,7 +1176,20 @@
     const H = () => window.innerHeight;
 
     // LinearSRGBColorSpace aquí — OutputPass aplica la conversión sRGB final
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+    } catch (err) {
+      // Sin WebGL (p. ej. proceso GPU saturado): avisar en vez de quedarse mudo
+      const q = document.querySelector('#loading-overlay .lo-quote');
+      if (q) q.textContent = 'El visor 3D no pudo iniciarse. Cierra otras pestañas del visor o reinicia el navegador y vuelve a cargar.';
+      throw err;
+    }
+    // Liberar el contexto WebGL al salir/recargar: evita que F5 repetidos
+    // acumulen contextos vivos y saturen el proceso GPU del navegador.
+    window.addEventListener('pagehide', () => {
+      try { renderer.forceContextLoss(); renderer.dispose(); } catch (e) {}
+    });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setSize(W(), H());
     renderer.outputColorSpace    = THREE.LinearSRGBColorSpace;
@@ -1422,6 +1435,15 @@
       });
     }
 
+    // Distancia de cámara que encuadra el modelo completo en AMBOS ejes:
+    // en pantallas angostas (móvil portrait) manda el FOV horizontal.
+    function fitDistance(margin = 1.5) {
+      const vFov = camera.fov * (Math.PI / 180);
+      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+      const fov  = Math.min(vFov, hFov);
+      return (modelMaxDim / 2) / Math.tan(fov / 2) * margin;
+    }
+
     function returnToOrbital() {
       if (isTransitioning) return;
       if (panelOpen) closePanel();
@@ -1432,8 +1454,7 @@
 
       const fromPos  = camera.position.clone();
       const fromTgt  = controls.target.clone();
-      const fov  = camera.fov * (Math.PI / 180);
-      const dist = (modelMaxDim / 2) / Math.tan(fov / 2) * 1.5;
+      const dist = fitDistance();
       const toPos    = new THREE.Vector3(
         modelCenter.x + dist * 0.55,
         modelCenter.y + dist * 0.38,
@@ -2122,8 +2143,7 @@
       modelCenter = box.getCenter(new THREE.Vector3());
       const size  = box.getSize(new THREE.Vector3());
       modelMaxDim = Math.max(size.x, size.y, size.z);
-      const fov  = camera.fov * (Math.PI / 180);
-      const dist = (modelMaxDim / 2) / Math.tan(fov / 2) * 1.5;
+      const dist = fitDistance();
       controls.target.copy(modelCenter);
       camera.position.set(
         modelCenter.x + dist * 0.55,
