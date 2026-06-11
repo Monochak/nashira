@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FORMA · Stillness</title>
   <meta name="description" content="FORMA. Un desarrollo residencial que se experimenta antes de habitarse.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314141a'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e09a4e'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e55c1e'/%3E%3C/svg%3E">
   <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
   <meta property="og:title" content="FORMA">
   <meta property="og:description" content="Un desarrollo residencial que se experimenta antes de habitarse.">
@@ -22,7 +22,7 @@
     :root {
       --dim:    oklch(28% 0.009 250);
       --muted:  oklch(48% 0.01  250);
-      --accent: oklch(70% 0.175  52);
+      --accent: oklch(62% 0.21   40); /* naranja señal Braun */
       --border: oklch(17% 0.01  250);
       --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
       --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
@@ -65,6 +65,7 @@
       white-space: nowrap;
       opacity: 0;
       filter: blur(20px);
+      text-shadow: 0 3px 6px oklch(18% 0.008 250 / 0.18), 0 12px 32px oklch(18% 0.008 250 / 0.14);
       z-index: 2;
     }
 

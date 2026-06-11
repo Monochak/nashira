@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FORMA · Action</title>
   <meta name="description" content="FORMA. Un desarrollo residencial que se experimenta antes de habitarse.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314141a'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e09a4e'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e55c1e'/%3E%3C/svg%3E">
+  <script src="theme.js"></script>
   <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
   <meta property="og:title" content="FORMA · Action">
   <meta property="og:description" content="Un desarrollo residencial que se experimenta antes de habitarse.">
@@ -18,14 +19,24 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
+      /* papel (default) */
+      --bg:           oklch(94% 0.010  85);
+      --text:         oklch(24% 0.006  85);
+      --muted:        oklch(52% 0.008  85);
+      --accent:       oklch(62% 0.21   40);
+      --border:       oklch(85% 0.008  85);
+      --glass-bg:     oklch(97% 0.006  85 / 0.78);
+      --glass-border: oklch(78% 0.010  85 / 0.55);
+      --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
+      --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
+    }
+    html[data-theme='grafito'] {
       --bg:           oklch(9%  0.008 250);
       --text:         oklch(93% 0.005 250);
       --muted:        oklch(48% 0.01  250);
-      --accent:       oklch(70% 0.175  52);
+      --border:       oklch(17% 0.01  250);
       --glass-bg:     oklch(13% 0.01  250 / 0.72);
       --glass-border: oklch(25% 0.012 250 / 0.55);
-      --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
-      --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
     }
 
     html, body {
@@ -132,9 +143,10 @@
       font-size: clamp(2.5rem, 6vw, 6rem);
       font-weight: 700;
       letter-spacing: 0.3em;
-      color: oklch(93% 0.005 250 / 0.08);
+      color: oklch(24% 0.006 85 / 0.10);
       text-transform: uppercase;
     }
+    html[data-theme='grafito'] .coming-soon-title { color: oklch(93% 0.005 250 / 0.08); }
 
     /* ── MOBILE ≤ 767px ── */
     @media (max-width: 767px) {

@@ -9,7 +9,7 @@
   veil.id = 'page-veil';
   veil.style.cssText =
     'position:fixed;inset:0;z-index:200;pointer-events:none;' +
-    'background:oklch(9% 0.008 250);opacity:1;' +
+    'background:var(--bg, oklch(9% 0.008 250));opacity:1;' +
     'transition:opacity ' + DUR + 'ms ease-out;';
   document.body.appendChild(veil);
 

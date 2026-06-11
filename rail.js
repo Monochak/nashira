@@ -43,7 +43,7 @@
       justify-content: flex-end;
       gap: 12px;
       text-decoration: none;
-      color: oklch(48% 0.01 250);
+      color: oklch(52% 0.008 85);
       transition: color 0.2s ease-out;
     }
     .rail-icon {
@@ -69,24 +69,32 @@
       font-weight: 600;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: oklch(93% 0.005 250);
+      color: oklch(24% 0.006 85);
       white-space: nowrap;
       opacity: 0;
       transform: translateX(6px);
       transition: opacity 0.25s ease-out, transform 0.25s ease-out;
       pointer-events: none;
     }
-    .rail-item:hover { color: oklch(82% 0.005 250); }
+    .rail-item:hover { color: oklch(28% 0.006 85); }
     .rail-item:hover .rail-label,
     .rail-item:focus-visible .rail-label { opacity: 1; transform: translateX(0); }
-    .rail-item.active { color: oklch(70% 0.175 52); }
+    .rail-item.active { color: oklch(62% 0.21 40); }
     .rail-item:focus-visible {
-      outline: 2px solid oklch(70% 0.175 52);
+      outline: 2px solid oklch(62% 0.21 40);
       outline-offset: 3px;
       border-radius: 50%;
     }
-    .rail-contact { color: oklch(70% 0.175 52); margin-top: 14px; }
-    .rail-contact:hover { color: oklch(78% 0.16 52); }
+    .rail-contact { color: oklch(62% 0.21 40); margin-top: 14px; }
+    .rail-contact:hover { color: oklch(54% 0.19 40); }
+
+    /* Tema grafito */
+    html[data-theme='grafito'] .rail-item          { color: oklch(48% 0.01 250); }
+    html[data-theme='grafito'] .rail-item:hover    { color: oklch(82% 0.005 250); }
+    html[data-theme='grafito'] .rail-label         { color: oklch(93% 0.005 250); }
+    html[data-theme='grafito'] .rail-item.active   { color: oklch(62% 0.21 40); }
+    html[data-theme='grafito'] .rail-contact       { color: oklch(62% 0.21 40); }
+    html[data-theme='grafito'] .rail-contact:hover { color: oklch(70% 0.18 40); }
 
     /* El rail reemplaza al pill en todos los tamaños */
     #nav-wrapper { display: none !important; }
@@ -110,9 +118,13 @@
         align-items: stretch;
         gap: 0;
         padding: 5px 8px calc(5px + env(safe-area-inset-bottom));
-        background: oklch(13% 0.01 250 / 0.72);
+        background: oklch(97% 0.006 85 / 0.82);
         backdrop-filter: blur(20px) saturate(1.4);
         -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        border-top: 1px solid oklch(78% 0.01 85 / 0.6);
+      }
+      html[data-theme='grafito'] #rail {
+        background: oklch(13% 0.01 250 / 0.72);
         border-top: 1px solid oklch(25% 0.012 250 / 0.55);
       }
       .rail-item {
