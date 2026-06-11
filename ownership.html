@@ -215,7 +215,91 @@
     .unit-item.active .unit-name { color: var(--accent); }
     .unit-item.active .unit-dot  { background: var(--accent); transform: scale(1.6); }
 
+    /* ── CAT ICONS ───────────────────────────────────────────────────────── */
+    .cat-icon {
+      position: fixed;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #e03030;
+      border: 2px solid rgba(255,255,255,0.7);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease-out, transform 0.15s ease-out;
+      z-index: 15;
+    }
+    .cat-icon.visible {
+      opacity: 1;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .cat-icon.visible:hover {
+      transform: translate(-50%, -50%) scale(1.35);
+    }
+
+    /* Anillo de pulso */
+    .cat-icon::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid #e03030;
+      opacity: 0;
+      animation: cat-pulse 2.4s ease-out infinite;
+    }
+    @keyframes cat-pulse {
+      0%   { transform: scale(1);   opacity: 0.7; }
+      60%  { transform: scale(2.2); opacity: 0;   }
+      61%  { transform: scale(1);   opacity: 0.7; }
+      100% { transform: scale(2.2); opacity: 0;   }
+    }
+
     /* ── BACK BUTTON ─────────────────────────────────────────────────────── */
+    #info-btn {
+      position: fixed;
+      bottom: 36px;
+      right: 32px;
+      left: auto;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: oklch(14% 0.008 250 / 0.72);
+      backdrop-filter: blur(8px);
+      border: 1px solid oklch(100% 0 0 / 0.15);
+      color: oklch(80% 0.005 250);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.15s ease-out, opacity 0.3s ease-out;
+      opacity: 0;
+    }
+    #info-btn svg { width: 20px; height: 20px; }
+    #info-btn.visible { display: flex; }
+    #info-btn.shown   { opacity: 1; }
+    #info-btn:hover {
+      color: oklch(95% 0 0);
+      border-color: oklch(100% 0 0 / 0.3);
+      background: oklch(20% 0.008 250 / 0.85);
+      transform: scale(1.1);
+    }
+    #info-btn::after {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      border: 1.5px solid oklch(80% 0.005 250 / 0.5);
+      opacity: 0;
+      animation: info-pulse 2.6s ease-out infinite;
+    }
+    @keyframes info-pulse {
+      0%   { transform: scale(1);   opacity: 0.6; }
+      70%  { transform: scale(1.6); opacity: 0;   }
+      100% { transform: scale(1.6); opacity: 0;   }
+    }
+
     #back-btn {
       position: fixed;
       top: 84px;
@@ -815,6 +899,15 @@
     <span class="back-arrow">&#8592;</span> Torre
   </button>
 
+  <!-- ── INFO BUTTON ───────────────────────────────────────────────────────── -->
+  <button id="info-btn" aria-label="Ver información de la unidad">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="8"/>
+      <line x1="12" y1="12" x2="12" y2="16"/>
+    </svg>
+  </button>
+
   <!-- ── UNIT HOVER LABEL ────────────────────────────────────────────────── -->
   <div id="unit-label" role="tooltip">
     <span class="unit-label-id"  id="label-id"></span>
@@ -919,6 +1012,7 @@
     let disponibilidad  = {};
     let floorGroups     = [];      // [{label, nodeName, items, y_center, units, meshToUnit}]
     let meshToFloor     = new Map(); // mesh → floorIndex (para selección desde unidades en orbital)
+    let catNodes        = [];        // [{ name, unitId, worldPos, el }]
     let modelCenter     = new THREE.Vector3();
     let modelMaxDim     = 1;
     let azoteaItems     = [];
@@ -1180,6 +1274,7 @@
       if (panelOpen) closePanel();
       selectedUnit = null; hoveredUnit = null;
       unitLabelEl.classList.remove('visible');
+      infoBtn.classList.remove('shown', 'visible');
 
       const fg = floorGroups[selectedFloor];
       fg.units.forEach(u =>
@@ -1396,7 +1491,11 @@
         camera.updateProjectionMatrix();
         controls.update();
         if (t < 1) requestAnimationFrame(tick);
-        else { isTransitioning = false; mode = 'unit'; controls.enabled = true; openPanel(unit); }
+        else {
+          isTransitioning = false; mode = 'unit'; controls.enabled = true;
+          infoBtn.classList.add('visible');
+          requestAnimationFrame(() => infoBtn.classList.add('shown'));
+        }
       })(performance.now());
     }
 
@@ -1404,6 +1503,11 @@
     const unitPanel  = document.getElementById('unit-panel');
     const canvasDim  = document.getElementById('canvas-dim');
     const panelClose = document.getElementById('panel-close');
+    const infoBtn    = document.getElementById('info-btn');
+
+    infoBtn.addEventListener('click', () => {
+      if (selectedUnit) openPanel(selectedUnit);
+    });
 
     function setPanelState(state) {
       document.querySelectorAll('.panel-section').forEach(el => { el.hidden = true; });
@@ -1442,6 +1546,7 @@
       unitLabelEl.classList.remove('visible');
       panelOpen = true;
       syncFloorList();
+      infoBtn.classList.remove('shown');
     }
 
     function closePanel() {
@@ -1449,6 +1554,7 @@
       canvasDim.classList.remove('active');
       panelOpen = false;
       syncFloorList();
+      if (mode === 'unit') requestAnimationFrame(() => infoBtn.classList.add('shown'));
       // Reset form and state after close animation (0.42s)
       setTimeout(() => {
         document.getElementById('contact-form').reset();
@@ -1641,10 +1747,28 @@
     });
 
     // ── RENDER LOOP ───────────────────────────────────────────────────────────
+    const _catVec = new THREE.Vector3();
     (function render() {
       requestAnimationFrame(render);
       controls.update();
       composer.render();
+
+      // Proyectar íconos CAT a pantalla
+      const showCats = mode === 'unit' && selectedUnit !== null;
+      catNodes.forEach(cat => {
+        const isOwn = cat.unitId === selectedUnit?.id;
+        if (!showCats || !isOwn) {
+          cat.el.classList.remove('visible');
+          return;
+        }
+        _catVec.copy(cat.worldPos).project(camera);
+        if (_catVec.z > 1) { cat.el.classList.remove('visible'); return; }
+        const x = ( _catVec.x * 0.5 + 0.5) * W();
+        const y = (-_catVec.y * 0.5 + 0.5) * H();
+        cat.el.style.left = x + 'px';
+        cat.el.style.top  = y + 'px';
+        cat.el.classList.add('visible');
+      });
     })();
 
     // ── RESIZE ────────────────────────────────────────────────────────────────
@@ -1671,7 +1795,7 @@
       // 3. Load GLB
       const gltf = await new Promise((resolve, reject) => {
         new GLTFLoader().load(
-          'content/models/Nashira_Modelo_Web.glb?v=6',
+          'content/models/Nashira_Modelo_Web.glb?v=8',
           resolve,
           xhr => {
             if (xhr.lengthComputable)
@@ -1777,7 +1901,22 @@
       // 9. Ghost volumes
       buildGhostVolumes();
 
-      // 10. Floor list UI
+      // 10. CAT nodes
+      model.traverse(obj => {
+        const rawName = obj.name.replace(/^Obj_/, ''); // quitar prefijo Obj_ si existe
+        if (!rawName.startsWith('CAT-')) return;
+        const parts  = rawName.replace(/_\d+$/, '').split('-'); // quitar sufijo _1, _2, etc.
+        const unitId = parts.slice(1, 4).join('-');   // 'Unit-10-02'
+        const worldPos = new THREE.Vector3();
+        obj.getWorldPosition(worldPos);
+        const el = document.createElement('div');
+        el.className  = 'cat-icon';
+        el.title      = obj.name;
+        document.body.appendChild(el);
+        catNodes.push({ name: obj.name, unitId, worldPos, el });
+      });
+
+      // 11. Floor list UI
       buildFloorList();
       loadingBar.style.width = '100%';
 
