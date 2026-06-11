@@ -88,15 +88,55 @@
     .rail-contact { color: oklch(70% 0.175 52); margin-top: 14px; }
     .rail-contact:hover { color: oklch(78% 0.16 52); }
 
-    /* Desktop: el rail reemplaza al pill. Móvil: pill intacto, sin rail. */
+    /* El rail reemplaza al pill en todos los tamaños */
+    #nav-wrapper { display: none !important; }
+
     @media (min-width: 768px) {
-      #nav-wrapper { display: none !important; }
       /* emotion: los chevrons laterales se ocultan; el stop-pill inferior
          (prev/next + contador) asume la navegación entre escenas */
       .nav-chevron { display: none !important; }
     }
+
+    /* ── Móvil: barra inferior con iconos + labels ── */
     @media (max-width: 767px) {
-      #rail { display: none; }
+      #rail {
+        right: 0;
+        left: 0;
+        top: auto;
+        bottom: 0;
+        transform: none;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: stretch;
+        gap: 0;
+        padding: 5px 8px calc(5px + env(safe-area-inset-bottom));
+        background: oklch(13% 0.01 250 / 0.72);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        border-top: 1px solid oklch(25% 0.012 250 / 0.55);
+      }
+      .rail-item {
+        flex-direction: column-reverse; /* icono arriba, label abajo */
+        justify-content: center;
+        gap: 3px;
+        flex: 1;
+        min-height: 50px;
+      }
+      .rail-icon { width: auto; height: 22px; }
+      .rail-label {
+        opacity: 1;
+        transform: none;
+        font-size: 0.5rem;
+        letter-spacing: 0.08em;
+        color: inherit;
+      }
+      .rail-contact { margin-top: 0; }
+      .rail-item:focus-visible { border-radius: 8px; }
+
+      /* Colisiones del borde inferior con la barra */
+      #nav-stop-pill { bottom: calc(66px + env(safe-area-inset-bottom)) !important; }
+      #chapters      { bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
+      #info-btn      { bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
     }
   `;
   document.head.appendChild(style);
