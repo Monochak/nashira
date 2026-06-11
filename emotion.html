@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FORMA</title>
+  <title>FORMA · Emotion</title>
+  <meta name="description" content="FORMA. Una secuencia cinematográfica sobre el movimiento y la quietud del espacio habitado.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314141a'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e09a4e'/%3E%3C/svg%3E">
+  <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
+  <meta property="og:title" content="FORMA · Emotion">
+  <meta property="og:description" content="Una secuencia cinematográfica sobre el movimiento y la quietud del espacio habitado.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="content/images/sequence/frame_000.jpg">
   <!-- Fonts: Big Shoulders Display (display headings) + Barlow (body + UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -316,12 +323,13 @@
     }
 
     .nav-links a {
-      font-size: 0.75rem;
-      font-weight: 500;
+      font-size: 0.6875rem;
+      font-weight: 600;
       color: oklch(93% 0.005 250);
       opacity: 0.40;
       text-decoration: none;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
       transition: opacity 0.2s;
     }
 
@@ -770,33 +778,33 @@
 
   <!-- NAV -->
   <div id="nav-wrapper">
-    <nav id="nav" aria-label="Main navigation">
-      <a href="#" class="nav-brand" aria-label="FORMA — home" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
+    <nav id="nav" aria-label="Navegación principal">
+      <a href="#" class="nav-brand" aria-label="FORMA, inicio" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
       <ul class="nav-links">
         <li><a href="emotion.html" class="active">Emotion</a></li>
         <li><a href="ownership.html">Ownership</a></li>
         <li><a href="action.html">Action</a></li>
         <li><a href="location.html">Location</a></li>
       </ul>
-      <a href="#" class="nav-cta">Contact</a>
+      <a href="#" class="nav-cta">Contacto</a>
     </nav>
 
     <!-- Mobile nav extension (only active on ≤767px) -->
-    <div id="nav-mobile-dropdown" role="menu" aria-label="Navigation menu">
-      <nav class="nav-mobile-links" aria-label="Site sections">
+    <div id="nav-mobile-dropdown" role="menu" aria-label="Menú de navegación">
+      <nav class="nav-mobile-links" aria-label="Secciones del sitio">
         <a href="emotion.html" role="menuitem" class="active">Emotion</a>
         <a href="ownership.html" role="menuitem">Ownership</a>
         <a href="action.html" role="menuitem">Action</a>
         <a href="location.html" role="menuitem">Location</a>
       </nav>
-      <a href="#" class="nav-cta" role="menuitem">Contact</a>
+      <a href="#" class="nav-cta" role="menuitem">Contacto</a>
     </div>
   </div>
 
   <!-- INTRO VIDEO — ambient/visual only, no dialogue or meaningful audio -->
   <div id="intro-overlay">
     <video id="intro-video" muted playsinline preload="auto"
-           aria-label="Intro sequence — ambient visual, no audio content"></video>
+           aria-label="Secuencia de introducción, visual ambiental sin audio"></video>
   </div>
 
   <!-- STOP VIDEO — pool built in JS -->
@@ -807,33 +815,33 @@
     <div id="stage"
          tabindex="0"
          role="application"
-         aria-label="Motion sequence — use the navigation buttons to move between stops">
-      <canvas id="canvas" role="img" aria-label="Scroll-driven motion sequence"></canvas>
+         aria-label="Secuencia de movimiento, usa los botones de navegación para avanzar entre escenas">
+      <canvas id="canvas" role="img" aria-label="Secuencia de movimiento controlada por scroll"></canvas>
     </div>
   </div>
 
   <!-- TEXT OVERLAY (above stop video) -->
-  <div id="text-overlay"></div>
+  <div id="text-overlay" lang="en"></div>
 
   <!-- CHAPTER INDICATORS -->
   <div id="chapters" aria-hidden="true"></div>
 
   <!-- SCROLL HINT -->
   <!-- OPTION A — SIDE CHEVRONS -->
-  <button class="nav-chevron nav-chevron--left"  id="chevron-prev" aria-label="Previous stop">
+  <button class="nav-chevron nav-chevron--left"  id="chevron-prev" aria-label="Escena anterior">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </button>
-  <button class="nav-chevron nav-chevron--right" id="chevron-next" aria-label="Next stop">
+  <button class="nav-chevron nav-chevron--right" id="chevron-next" aria-label="Escena siguiente">
     <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
   </button>
 
   <!-- OPTION B — STOP NAVIGATION PILL -->
-  <div id="nav-stop-pill" aria-label="Stop navigation">
-    <button class="pill-btn" id="pill-prev" aria-label="Previous stop">
+  <div id="nav-stop-pill" aria-label="Navegación entre escenas">
+    <button class="pill-btn" id="pill-prev" aria-label="Escena anterior">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <span id="pill-counter" aria-live="polite">1 / 6</span>
-    <button class="pill-btn" id="pill-next" aria-label="Next stop">
+    <button class="pill-btn" id="pill-next" aria-label="Escena siguiente">
       <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
   </div>
@@ -1263,8 +1271,10 @@
          false — natural end: wait 400 ms for overlay fade, then onDone()
          true  — user-interrupted: unlock scroll immediately, fade runs in bg
 
-       startTimer / showTimer are stored so both can be cancelled if the
-       user interrupts before the video or text animation begins.
+       El overlay oscuro NO se muestra hasta que el video tenga datos
+       suficientes (readyState >= 3 o evento canplay). Mientras espera,
+       el canvas con el frame actual permanece visible — sin pantalla negra.
+       Safety timeout de 8s: si el video nunca llega, arranca igual.
     ===================================================== */
     function playStopVideo(stopIndex, onDone) {
       const v = preloadedVideos[stopIndex];
@@ -1274,12 +1284,15 @@
       let done       = false;
       let startTimer = null;
       let midTimer   = null;  // fires at video midpoint to start text animation
+      let readyTimer = null;  // safety timeout while waiting for canplay
 
       function finish(immediate) {
         if (done) return;
         done = true;
         clearTimeout(startTimer);
         clearTimeout(midTimer);
+        clearTimeout(readyTimer);
+        v.removeEventListener('canplay', onCanPlay);
         skipCurrentVideo = null;
         v.removeEventListener('ended', onEnded);
         v.removeEventListener('error', onError);
@@ -1311,21 +1324,45 @@
       v.addEventListener('ended', onEnded);
       v.addEventListener('error', onError);
 
-      stopOverlay.style.willChange = 'opacity';
-      stopOverlay.classList.add('in');
-      startTimer = setTimeout(() => {
-        if (done) return;  // finish() may have fired in the same event-loop tick
+      // Muestra el overlay oscuro y arranca la reproducción.
+      // Solo se llama cuando el video tiene datos suficientes.
+      function startPlayback() {
+        if (done) return;
+        stopOverlay.style.willChange = 'opacity';
+        stopOverlay.classList.add('in');
+        startTimer = setTimeout(() => {
+          if (done) return;  // finish() may have fired in the same event-loop tick
 
-        v.play().catch(() => finish(false));
+          v.play().catch(() => finish(false));
 
-        // Dispara texto en el punto medio del video.
-        // duration disponible porque los videos están preloaded.
-        // windowMs = mitad restante + 1s extra post-video.
-        const dur      = v.duration && isFinite(v.duration) ? v.duration : 8;
-        const startMs  = Math.max((dur - 2) * 1000, 0); // 2s antes del final (mín. 0)
-        const winMs    = 4000;                           // 2s antes + 2s después = 4s fijos
-        midTimer = setTimeout(() => showStopText(stopIndex, winMs), startMs);
-      }, 400);
+          // Dispara texto en el punto medio del video.
+          // duration disponible porque los videos están preloaded.
+          // windowMs = mitad restante + 1s extra post-video.
+          const dur      = v.duration && isFinite(v.duration) ? v.duration : 8;
+          const startMs  = Math.max((dur - 2) * 1000, 0); // 2s antes del final (mín. 0)
+          const winMs    = 4000;                           // 2s antes + 2s después = 4s fijos
+          midTimer = setTimeout(() => showStopText(stopIndex, winMs), startMs);
+        }, 400);
+      }
+
+      // onCanPlay: el video tiene datos — arrancar
+      function onCanPlay() {
+        clearTimeout(readyTimer);
+        v.removeEventListener('canplay', onCanPlay);
+        startPlayback();
+      }
+
+      if (v.readyState >= 3) {
+        // Video ya en caché o pre-buffereado — arranca de inmediato
+        startPlayback();
+      } else {
+        // Esperar datos: el canvas frame sigue visible (sin pantalla negra)
+        v.addEventListener('canplay', onCanPlay);
+        readyTimer = setTimeout(() => {
+          v.removeEventListener('canplay', onCanPlay);
+          startPlayback(); // arrancar de todos modos tras 8s
+        }, 8000);
+      }
     }
 
     /* =====================================================
@@ -1436,12 +1473,12 @@
     }
 
     function goNext() {
-      if (currentStopIndex >= C.stops.length - 1) return;
-      goToStop(currentStopIndex + 1, true);
+      const target = currentStopIndex >= C.stops.length - 1 ? 0 : currentStopIndex + 1;
+      goToStop(target, true);
     }
     function goPrev() {
-      if (currentStopIndex <= 0) return;
-      goToStop(currentStopIndex - 1, false);
+      const target = currentStopIndex <= 0 ? C.stops.length - 1 : currentStopIndex - 1;
+      goToStop(target, false);
     }
 
     /* =====================================================
@@ -1641,11 +1678,9 @@
     const chevronNext = document.getElementById('chevron-next');
 
     function navPrev() {
-      if (currentStopIndex <= 0) return;
       if (isLocked) interruptAndGo(false); else goPrev();
     }
     function navNext() {
-      if (currentStopIndex >= C.stops.length - 1) return;
       if (isLocked) interruptAndGo(true); else goNext();
     }
 
@@ -1675,12 +1710,10 @@
 
     function updateNavPill(stopIndex) {
       pillCounter.textContent = `${stopIndex + 1} / ${C.stops.length}`;
-      const atFirst = stopIndex === 0;
-      const atLast  = stopIndex === C.stops.length - 1;
-      pillPrev.disabled = atFirst;
-      pillNext.disabled = atLast;
-      chevronPrev.classList.toggle('is-disabled', atFirst);
-      chevronNext.classList.toggle('is-disabled', atLast);
+      pillPrev.disabled = false;
+      pillNext.disabled = false;
+      chevronPrev.classList.remove('is-disabled');
+      chevronNext.classList.remove('is-disabled');
     }
 
     /* =====================================================
@@ -1791,5 +1824,7 @@
 
     boot();
   </script>
+  <script src="transition.js"></script>
+  <script src="rail.js"></script>
 </body>
 </html>

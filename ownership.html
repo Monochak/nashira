@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FORMA — Ownership</title>
+  <title>FORMA · Ownership</title>
+  <meta name="description" content="FORMA. Explora la Torre Nashira nivel por nivel y descubre las unidades disponibles en un visor 3D interactivo.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314141a'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e09a4e'/%3E%3C/svg%3E">
+  <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
+  <meta property="og:title" content="FORMA · Ownership">
+  <meta property="og:description" content="Explora la Torre Nashira nivel por nivel y descubre las unidades disponibles.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="content/images/sequence/frame_000.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700&display=swap" rel="stylesheet">
@@ -11,7 +18,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:             oklch(18% 0.008 250);
+      --bg:             oklch(9%  0.008 250);
       --text:           oklch(93% 0.005 250);
       --text-secondary: oklch(88% 0.006 250);
       --muted:          oklch(48% 0.01  250);
@@ -40,7 +47,7 @@
       position: fixed;
       inset: 0;
       opacity: 0;
-      transition: opacity 0.9s ease-out;
+      transition: opacity 1.6s ease-out;
     }
     #canvas-container.visible { opacity: 1; }
 
@@ -72,48 +79,102 @@
       inset: 0;
       z-index: 100;
       background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      transition: opacity 0.7s ease-out;
+      transition: opacity 0.65s ease-out, filter 0.65s ease-out;
     }
     #loading-overlay.hidden {
       opacity: 0;
       pointer-events: none;
     }
-
-    .loading-title {
-      font-family: var(--font-display);
-      font-size: clamp(1.75rem, 4vw, 3rem);
-      font-weight: 700;
-      letter-spacing: 0.32em;
-      color: oklch(93% 0.005 250 / 0.12);
-      text-transform: uppercase;
+    @media (prefers-reduced-motion: no-preference) {
+      #loading-overlay {
+        transition: opacity 0.70s ease-out, filter 0.70s ease-out, transform 0.70s ease-out;
+      }
+      #loading-overlay.hidden {
+        filter: blur(10px);
+        transform: scale(1.03);
+        transform-origin: center center;
+      }
     }
 
-    .loading-bar-track {
-      width: 180px;
+    /* Content block — lower-left, architectural alignment */
+    .lo-content {
+      position: absolute;
+      left: 32px;
+      bottom: 11vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .lo-label {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      color: var(--label);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .lo-heading {
+      font-family: var(--font-display);
+      font-size: clamp(4rem, 8vw, 8rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--text);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .lo-quote {
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.65;
+      color: oklch(52% 0.008 250);
+      letter-spacing: 0.01em;
+      max-width: 440px;
+    }
+
+    /* Progress line — full-width at bottom edge */
+    .lo-bar-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
       height: 1px;
       background: var(--border);
-      overflow: hidden;
     }
 
     #loading-bar {
       height: 100%;
       width: 0%;
       background: var(--accent);
-      transition: width 0.08s linear;
+      transition: width 0.12s linear;
     }
 
-    .loading-label {
-      font-size: 0.5625rem;
-      font-weight: 600;
-      letter-spacing: 0.22em;
-      color: var(--muted);
-      text-transform: uppercase;
+    /* Default: fully visible (reduced motion / no-JS fallback) */
+    .lo-label, .lo-heading, .lo-quote { opacity: 1; }
+
+    /* Animate only when motion is welcome */
+    @media (prefers-reduced-motion: no-preference) {
+      .lo-label {
+        opacity: 0;
+        transform: translateY(8px);
+        animation: lo-rise   0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+      }
+      .lo-heading {
+        opacity: 0;
+        filter: blur(20px);
+        animation: lo-emerge 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.85s forwards;
+      }
+      .lo-quote {
+        opacity: 0;
+        animation: lo-fade   0.8s ease-out 1.55s forwards;
+      }
     }
+
+    @keyframes lo-rise   { to { opacity: 1; transform: translateY(0); } }
+    @keyframes lo-emerge { to { opacity: 1; filter: blur(0px); } }
+    @keyframes lo-fade   { to { opacity: 1; } }
 
     /* ── FLOOR LIST (left sidebar) ──────────────────────────────────────── */
     #floor-list {
@@ -137,7 +198,15 @@
       cursor: pointer;
       padding: 3px 0;
       user-select: none;
+      /* Cascada de entrada: cada item emerge cuando su piso pulsa en la torre */
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.4s ease-out, transform 0.4s ease-out;
     }
+    .floor-item.revealed { opacity: 1; transform: translateX(0); }
+    /* Durante la cascada: label y dot en ámbar, decaen al color base al soltar la clase */
+    .floor-item.cascade-pulse .floor-number { color: var(--accent); }
+    .floor-item.cascade-pulse .floor-dot    { background: var(--accent); }
 
     .floor-number {
       font-size: 0.6875rem;
@@ -221,8 +290,8 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: #e03030;
-      border: 2px solid rgba(255,255,255,0.7);
+      background: oklch(70% 0.18 52);
+      border: 2px solid oklch(93% 0.005 250 / 0.7);
       transform: translate(-50%, -50%);
       pointer-events: none;
       opacity: 0;
@@ -244,7 +313,7 @@
       position: absolute;
       inset: -4px;
       border-radius: 50%;
-      border: 2px solid #e03030;
+      border: 2px solid oklch(70% 0.18 52);
       opacity: 0;
       animation: cat-pulse 2.4s ease-out infinite;
     }
@@ -254,6 +323,29 @@
       61%  { transform: scale(1);   opacity: 0.7; }
       100% { transform: scale(2.2); opacity: 0;   }
     }
+
+    /* ── INFO HINT ──────────────────────────────────────────────────────────── */
+    #info-hint {
+      position: fixed;
+      bottom: 36px;
+      right: calc(32px + 44px + 10px);
+      height: 44px;
+      display: none;
+      align-items: center;
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      text-transform: uppercase;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateX(6px);
+      transition: opacity 0.45s ease-out, transform 0.45s ease-out;
+      z-index: 20;
+    }
+    #info-hint.visible { display: flex; }
+    #info-hint.shown   { opacity: 1; transform: translateX(0); }
 
     /* ── BACK BUTTON ─────────────────────────────────────────────────────── */
     #info-btn {
@@ -269,7 +361,7 @@
       height: 44px;
       background: oklch(14% 0.008 250 / 0.72);
       backdrop-filter: blur(8px);
-      border: 1px solid oklch(100% 0 0 / 0.15);
+      border: 1px solid oklch(100% 0.005 250 / 0.15);
       color: oklch(80% 0.005 250);
       border-radius: 50%;
       cursor: pointer;
@@ -280,8 +372,8 @@
     #info-btn.visible { display: flex; }
     #info-btn.shown   { opacity: 1; }
     #info-btn:hover {
-      color: oklch(95% 0 0);
-      border-color: oklch(100% 0 0 / 0.3);
+      color: oklch(95% 0.004 250);
+      border-color: oklch(100% 0.005 250 / 0.3);
       background: oklch(20% 0.008 250 / 0.85);
       transform: scale(1.1);
     }
@@ -672,12 +764,13 @@
     .nav-links { display: flex; gap: 28px; list-style: none; }
 
     .nav-links a {
-      font-size: 0.75rem;
-      font-weight: 500;
+      font-size: 0.6875rem;
+      font-weight: 600;
       color: oklch(93% 0.005 250);
       opacity: 0.40;
       text-decoration: none;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
       transition: opacity 0.2s;
     }
     .nav-links a:hover  { opacity: 0.80; }
@@ -823,6 +916,8 @@
         gap: 4px;
       }
 
+      .lo-content { left: 14px; }
+
       #back-btn {
         top: 84px;
         left: 14px;
@@ -860,7 +955,7 @@
         <li><a href="action.html">Action</a></li>
         <li><a href="location.html">Location</a></li>
       </ul>
-      <a href="#" class="nav-cta">Contact</a>
+      <a href="#" class="nav-cta">Contacto</a>
     </nav>
 
     <div id="nav-mobile-dropdown" role="menu" aria-label="Menú de navegación">
@@ -870,17 +965,20 @@
         <a href="action.html" role="menuitem">Action</a>
         <a href="location.html" role="menuitem">Location</a>
       </nav>
-      <a href="#" class="nav-cta" role="menuitem">Contact</a>
+      <a href="#" class="nav-cta" role="menuitem">Contacto</a>
     </div>
   </div>
 
   <!-- ── LOADING ─────────────────────────────────────────────────────────── -->
   <div id="loading-overlay">
-    <span class="loading-title">Ownership</span>
-    <div class="loading-bar-track">
+    <div class="lo-content">
+      <span class="lo-label">Torre Nashira · Nivel 10</span>
+      <span class="lo-heading">Ownership</span>
+      <p class="lo-quote" lang="en">The door handle is the handshake of the building.</p>
+    </div>
+    <div class="lo-bar-track">
       <div id="loading-bar"></div>
     </div>
-    <span class="loading-label">Cargando torre</span>
   </div>
 
   <!-- ── CANVAS ──────────────────────────────────────────────────────────── -->
@@ -898,6 +996,9 @@
   <button id="back-btn" aria-label="Volver a vista orbital">
     <span class="back-arrow">&#8592;</span> Torre
   </button>
+
+  <!-- ── INFO HINT ────────────────────────────────────────────────────────── -->
+  <span id="info-hint">Ver unidad</span>
 
   <!-- ── INFO BUTTON ───────────────────────────────────────────────────────── -->
   <button id="info-btn" aria-label="Ver información de la unidad">
@@ -1006,6 +1107,8 @@
     let hoveredUnit     = null;
     let isTransitioning = false;
     let panelOpen       = false;
+    let dimmerStart     = null;
+    const DIMMER_MS     = 4000;
     let glbModel        = null;   // referencia al modelo completo para hide-all
     let panelState      = 'detail'; // 'detail' | 'form' | 'success'
     let currentUnitData = null;
@@ -1028,11 +1131,13 @@
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setSize(W(), H());
-    renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    renderer.outputColorSpace    = THREE.LinearSRGBColorSpace;
+    renderer.toneMapping         = THREE.LinearToneMapping;
+    renderer.toneMappingExposure = 0.05; // dimmer arranca casi negro
 
     // ── SCENE ────────────────────────────────────────────────────────────────
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color().setRGB(0.102, 0.102, 0.133, THREE.LinearSRGBColorSpace);
+    scene.background = new THREE.Color().setRGB(0.051, 0.051, 0.067, THREE.LinearSRGBColorSpace); // ≈ oklch(9% 0.008 250)
 
     // ── CAMERA ───────────────────────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(15, W() / H(), 0.1, 2000);
@@ -1070,7 +1175,7 @@
     ssaoPass.minDistance  = 0.002;
     ssaoPass.maxDistance  = 0.18;
     ssaoPass.output = SSAOPass.OUTPUT.Default;
-    ssaoPass.enabled = false; // DIAGNÓSTICO: desactivado temporalmente
+    ssaoPass.enabled = true; // suavizado: kernel corto, rango apretado (calibrado al cargar el modelo)
     composer.addPass(ssaoPass);
     composer.addPass(new OutputPass());
 
@@ -1172,7 +1277,7 @@
           mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
         });
         (fg.units || []).forEach(u =>
-          u.items.forEach(m => { m.visible = true; })
+          u.items.forEach(m => { m.visible = true; m.material = MAT_BASE; })
         );
       });
     }
@@ -1211,6 +1316,18 @@
       selectedUnit  = null;
       hoveredUnit   = null;
       unitLabelEl.classList.remove('visible');
+      infoBtn.classList.remove('shown', 'visible');
+
+      // Si venimos de modo unit, regresar el FOV de 8° a 15° en paralelo al tween
+      if (Math.abs(camera.fov - 15) > 0.01) {
+        const _fs = camera.fov, _fd = reducedMotion ? 1 : 1100, _ft0 = performance.now();
+        (function fovTick(now) {
+          const t = Math.min((now - _ft0) / _fd, 1);
+          camera.fov = _fs + (15 - _fs) * easeInOutCubic(t);
+          camera.updateProjectionMatrix();
+          if (t < 1) requestAnimationFrame(fovTick);
+        })(performance.now());
+      }
 
       const fg = floorGroups[fi];
       applyFloorVisibility(fi);
@@ -1319,6 +1436,37 @@
     }
 
     // ── FLOOR LIST UI ────────────────────────────────────────────────────────
+    // ── CASCADA DE ENTRADA ────────────────────────────────────────────────
+    // De abajo hacia arriba: cada label aparece y su piso pulsa en ámbar.
+    function runFloorCascade() {
+      const items = [...document.querySelectorAll('#floor-list .floor-item')];
+      if (reducedMotion) { items.forEach(it => it.classList.add('revealed')); return; }
+      items.sort((a, b) => a.dataset.fi - b.dataset.fi); // fi ascendente = N01 primero
+      const setFloorMat = (fg, mat) => {
+        fg.items.forEach(m => { m.material = mat; });
+        (fg.units || []).forEach(u => u.items.forEach(m => { m.material = mat; }));
+      };
+      // Cadena secuencial: cada paso apaga el piso anterior antes de encender
+      // el siguiente — garantiza un solo piso ámbar a la vez.
+      let k = 0, prev = null;
+      (function step() {
+        if (prev) {
+          prev.it.classList.remove('cascade-pulse');
+          if (prev.fg && mode === 'orbital' && hoveredFloorIdx !== prev.fi) setFloorMat(prev.fg, MAT_BASE);
+          prev = null;
+        }
+        if (k >= items.length) return;
+        const it = items[k++];
+        const fi = parseInt(it.dataset.fi);
+        const fg = floorGroups[fi];
+        it.classList.add('revealed', 'cascade-pulse');
+        const lit = fg && mode === 'orbital';
+        if (lit) setFloorMat(fg, MAT_UNIT_HOVER);
+        prev = { it, fi, fg: lit ? fg : null };
+        setTimeout(step, 200);
+      })();
+    }
+
     function buildFloorList() {
       const el = document.getElementById('floor-list');
       el.innerHTML = '';
@@ -1494,7 +1642,10 @@
         else {
           isTransitioning = false; mode = 'unit'; controls.enabled = true;
           infoBtn.classList.add('visible');
-          requestAnimationFrame(() => infoBtn.classList.add('shown'));
+          requestAnimationFrame(() => {
+            infoBtn.classList.add('shown');
+            setTimeout(showInfoHint, 400);
+          });
         }
       })(performance.now());
     }
@@ -1504,8 +1655,25 @@
     const canvasDim  = document.getElementById('canvas-dim');
     const panelClose = document.getElementById('panel-close');
     const infoBtn    = document.getElementById('info-btn');
+    const infoHint   = document.getElementById('info-hint');
+    let   infoHintTimer = null;
 
-    infoBtn.addEventListener('click', () => {
+    function showInfoHint() {
+      if (reducedMotion || sessionStorage.getItem('infoHintSeen')) return;
+      infoHint.classList.add('visible');
+      requestAnimationFrame(() => infoHint.classList.add('shown'));
+      infoHintTimer = setTimeout(hideInfoHint, 3500);
+    }
+
+    function hideInfoHint() {
+      clearTimeout(infoHintTimer);
+      sessionStorage.setItem('infoHintSeen', '1');
+      infoHint.classList.remove('shown');
+      setTimeout(() => infoHint.classList.remove('visible'), 450);
+    }
+
+    infoBtn.addEventListener('mouseenter', () => { if (infoHint.classList.contains('shown')) hideInfoHint(); });
+    infoBtn.addEventListener('click', () => { hideInfoHint();
       if (selectedUnit) openPanel(selectedUnit);
     });
 
@@ -1751,6 +1919,15 @@
     (function render() {
       requestAnimationFrame(render);
       controls.update();
+
+      // Dimmer — anima toneMappingExposure de 0.05 → 1.0 con ease-in-quad
+      if (dimmerStart !== null) {
+        const dt = Math.min((performance.now() - dimmerStart) / DIMMER_MS, 1);
+        const e  = dt * dt; // ease-in-quad: arranca lento, sube gradualmente
+        renderer.toneMappingExposure = 0.05 + 0.95 * e;
+        if (dt >= 1) { renderer.toneMappingExposure = 1.0; dimmerStart = null; }
+      }
+
       composer.render();
 
       // Proyectar íconos CAT a pantalla
@@ -1782,6 +1959,7 @@
     // ── LOAD ─────────────────────────────────────────────────────────────────
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingBar     = document.getElementById('loading-bar');
+    const loStartTime    = performance.now();
 
     async function init() {
       // 1. Load disponibilidad (non-blocking — continues even if missing)
@@ -1795,7 +1973,7 @@
       // 3. Load GLB
       const gltf = await new Promise((resolve, reject) => {
         new GLTFLoader().load(
-          'content/models/Nashira_Modelo_Web.glb?v=8',
+          'content/models/Nashira_Modelo_Web.glb?v=10',
           resolve,
           xhr => {
             if (xhr.lengthComputable)
@@ -1893,10 +2071,11 @@
       controls.maxDistance = modelMaxDim * 5;
       controls.update();
 
-      // 8. Calibrate SSAO to model scale
-      ssaoPass.kernelRadius = Math.max(4, modelMaxDim * 0.015);
-      ssaoPass.minDistance  = modelMaxDim * 0.00004;
-      ssaoPass.maxDistance  = modelMaxDim * 0.006;
+      // 8. Calibrate SSAO to model scale — kernel corto y rango apretado:
+      // oclusión solo en esquinas y contactos, sin halos ni copias fantasma
+      ssaoPass.kernelRadius = Math.max(1.5, modelMaxDim * 0.002);
+      ssaoPass.minDistance  = modelMaxDim * 0.0002;
+      ssaoPass.maxDistance  = modelMaxDim * 0.002;
 
       // 9. Ghost volumes
       buildGhostVolumes();
@@ -1920,19 +2099,31 @@
       buildFloorList();
       loadingBar.style.width = '100%';
 
+      const minShow = reducedMotion ? 600 : 4200;
+      const elapsed = performance.now() - loStartTime;
+      const delay   = Math.max(300, minShow - elapsed);
       setTimeout(() => {
-        loadingOverlay.classList.add('hidden');
-        container.classList.add('visible');
+        container.classList.add('visible');         // canvas empieza a emerger
+        if (reducedMotion) {
+          renderer.toneMappingExposure = 1.0;
+        } else {
+          dimmerStart = performance.now();
+        }
+        setTimeout(() => {
+          loadingOverlay.classList.add('hidden');   // texto escala y se disuelve 200ms después
+        }, reducedMotion ? 0 : 200);
+        // Cascada de niveles: arranca cuando el dimmer terminó y la torre está iluminada
+        setTimeout(runFloorCascade, reducedMotion ? 0 : DIMMER_MS + 100);
         if (!reducedMotion) {
           controls.autoRotate      = true;
           controls.autoRotateSpeed = 0.4;
           setTimeout(() => { controls.autoRotate = false; }, 4500);
         }
-      }, 300);
+      }, delay);
     }
 
     init().catch(err => {
-      const lbl = document.querySelector('#loading-overlay .loading-label');
+      const lbl = document.querySelector('#loading-overlay .lo-quote');
       if (lbl) lbl.textContent = 'Error al cargar: ' + err.message;
       console.error(err);
     });
@@ -1972,6 +2163,8 @@
       });
     })();
   </script>
+  <script src="transition.js"></script>
+  <script src="rail.js"></script>
 
 </body>
 </html>
