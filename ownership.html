@@ -15,6 +15,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -330,6 +332,67 @@
       60%  { transform: scale(2.2); opacity: 0;   }
       61%  { transform: scale(1);   opacity: 0.7; }
       100% { transform: scale(2.2); opacity: 0;   }
+    }
+
+    /* ── PANORAMA OVERLAY ────────────────────────────────────────────────── */
+    #pano-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: oklch(6% 0.006 250);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-out;
+    }
+    #pano-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #pano-viewer {
+      width: 100%;
+      height: 100%;
+    }
+    #pano-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 10;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid oklch(100% 0 0 / 0.2);
+      background: oklch(9% 0.008 250 / 0.7);
+      backdrop-filter: blur(8px);
+      color: oklch(93% 0.005 250);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s ease-out;
+    }
+    #pano-close:hover {
+      background: oklch(15% 0.008 250 / 0.9);
+      border-color: oklch(100% 0 0 / 0.4);
+      transform: scale(1.08);
+    }
+    #pano-close svg { width: 18px; height: 18px; }
+    #pano-label {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-family: var(--font-body);
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: oklch(93% 0.005 250 / 0.5);
+      pointer-events: none;
+    }
+    @media (max-width: 767px) {
+      #pano-close { top: 16px; right: 16px; }
+      #pano-label { bottom: calc(20px + env(safe-area-inset-bottom)); }
     }
 
     /* ── INFO HINT ──────────────────────────────────────────────────────────── */
@@ -2183,6 +2246,7 @@
         el.className  = 'cat-icon';
         el.title      = obj.name;
         document.body.appendChild(el);
+        el.addEventListener('click', () => openPanorama(obj.name));
         catNodes.push({ name: obj.name, unitId, worldPos, el });
       });
 
@@ -2212,6 +2276,44 @@
         }
       }, delay);
     }
+
+    // ── PANORAMA ─────────────────────────────────────────────────────────────
+    const panoOverlay = document.getElementById('pano-overlay');
+    const panoClose   = document.getElementById('pano-close');
+    const panoLabel   = document.getElementById('pano-label');
+    let   panoViewer  = null;
+
+    function openPanorama(nodeName) {
+      const raw  = nodeName.replace(/^Obj_/, '').replace(/_\d+$/, '');
+      const tipo = raw.split('-').pop().toLowerCase();    // 'CAT-Unit-10-02B' → '02b'
+      const url  = `content/panoramas/pano_tipo_${tipo}.jpg`;
+
+      panoLabel.textContent = `Tipo ${tipo.toUpperCase()} · Vista 360°`;
+      panoOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      if (panoViewer) { panoViewer.destroy(); panoViewer = null; }
+      panoViewer = pannellum.viewer('pano-viewer', {
+        type:        'equirectangular',
+        panorama:    url,
+        autoLoad:    true,
+        showControls: false,
+        compass:     false,
+        mouseZoom:   true,
+        hfov:        100,
+      });
+    }
+
+    function closePanorama() {
+      panoOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+      if (panoViewer) {
+        setTimeout(() => { panoViewer.destroy(); panoViewer = null; }, 400);
+      }
+    }
+
+    panoClose.addEventListener('click', closePanorama);
+    panoOverlay.addEventListener('keydown', e => { if (e.key === 'Escape') closePanorama(); });
 
     init().catch(err => {
       const lbl = document.querySelector('#loading-overlay .lo-quote');
@@ -2254,6 +2356,18 @@
       });
     })();
   </script>
+  <!-- ── PANORAMA OVERLAY ─────────────────────────────────────────────────── -->
+  <div id="pano-overlay" role="dialog" aria-label="Vista panorámica de la unidad" aria-modal="true">
+    <div id="pano-viewer"></div>
+    <button id="pano-close" aria-label="Cerrar panorama">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <span id="pano-label">Vista 360°</span>
+  </div>
+
   <script src="transition.js"></script>
   <script src="rail.js"></script>
 
