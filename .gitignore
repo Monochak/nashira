@@ -1,1 +1,6 @@
-# No exclusions — all content included for GitHub Pages deployment
+# Ruido local — el contenido del sitio sí se versiona (GitHub Pages)
+desktop.ini
+**/desktop.ini
+.claude/
+*.glb.log
+serve.bat

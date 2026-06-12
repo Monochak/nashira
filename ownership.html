@@ -7,6 +7,7 @@
   <meta name="description" content="FORMA. Explora la Torre Nashira nivel por nivel y descubre las unidades disponibles en un visor 3D interactivo.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e55c1e'/%3E%3C/svg%3E">
   <script src="theme.js"></script>
+  <script src="backend.js"></script>
   <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
   <meta property="og:title" content="FORMA · Ownership">
   <meta property="og:description" content="Explora la Torre Nashira nivel por nivel y descubre las unidades disponibles.">
@@ -1232,6 +1233,7 @@
     let modelCenter     = new THREE.Vector3();
     let modelMaxDim     = 1;
     let azoteaItems     = [];
+    let plantaBajaItems = [];  // N01: locales comerciales — visible, fuera de navegación y venta
     const ghostMeshes   = [];
 
     // ── RENDERER ─────────────────────────────────────────────────────────────
@@ -1355,20 +1357,38 @@
     const mouse = new THREE.Vector2(-999, -999);
 
     // ── AVAILABILITY ─────────────────────────────────────────────────────────
+    // Fuente: Supabase (ver backend.js / BACKEND.md). Clave: "{nivel}-{tipo}" en
+    // minúsculas, derivada del nombre del nodo GLB (Unit-{nivel}-{tipo}).
     async function loadDisponibilidad() {
       try {
-        const res  = await fetch('content/data/disponibilidad.json');
-        const data = await res.json();
-        data.unidades.forEach(u => {
-          disponibilidad[u.id] = { estado: u.estado, tipo: u.tipo, m2: u.m2 };
+        const unidades = await window.MonolitoBackend.fetchDisponibilidad();
+        unidades.forEach(u => {
+          disponibilidad[`${u.nivel}-${u.tipo.toLowerCase()}`] =
+            { estado: u.estado, tipo: u.tipo.toUpperCase(), m2: u.m2 };
         });
       } catch {
-        // JSON no encontrado — las unidades se mostrarán igual, sin datos de disponibilidad
+        // Sin conexión al backend — fallback al snapshot local si existe
+        try {
+          const res  = await fetch('content/data/disponibilidad.json');
+          const data = await res.json();
+          data.unidades.forEach(u => {
+            disponibilidad[`${u.piso}-${String(u.tipo).toLowerCase()}`] =
+              { estado: u.estado, tipo: u.tipo, m2: u.m2 };
+          });
+        } catch { /* las unidades se muestran igual, sin datos de disponibilidad */ }
       }
     }
 
     function unitDispo(unit) {
-      return disponibilidad[unit.id] ?? null;
+      // unit.id = nombre del nodo GLB: Unit-{nivel}-{tipo}
+      const parts = unit.id.split('-');
+      if (parts.length < 3) return null;
+      return disponibilidad[`${parseInt(parts[1], 10)}-${parts[2].toLowerCase()}`] ?? null;
+    }
+
+    const ESTADO_LABELS = { disponible: 'Disponible', apartada: 'Apartada', vendida: 'Vendida' };
+    function estadoLabel(d) {
+      return ESTADO_LABELS[d?.estado] ?? 'Disponible';
     }
 
     function hasAvailableUnits(fg) {
@@ -1428,6 +1448,13 @@
       // no capturada en floorGroups (muros, columnas, etc.)
       if (glbModel) glbModel.traverse(obj => { if (obj.isMesh) obj.visible = false; });
 
+      // Planta baja siempre visible: es la base del edificio
+      plantaBajaItems.forEach(mesh => {
+        mesh.visible  = true;
+        mesh.material = MAT_BASE;
+        mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
+      });
+
       // Mostrar solo los pisos ≤ activeIdx
       floorGroups.forEach((fg, i) => {
         if (i > activeIdx) return;
@@ -1448,6 +1475,7 @@
 
       // Asignar materiales correctos a los floors conocidos
       azoteaItems.forEach(mesh => { mesh.material = MAT_BASE; });
+      plantaBajaItems.forEach(mesh => { mesh.material = MAT_BASE; });
       floorGroups.forEach(fg => {
         fg.items.forEach(mesh => {
           mesh.material = MAT_BASE;
@@ -1855,7 +1883,7 @@
         </div>
         <div class="panel-stat">
           <span class="stat-label">Estado</span>
-          <span class="stat-value accent">Disponible</span>
+          <span class="stat-value${d?.estado === 'disponible' || !d ? ' accent' : ''}">${estadoLabel(d)}</span>
         </div>
       `;
 
@@ -1914,7 +1942,7 @@
     });
 
     // Submit del formulario
-    document.getElementById('contact-form').addEventListener('submit', e => {
+    document.getElementById('contact-form').addEventListener('submit', async e => {
       e.preventDefault();
       const nombreEl = document.getElementById('f-nombre');
       const emailEl  = document.getElementById('f-email');
@@ -1939,22 +1967,26 @@
 
       if (!valid) return;
 
-      const subject = encodeURIComponent(
-        `Solicitud FORMA — ${currentUnitData.floorLabel}, ${currentUnitData.unitLabel}`
-      );
-      const body = encodeURIComponent(
-        `Nombre: ${nombre}\n` +
-        `Email: ${email}\n` +
-        `Teléfono: ${telefono || '—'}\n\n` +
-        `Unidad de interés:\n` +
-        `${currentUnitData.floorLabel} / ${currentUnitData.unitLabel}\n` +
-        `Tipología: ${currentUnitData.tipo}\n` +
-        `Superficie: ${currentUnitData.m2} m²`
-      );
-      window.location.href = `mailto:asesor@forma.com?subject=${subject}&body=${body}`;
-
-      setPanelState('success');
-      setTimeout(() => closePanel(), 3000);
+      // Envío al backend del estudio (ver backend.js / BACKEND.md)
+      const submitBtn = e.target.querySelector('.panel-cta');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando…';
+      try {
+        await window.MonolitoBackend.enviarLead({
+          nombre, email,
+          telefono: telefono || null,
+          mensaje:
+            `Unidad de interés: ${currentUnitData.floorLabel} / ${currentUnitData.unitLabel}` +
+            ` · Tipología: ${currentUnitData.tipo} · Superficie: ${currentUnitData.m2} m²`,
+        });
+        setPanelState('success');
+        setTimeout(() => closePanel(), 3000);
+      } catch {
+        submitBtn.textContent = 'Error — reintentar';
+      } finally {
+        submitBtn.disabled = false;
+        if (panelState === 'success') submitBtn.textContent = 'Enviar solicitud';
+      }
     });
 
     // ── MOUSE EVENTS ─────────────────────────────────────────────────────────
@@ -2013,7 +2045,7 @@
         if (hoveredUnit && mode !== 'unit') {
           const d = unitDispo(hoveredUnit);
           labelId.textContent     = `${floorGroups[selectedFloor].label} / ${hoveredUnit.label}`;
-          labelStatus.textContent = d?.estado === 'disponible' ? 'Disponible' : (d ? 'Vendida' : 'Disponible');
+          labelStatus.textContent = estadoLabel(d);
           labelStatus.className   = 'unit-label-status disponible';
           unitLabelEl.classList.add('visible');
         } else {
@@ -2128,7 +2160,7 @@
       // 3. Load GLB
       const gltf = await new Promise((resolve, reject) => {
         new GLTFLoader().load(
-          'content/models/Nashira_Modelo_Web.glb?v=10',
+          'content/models/Nashira_Modelo_Web.glb?v=11',
           resolve,
           xhr => {
             if (xhr.lengthComputable)
@@ -2171,6 +2203,7 @@
         });
         const label = labelMap.get(nodeName) || nodeName.replace('Floor-', 'N');
         if (label === 'Azotea') { azoteaItems = items; return null; }
+        if (label === 'N01')    { plantaBajaItems = items; return null; }
         return { label, nodeName, items, y_center: 0 };
       }).filter(Boolean);
 
