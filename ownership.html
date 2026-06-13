@@ -52,6 +52,7 @@
       position: fixed;
       inset: 0;
       opacity: 0;
+      background: var(--bg);
       filter: blur(14px); /* pull de foco (papel): el modelo enfoca al entrar */
       transition: opacity 1.6s ease-out, filter 2.2s ease-out;
     }
@@ -290,10 +291,21 @@
       flex-shrink: 0;
       transition: background 0.2s ease-out, transform 0.2s ease-out;
     }
-    .unit-item:hover .unit-name  { color: oklch(56% 0.16 40); }
-    .unit-item:hover .unit-dot   { background: oklch(58% 0.18 40); transform: scale(1.3); }
+    .unit-item.disponible .unit-name { color: oklch(52% 0.14 145); }
+    .unit-item.disponible .unit-dot  { background: oklch(54% 0.15 145); }
+    .unit-item.apartada .unit-name   { color: oklch(58% 0.12 80); }
+    .unit-item.apartada .unit-dot    { background: oklch(60% 0.13 80); }
+    .unit-item.disponible:hover .unit-name { color: oklch(44% 0.16 145); }
+    .unit-item.disponible:hover .unit-dot  { background: oklch(46% 0.17 145); transform: scale(1.3); }
+    .unit-item.apartada:hover .unit-name   { color: oklch(50% 0.14 80); }
+    .unit-item.apartada:hover .unit-dot    { background: oklch(52% 0.15 80); transform: scale(1.3); }
     .unit-item.active .unit-name { color: var(--accent); }
     .unit-item.active .unit-dot  { background: var(--accent); transform: scale(1.6); }
+    .unit-item.vendida            { cursor: default; }
+    .unit-item.vendida .unit-name { color: oklch(72% 0.005 85); }
+    .unit-item.vendida .unit-dot  { background: oklch(76% 0.005 85); }
+    .unit-item.vendida:hover .unit-name { color: oklch(72% 0.005 85); }
+    .unit-item.vendida:hover .unit-dot  { background: oklch(76% 0.005 85); transform: none; }
 
     /* ── CAT ICONS ───────────────────────────────────────────────────────── */
     .cat-icon {
@@ -863,14 +875,14 @@
 
     /* ── TEMA GRAFITO (Dieter en oscuro: grafito + naranja señal) ────────── */
     html[data-theme='grafito'] {
-      --bg:             oklch(9%  0.008 250);
+      --bg:             oklch(18% 0.008 250);
       --text:           oklch(93% 0.005 250);
       --text-secondary: oklch(88% 0.006 250);
-      --muted:          oklch(48% 0.01  250);
-      --dim:            oklch(28% 0.009 250);
-      --border:         oklch(17% 0.01  250);
-      --glass-bg:       oklch(13% 0.01  250 / 0.72);
-      --glass-border:   oklch(25% 0.012 250 / 0.55);
+      --muted:          oklch(52% 0.01  250);
+      --dim:            oklch(34% 0.009 250);
+      --border:         oklch(26% 0.01  250);
+      --glass-bg:       oklch(22% 0.01  250 / 0.80);
+      --glass-border:   oklch(34% 0.012 250 / 0.55);
       --label:          oklch(62% 0.01  250);
       --panel-border:   oklch(28% 0.012 250 / 0.45);
       /* --accent se conserva: naranja señal en ambos temas */
@@ -882,8 +894,14 @@
     html[data-theme='grafito'] .floor-item.hover-highlight .floor-dot { background: oklch(60% 0.01 250 / 0.55); }
     html[data-theme='grafito'] .unit-item .unit-name { color: oklch(32% 0.008 250); }
     html[data-theme='grafito'] .unit-item .unit-dot  { background: oklch(34% 0.01 250); }
-    html[data-theme='grafito'] .unit-item:hover .unit-name { color: oklch(64% 0.15 40); }
-    html[data-theme='grafito'] .unit-item:hover .unit-dot  { background: oklch(58% 0.18 40); }
+    html[data-theme='grafito'] .unit-item.disponible .unit-name { color: oklch(58% 0.14 145); }
+    html[data-theme='grafito'] .unit-item.disponible .unit-dot  { background: oklch(56% 0.15 145); }
+    html[data-theme='grafito'] .unit-item.apartada .unit-name   { color: oklch(64% 0.12 80); }
+    html[data-theme='grafito'] .unit-item.apartada .unit-dot    { background: oklch(62% 0.13 80); }
+    html[data-theme='grafito'] .unit-item.disponible:hover .unit-name { color: oklch(68% 0.16 145); }
+    html[data-theme='grafito'] .unit-item.disponible:hover .unit-dot  { background: oklch(66% 0.17 145); }
+    html[data-theme='grafito'] .unit-item.apartada:hover .unit-name   { color: oklch(72% 0.14 80); }
+    html[data-theme='grafito'] .unit-item.apartada:hover .unit-dot    { background: oklch(70% 0.15 80); }
     html[data-theme='grafito'] #info-btn {
       background: oklch(14% 0.008 250 / 0.72);
       border-color: oklch(100% 0.005 250 / 0.15);
@@ -1248,7 +1266,7 @@
     let renderer = null;
     for (let attempt = 0; attempt < 4 && !renderer; attempt++) {
       try {
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
       } catch (err) {
         if (attempt === 3) {
           const q = document.querySelector('#loading-overlay .lo-quote');
@@ -1283,13 +1301,11 @@
 
     // ── SCENE ────────────────────────────────────────────────────────────────
     const scene = new THREE.Scene();
-    // Fondo de escena = --bg exacto del CSS (se lee computado vía canvas 2D)
+    // Canvas transparente: el fondo lo maneja el CSS (--bg en el contenedor).
+    // Esto evita que toneMappingExposure oscurezca el background de la escena.
     function syncSceneBgToCSS() {
-      const c2d = document.createElement('canvas').getContext('2d');
-      c2d.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-      c2d.fillRect(0, 0, 1, 1);
-      const px = c2d.getImageData(0, 0, 1, 1).data;
-      scene.background = new THREE.Color().setRGB(px[0] / 255, px[1] / 255, px[2] / 255, THREE.SRGBColorSpace);
+      scene.background = null;
+      renderer.setClearColor(0x000000, 0);
     }
     syncSceneBgToCSS();
 
@@ -1345,7 +1361,8 @@
     const IS_GRAFITO_AT_LOAD = document.documentElement.dataset.theme === 'grafito';
     const MAT_BASE = new THREE.MeshLambertMaterial({ color: IS_GRAFITO_AT_LOAD ? 0xd8d5cf : 0xd2cec6, side: THREE.DoubleSide });
     const MAT_HOVER = new THREE.MeshLambertMaterial({ color: 0xfaf6ee, side: THREE.DoubleSide });
-    const MAT_UNIT_HOVER = new THREE.MeshLambertMaterial({ color: 0xe8a06a, side: THREE.DoubleSide }); // naranja señal medio
+    const MAT_UNIT_HOVER = new THREE.MeshLambertMaterial({ color: 0x7aba7a, side: THREE.DoubleSide }); // verde sage: disponible
+    const MAT_UNIT_APARTADA = new THREE.MeshLambertMaterial({ color: 0xd4bc7a, side: THREE.DoubleSide }); // tono medio: apartada
     const MAT_UNIT_SEL   = new THREE.MeshLambertMaterial({ color: 0xe55c1e, side: THREE.DoubleSide }); // naranja señal Braun
     const MAT_EDGE = new THREE.LineBasicMaterial({ color: 0x1a1820, transparent: true, opacity: IS_GRAFITO_AT_LOAD ? 0.22 : 0.3, depthWrite: false });
 
@@ -1391,6 +1408,12 @@
       return ESTADO_LABELS[d?.estado] ?? 'Disponible';
     }
 
+    function floorAvailability(fg) {
+      const units = fg.units || [];
+      const disp  = units.filter(u => unitDispo(u)?.estado === 'disponible').length;
+      return { disp, total: units.length };
+    }
+
     function hasAvailableUnits(fg) {
       return (fg.units || []).some(u => unitDispo(u)?.estado === 'disponible');
     }
@@ -1432,8 +1455,14 @@
     function highlightFloor3D(fi) {
       if (fi === null || !floorGroups[fi]) return;
       const fg = floorGroups[fi];
-      fg.items.forEach(mesh => { mesh.material = MAT_UNIT_HOVER; });
-      (fg.units || []).forEach(u => u.items.forEach(m => { m.material = MAT_UNIT_HOVER; }));
+      (fg.units || []).forEach(u => {
+        const estado = unitDispo(u)?.estado ?? 'disponible';
+        // Disponibles en naranja; apartadas en tono medio; vendidas en tono natural
+        const mat = estado === 'disponible' ? MAT_UNIT_HOVER
+                  : estado === 'apartada'   ? MAT_UNIT_APARTADA
+                  : MAT_BASE;
+        u.items.forEach(m => { m.material = mat; });
+      });
     }
     function clearFloor3DHover(fi) {
       if (fi === null || !floorGroups[fi]) return;
@@ -1589,11 +1618,8 @@
       unitLabelEl.classList.remove('visible');
       infoBtn.classList.remove('shown', 'visible', 'selected');
 
-      const fg = floorGroups[selectedFloor];
-      fg.units.forEach(u =>
-        u.items.forEach(m => { m.material = MAT_BASE; })
-      );
-
+      // Restaurar visibilidad completa del piso activo
+      applyFloorVisibility(selectedFloor);
 
       // Restaurar la posición exacta de la vista por nivel anterior
       const toPos    = floorViewPos ?? new THREE.Vector3(modelCenter.x + modelMaxDim * 0.35, fg.y_center + modelMaxDim * 1.75, modelCenter.z + modelMaxDim * 0.35);
@@ -1638,17 +1664,25 @@
       const items = [...document.querySelectorAll('#floor-list .floor-item')];
       if (reducedMotion) { items.forEach(it => it.classList.add('revealed')); return; }
       items.sort((a, b) => a.dataset.fi - b.dataset.fi); // fi ascendente = N01 primero
-      const setFloorMat = (fg, mat) => {
-        fg.items.forEach(m => { m.material = mat; });
-        (fg.units || []).forEach(u => u.items.forEach(m => { m.material = mat; }));
+      const applyFloorDispoMat = (fg) => {
+        (fg.units || []).forEach(u => {
+          const est = unitDispo(u)?.estado ?? 'disponible';
+          const mat = est === 'disponible' ? MAT_UNIT_HOVER
+                    : est === 'apartada'   ? MAT_UNIT_APARTADA
+                    : MAT_BASE;
+          u.items.forEach(m => { m.material = mat; });
+        });
+      };
+      const resetFloorMat = (fg) => {
+        (fg.units || []).forEach(u => u.items.forEach(m => { m.material = MAT_BASE; }));
       };
       // Cadena secuencial: cada paso apaga el piso anterior antes de encender
-      // el siguiente — garantiza un solo piso ámbar a la vez.
+      // el siguiente — un solo piso iluminado a la vez, en colores de disponibilidad.
       let k = 0, prev = null;
       (function step() {
         if (prev) {
           prev.it.classList.remove('cascade-pulse');
-          if (prev.fg && mode === 'orbital' && hoveredFloorIdx !== prev.fi) setFloorMat(prev.fg, MAT_BASE);
+          if (prev.fg && mode === 'orbital' && hoveredFloorIdx !== prev.fi) resetFloorMat(prev.fg);
           prev = null;
         }
         if (k >= items.length) return;
@@ -1657,7 +1691,7 @@
         const fg = floorGroups[fi];
         it.classList.add('revealed', 'cascade-pulse');
         const lit = fg && mode === 'orbital';
-        if (lit) setFloorMat(fg, MAT_UNIT_HOVER);
+        if (lit) applyFloorDispoMat(fg);
         prev = { it, fi, fg: lit ? fg : null };
         setTimeout(step, 200);
       })();
@@ -1711,7 +1745,8 @@
 
         (fg.units || []).forEach(u => {
           const uItem = document.createElement('div');
-          uItem.className = 'unit-item';
+          const _estadoItem = unitDispo(u)?.estado ?? 'disponible';
+          uItem.className = 'unit-item ' + _estadoItem;
           uItem.dataset.unitId = u.id;
           uItem.setAttribute('role', 'button');
           uItem.setAttribute('tabindex', '0');
@@ -1723,11 +1758,14 @@
 
           uItem.addEventListener('mouseenter', () => {
             if (isTransitioning) return;
-            // Limpiar hover previo
             if (hoveredUnit && hoveredUnit !== selectedUnit)
               hoveredUnit.items.forEach(m => { m.material = MAT_BASE; });
             hoveredUnit = u;
-            u.items.forEach(m => { m.material = MAT_UNIT_HOVER; });
+            const _e = unitDispo(u)?.estado ?? 'disponible';
+            if (_e !== 'vendida') {
+              const _m = _e === 'apartada' ? MAT_UNIT_APARTADA : MAT_UNIT_HOVER;
+              u.items.forEach(m => { m.material = _m; });
+            }
           });
           uItem.addEventListener('mouseleave', () => {
             if (hoveredUnit === u && u !== selectedUnit)
@@ -1736,10 +1774,15 @@
           });
           uItem.addEventListener('click', () => {
             if (isTransitioning) return;
+            if ((unitDispo(u)?.estado ?? 'disponible') === 'vendida') return;
             selectUnit(u);
           });
           uItem.addEventListener('keydown', e => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectUnit(u); }
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              if ((unitDispo(u)?.estado ?? 'disponible') === 'vendida') return;
+              selectUnit(u);
+            }
           });
 
           unitList.appendChild(uItem);
@@ -1797,12 +1840,9 @@
       if (isTransitioning || selectedFloor === null || !unit) return;
       selectedUnit = unit;
 
-      const fg = floorGroups[selectedFloor];
-      fg.units.forEach(u =>
-        u.items.forEach(m => {
-          m.material = (u === unit) ? MAT_UNIT_SEL : MAT_BASE;
-        })
-      );
+      // Ocultar todo el modelo — mostrar únicamente la unidad seleccionada
+      if (glbModel) glbModel.traverse(obj => { if (obj.isMesh) obj.visible = false; });
+      unit.items.forEach(m => { m.visible = true; m.material = MAT_BASE; });
 
       const box = new THREE.Box3();
       unit.items.forEach(m => box.expandByObject(m));
@@ -2037,8 +2077,13 @@
           if (hoveredUnit && hoveredUnit !== selectedUnit)
             hoveredUnit.items.forEach(m => { m.material = MAT_BASE; });
           hoveredUnit = newUnit;
-          if (newUnit && newUnit !== selectedUnit)
-            newUnit.items.forEach(m => { m.material = MAT_UNIT_HOVER; });
+          if (newUnit && newUnit !== selectedUnit) {
+            const _e = unitDispo(newUnit)?.estado ?? 'disponible';
+            const _m = _e === 'disponible' ? MAT_UNIT_HOVER
+                     : _e === 'apartada'   ? MAT_UNIT_APARTADA
+                     : MAT_BASE;
+            newUnit.items.forEach(m => { m.material = _m; });
+          }
           canvas.style.cursor = newUnit ? 'pointer' : 'grab';
         }
 
@@ -2046,7 +2091,7 @@
           const d = unitDispo(hoveredUnit);
           labelId.textContent     = `${floorGroups[selectedFloor].label} / ${hoveredUnit.label}`;
           labelStatus.textContent = estadoLabel(d);
-          labelStatus.className   = 'unit-label-status disponible';
+          labelStatus.className   = 'unit-label-status' + ((d?.estado ?? 'disponible') === 'disponible' ? ' disponible' : '');
           unitLabelEl.classList.add('visible');
         } else {
           unitLabelEl.classList.remove('visible');
@@ -2085,6 +2130,7 @@
       if (mode === 'orbital' && hoveredFloorIdx !== null) {
         selectFloor(hoveredFloorIdx);
       } else if ((mode === 'floor' || mode === 'unit') && hoveredUnit !== null && hoveredUnit !== selectedUnit) {
+        if ((unitDispo(hoveredUnit)?.estado ?? 'disponible') === 'vendida') return;
         selectUnit(hoveredUnit);
       } else if (mode === 'floor' && hoveredUnit === null && hoveredFloorIdx === null) {
         returnToOrbital();
@@ -2174,6 +2220,7 @@
       glbModel = model;
       scene.add(model);
       model.updateMatrixWorld(true);
+
 
       // 4. Find floor group nodes (Floor-01 … Floor-10, Floor-Azotea)
       const floorNodeMap = new Map();
