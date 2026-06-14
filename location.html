@@ -119,34 +119,75 @@
     /* Dropdown — oculto en desktop, visible en móvil */
     #nav-mobile-dropdown { display: none; }
 
-    /* ── PLACEHOLDER ── */
-    .coming-soon {
+    /* ── PLACEHOLDER — mismo tratamiento de entrada que Ownership ── */
+    .lo-content {
       position: fixed;
-      inset: 0;
+      left: 32px;
+      bottom: 11vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
     }
 
-    .coming-soon-label {
-      font-size: 0.625rem;
-      font-weight: 700;
-      letter-spacing: 0.25em;
-      color: var(--muted);
+    .lo-label {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      color: oklch(44% 0.008 85);
       text-transform: uppercase;
+      margin-bottom: 16px;
     }
+    html[data-theme='grafito'] .lo-label { color: oklch(62% 0.01 250); }
 
-    .coming-soon-title {
+    .lo-heading {
       font-family: var(--font-display);
-      font-size: clamp(2.5rem, 6vw, 6rem);
+      font-size: clamp(4rem, 8vw, 8rem);
       font-weight: 700;
-      letter-spacing: 0.3em;
-      color: oklch(24% 0.006 85 / 0.10);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--text);
       text-transform: uppercase;
+      margin-bottom: 20px;
+      text-shadow: 0 3px 6px oklch(24% 0.006 85 / 0.18), 0 12px 32px oklch(24% 0.006 85 / 0.14);
     }
-    html[data-theme='grafito'] .coming-soon-title { color: oklch(93% 0.005 250 / 0.08); }
+    html[data-theme='grafito'] .lo-heading {
+      text-shadow: 0 3px 6px oklch(0% 0.008 250 / 0.5), 0 12px 32px oklch(0% 0.008 250 / 0.4);
+    }
+
+    .lo-quote {
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.65;
+      color: oklch(46% 0.008 85);
+      letter-spacing: 0.01em;
+      max-width: 440px;
+    }
+    html[data-theme='grafito'] .lo-quote { color: oklch(52% 0.008 250); }
+
+    .lo-label, .lo-heading, .lo-quote { opacity: 1; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .lo-label {
+        opacity: 0;
+        transform: translateY(8px);
+        animation: lo-rise   0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+      }
+      .lo-heading {
+        opacity: 0;
+        filter: blur(20px);
+        animation: lo-emerge 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.85s forwards;
+      }
+      .lo-quote {
+        opacity: 0;
+        animation: lo-fade   0.8s ease-out 1.55s forwards;
+      }
+    }
+    @keyframes lo-rise   { to { opacity: 1; transform: translateY(0); } }
+    @keyframes lo-emerge { to { opacity: 1; filter: blur(0px); } }
+    @keyframes lo-fade   { to { opacity: 1; } }
+
+    @media (max-width: 767px) {
+      .lo-content { left: 14px; bottom: calc(72px + env(safe-area-inset-bottom) + 4vh); }
+    }
 
     /* ── MOBILE ≤ 767px ── */
     @media (max-width: 767px) {
@@ -280,9 +321,10 @@
     </div>
   </div>
 
-  <div class="coming-soon">
-    <span class="coming-soon-label">Próximamente</span>
-    <h1 class="coming-soon-title">Location</h1>
+  <div class="lo-content">
+    <span class="lo-label">Próximamente</span>
+    <h1 class="lo-heading">Location</h1>
+    <p class="lo-quote" lang="en">A building belongs to its place.</p>
   </div>
 
   <script>
