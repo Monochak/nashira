@@ -1381,7 +1381,7 @@
         const unidades = await window.MonolitoBackend.fetchDisponibilidad();
         unidades.forEach(u => {
           disponibilidad[`${u.nivel}-${u.tipo.toLowerCase()}`] =
-            { estado: u.estado, tipo: u.tipo.toUpperCase(), m2: u.m2 };
+            { estado: u.estado, tipo: u.tipo.toUpperCase(), m2: u.m2, precio: u.precio ?? null };
         });
       } catch {
         // Sin conexión al backend — fallback al snapshot local si existe
@@ -1910,6 +1910,10 @@
 
       currentUnitData = { floorLabel, unitLabel, tipo: d?.tipo ?? '—', m2: d?.m2 ?? '—' };
 
+      const precioStr = d?.precio
+        ? '$' + Number(d.precio).toLocaleString('es-MX')
+        : null;
+
       document.getElementById('panel-floor-label').textContent = floorLabel;
       document.getElementById('panel-unit-name').textContent   = unitLabel;
       document.getElementById('panel-stats').innerHTML = `
@@ -1921,6 +1925,11 @@
           <span class="stat-label">Superficie</span>
           <span class="stat-value">${d?.m2 ? d.m2 + ' m²' : '—'}</span>
         </div>
+        ${precioStr && d?.estado !== 'vendida' ? `
+        <div class="panel-stat">
+          <span class="stat-label">Precio</span>
+          <span class="stat-value accent">${precioStr}</span>
+        </div>` : ''}
         <div class="panel-stat">
           <span class="stat-label">Estado</span>
           <span class="stat-value${d?.estado === 'disponible' || !d ? ' accent' : ''}">${estadoLabel(d)}</span>

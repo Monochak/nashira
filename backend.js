@@ -19,7 +19,7 @@ async function supabaseGet(path) {
 // Disponibilidad del proyecto: [{ nivel, tipo, m2, estado }]
 async function fetchDisponibilidad() {
   return supabaseGet(
-    `unidades?select=nivel,tipo,m2,estado,torres!inner(proyectos!inner(slug))` +
+    `unidades?select=nivel,tipo,m2,estado,precio,torres!inner(proyectos!inner(slug))` +
     `&torres.proyectos.slug=eq.${PROYECTO_SLUG}`
   );
 }
