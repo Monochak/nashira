@@ -141,8 +141,15 @@
   <span id="loading-pct">0%</span>
 
   <script>
+    // ── Acceso a sessionStorage blindado: algunos navegadores / modos de
+    // privacidad lo bloquean y lanzan SecurityError, lo que detendría el intro.
+    const safeStorage = {
+      get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+      set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+    };
+
     // ── Si Stillness ya se mostró en esta sesión, ir directo a Emotion
-    if (sessionStorage.getItem('stillness_shown')) {
+    if (safeStorage.get('stillness_shown')) {
       window.location.replace('emotion.html');
     }
 
@@ -238,7 +245,7 @@
         body.style.backgroundColor = 'oklch(9% 0.008 250)';
 
         setTimeout(() => {
-          sessionStorage.setItem('stillness_shown', '1');
+          safeStorage.set('stillness_shown', '1');
           window.location.href = 'emotion.html';
         }, 1500);
       }, 800);
