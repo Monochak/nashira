@@ -1552,14 +1552,19 @@
 
       const fromPos  = camera.position.clone();
       const fromTgt  = controls.target.clone();
-      const offset   = modelMaxDim * 0.5;
       const fc       = fg.center ?? new THREE.Vector3(modelCenter.x, fg.y_center, modelCenter.z);
       const toTarget = fc.clone();
-      const toPos    = new THREE.Vector3(
-        fc.x + offset,
-        fc.y + offset * 5.0,
-        fc.z + offset
-      );
+      // Encuadre del piso: distancia calculada según la huella real del piso y
+      // el aspecto del viewport (igual criterio que la torre), manteniendo el
+      // ángulo cenital 3/4. Antes era un offset fijo que recortaba en retrato.
+      camera.aspect = W() / H();
+      camera.updateProjectionMatrix();
+      const fdim    = fg.footprint || modelMaxDim * 0.5;
+      // Margen ceñido para el nivel: el piso debe llenar buena parte del cuadro.
+      const fMargin = camera.aspect >= 1 ? 0.95 : 1.25;
+      const dist = fitDistance(fMargin, fdim, 15);
+      const dir  = new THREE.Vector3(1, 5, 1).normalize();
+      const toPos = fc.clone().add(dir.multiplyScalar(dist));
 
       isTransitioning  = true;
       controls.enabled = false;
@@ -1575,11 +1580,37 @@
 
     // Distancia de cámara que encuadra el modelo completo en AMBOS ejes:
     // en pantallas angostas (móvil portrait) manda el FOV horizontal.
-    function fitDistance(margin = 1.5) {
-      const vFov = camera.fov * (Math.PI / 180);
-      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+    // Margen por defecto responsivo según el ASPECTO del viewport (no un ancho
+    // fijo): cuanto más vertical/angosto, más se aleja la cámara para que la
+    // torre completa quepa en cuadro. Apaisado: 1.5. Retrato acusado: hasta 3.0.
+    function fitDistance(margin, dim = modelMaxDim, fovDeg = camera.fov) {
+      const aspect = camera.aspect; // ancho / alto
+      if (margin === undefined) {
+        if (aspect >= 1)        margin = 1.5;            // apaisado (desktop)
+        else if (aspect <= 0.5) margin = 2.0;            // retrato angosto (móvil)
+        else margin = 1.5 + (1 - aspect) / 0.5 * 0.5;    // interpolado entre ambos
+      }
+      const vFov = fovDeg * (Math.PI / 180);
+      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
       const fov  = Math.min(vFov, hFov);
-      return (modelMaxDim / 2) / Math.tan(fov / 2) * margin;
+      return (dim / 2) / Math.tan(fov / 2) * margin;
+    }
+
+    // Encuadre orbital con el viewport/aspecto actuales. Reutilizado en init,
+    // resize y al terminar la carga (evita encuadre con aspecto obsoleto por
+    // carreras de tiempo durante la carga del modelo).
+    function frameOrbital() {
+      if (!modelCenter) return;
+      camera.aspect = W() / H();
+      camera.updateProjectionMatrix();
+      const dist = fitDistance();
+      controls.target.copy(modelCenter);
+      camera.position.set(
+        modelCenter.x + dist * 0.55,
+        modelCenter.y + dist * 0.38,
+        modelCenter.z + dist * 0.55
+      );
+      controls.update();
     }
 
     function returnToOrbital() {
@@ -1818,6 +1849,7 @@
         fg.center   = box.getCenter(new THREE.Vector3()); // centro real XYZ del piso
         fg.y_center = fg.center.y;
         const size   = box.getSize(new THREE.Vector3());
+        fg.footprint = Math.hypot(size.x, size.z);        // diagonal de la huella (vista 3/4 desde esquina)
         const center = box.getCenter(new THREE.Vector3());
         const geo    = new THREE.BoxGeometry(size.x, size.y, size.z);
         const mat    = ghostMat.clone();
@@ -1848,18 +1880,20 @@
       unit.items.forEach(m => box.expandByObject(m));
       const center = box.getCenter(new THREE.Vector3());
       const size   = box.getSize(new THREE.Vector3());
-      const dim    = Math.max(size.x, size.y, size.z, modelMaxDim * 0.08);
 
       // Guardar posición actual (vista por nivel) para poder restaurarla al salir
       floorViewPos = camera.position.clone();
       floorViewTgt = controls.target.clone();
 
-      const off = dim * 2.8;
-      const toPos = new THREE.Vector3(
-        center.x + off * 1.0,
-        center.y + off * 4.0,
-        center.z + off * 1.0
-      );
+      // Encuadre de la unidad: distancia calculada según su tamaño y el aspecto
+      // del viewport, al FOV final de 8°. Antes era un offset fijo que recortaba
+      // unidades anchas en retrato.
+      camera.aspect = W() / H();
+      const udim    = Math.max(Math.hypot(size.x, size.z), size.y, modelMaxDim * 0.08);
+      const uMargin = camera.aspect >= 1 ? 1.15 : 1.5;
+      const dist    = fitDistance(uMargin, udim, 8);
+      const dir     = new THREE.Vector3(1, 4, 1).normalize();
+      const toPos   = center.clone().add(dir.multiplyScalar(dist));
 
       // Tween inline — interpola posición, target Y fov simultáneamente
       isTransitioning = true; controls.enabled = false;
@@ -2191,11 +2225,21 @@
     })();
 
     // ── RESIZE ────────────────────────────────────────────────────────────────
+    let lastAspect = W() / H();
     window.addEventListener('resize', () => {
-      camera.aspect = W() / H();
+      const newAspect = W() / H();
+      // Cambio de aspecto significativo = rotación / redimensionado real. Los
+      // micro-cambios (barra de URL móvil que altera solo la altura) quedan por
+      // debajo del umbral y no mueven la cámara.
+      const aspectChanged = Math.abs(newAspect - lastAspect) > 0.05;
+      lastAspect = newAspect;
+      camera.aspect = newAspect;
       camera.updateProjectionMatrix();
       renderer.setSize(W(), H());
       composer.setSize(W(), H());
+      // Re-encuadrar la torre con el aspecto/margen actuales. Solo en vista
+      // orbital, sin transición en curso.
+      if (aspectChanged && mode === 'orbital' && !isTransitioning) frameOrbital();
     });
 
     // ── LOAD ─────────────────────────────────────────────────────────────────
@@ -2300,19 +2344,13 @@
       modelCenter = box.getCenter(new THREE.Vector3());
       const size  = box.getSize(new THREE.Vector3());
       modelMaxDim = Math.max(size.x, size.y, size.z);
-      const dist = fitDistance();
-      controls.target.copy(modelCenter);
-      camera.position.set(
-        modelCenter.x + dist * 0.55,
-        modelCenter.y + dist * 0.38,
-        modelCenter.z + dist * 0.55
-      );
       camera.near = modelMaxDim * 0.001;
-      camera.far  = modelMaxDim * 20;
-      camera.updateProjectionMatrix();
+      camera.far  = modelMaxDim * 40;
       controls.minDistance = modelMaxDim * 0.05;
-      controls.maxDistance = modelMaxDim * 5;
-      controls.update();
+      // Suficiente para el encuadre alejado de retrato (margen hasta 3.0) sin
+      // recortar la cámara; antes era *5 y clampeaba el fit en móvil.
+      controls.maxDistance = modelMaxDim * 30;
+      frameOrbital();   // encuadra con el viewport real (aspecto + margen)
 
       // 8. Calibrate SSAO to model scale — kernel corto y rango apretado:
       // oclusión solo en esquinas y contactos, sin halos ni copias fantasma
@@ -2347,6 +2385,7 @@
       const elapsed = performance.now() - loStartTime;
       const delay   = Math.max(300, minShow - elapsed);
       setTimeout(() => {
+        frameOrbital();   // re-encuadre con el viewport ya definitivo (corrige carreras de carga)
         container.classList.add('visible');         // canvas empieza a emerger
         if (reducedMotion) {
           renderer.toneMappingExposure = 1.0;
