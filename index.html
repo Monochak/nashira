@@ -20,10 +20,10 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --dim:    oklch(28% 0.009 250);
-      --muted:  oklch(48% 0.01  250);
+      --dim:    oklch(34% 0.009 250);
+      --muted:  oklch(52% 0.01  250);
       --accent: oklch(62% 0.21   40); /* naranja señal Braun */
-      --border: oklch(17% 0.01  250);
+      --border: oklch(26% 0.01  250);
       --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
       --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
     }
@@ -242,7 +242,7 @@
       // Pausa breve en 100%, luego oscurecer y navegar
       setTimeout(() => {
         body.style.transition      = 'background-color 1.5s ease';
-        body.style.backgroundColor = 'oklch(9% 0.008 250)';
+        body.style.backgroundColor = 'oklch(18% 0.008 250)';
 
         setTimeout(() => {
           safeStorage.set('stillness_shown', '1');
