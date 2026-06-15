@@ -300,15 +300,45 @@
     .loc-panel { opacity: 0; transform: translateY(10px); }
     .loc-panel.in { opacity: 1; transform: translateY(0); transition: opacity 0.9s ease-out 0.3s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.3s; }
 
+    /* botón info (CAT) y cierre — solo móvil */
+    .loc-info, .loc-close { display: none; }
+    .loc-info {
+      position: fixed; top: 90px; left: 14px; z-index: 45;
+      align-items: center; gap: 7px;
+      padding: 9px 14px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(1.3);
+      -webkit-backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      color: var(--text);
+      font-family: var(--font-body); font-size: 0.5625rem; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer;
+    }
+    .loc-info .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    .loc-close {
+      position: absolute; top: 13px; right: 13px;
+      width: 30px; height: 30px;
+      align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1.05rem; line-height: 1;
+    }
+    .loc-close:hover { color: var(--text); }
+
     /* ── MÓVIL ── */
     @media (max-width: 767px) {
       .loc-panel {
         top: auto; bottom: 0; left: 0;
         width: 100%; max-width: 100%;
-        max-height: 52vh;
+        max-height: 64vh;
         border-radius: 20px 20px 0 0;
         padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+        opacity: 1;                                       /* anula entrada desktop */
+        transform: translateY(110%);                      /* oculto por defecto */
+        transition: transform 0.42s cubic-bezier(0.22,1,0.36,1);
       }
+      .loc-panel.open { transform: translateY(0); }
+      .loc-info, .loc-close { display: flex; }
       .loc-heading { font-size: 1.9rem; }
 
       #nav-wrapper {
@@ -385,12 +415,17 @@
   </div>
 
   <aside class="loc-panel" id="loc-panel" aria-label="Ubicación y equipamiento">
+    <button class="loc-close" id="loc-close" aria-label="Cerrar">&#10005;</button>
     <span class="loc-label">Ubicación</span>
     <h1 class="loc-heading">Location</h1>
     <p class="loc-narrativa" id="loc-narrativa"></p>
     <div class="loc-cats-title">Equipamiento cercano</div>
     <div id="loc-cats"></div>
   </aside>
+
+  <button class="loc-info" id="loc-info" aria-label="Ver ubicación y equipamiento" aria-expanded="false">
+    <span class="dot"></span> Ubicación
+  </button>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -512,8 +547,9 @@
       });
 
       // ── Encuadre inicial: zoom fijo centrado en el proyecto (ajustable en el
-      // JSON, proyecto.zoom). Los puntos lejanos se alcanzan con pan/zoom.
-      map.setView([P.lat, P.lng], P.zoom || 16, { animate: false });
+      // JSON, proyecto.zoom). En móvil se aleja 2 pasos (pantalla angosta).
+      const _mobileZoom = window.matchMedia('(max-width: 767px)').matches;
+      map.setView([P.lat, P.lng], (P.zoom || 16) - (_mobileZoom ? 2 : 0), { animate: false });
 
       // ── Reaccionar al cambio de tema (papel/grafito)
       new MutationObserver(() => {
@@ -524,10 +560,25 @@
       }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 
       // ── Entrada
+      const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
       requestAnimationFrame(() => {
         document.getElementById('map').classList.add('ready');
-        document.getElementById('loc-panel').classList.add('in');
+        // En móvil el panel arranca oculto; se invoca con el botón info.
+        if (!isMobile()) document.getElementById('loc-panel').classList.add('in');
         setTimeout(() => map.invalidateSize(), reduced ? 0 : 500);
+      });
+
+      // ── Toggle del panel en móvil (botón info / cierre)
+      const locPanel = document.getElementById('loc-panel');
+      const locInfo  = document.getElementById('loc-info');
+      const locClose = document.getElementById('loc-close');
+      locInfo.addEventListener('click', () => {
+        const open = locPanel.classList.toggle('open');
+        locInfo.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      locClose.addEventListener('click', () => {
+        locPanel.classList.remove('open');
+        locInfo.setAttribute('aria-expanded', 'false');
       });
     })();
   </script>
