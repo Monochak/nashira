@@ -7,7 +7,6 @@
   <meta name="description" content="FORMA. Un desarrollo residencial que se experimenta antes de habitarse.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e55c1e'/%3E%3C/svg%3E">
   <script src="theme.js"></script>
-  <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
   <meta property="og:title" content="FORMA · Location">
   <meta property="og:description" content="Un desarrollo residencial que se experimenta antes de habitarse.">
   <meta property="og:type" content="website">
@@ -15,6 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -23,20 +24,29 @@
       --bg:           oklch(94% 0.010  85);
       --text:         oklch(24% 0.006  85);
       --muted:        oklch(52% 0.008  85);
+      --label:        oklch(44% 0.008  85);
       --accent:       oklch(62% 0.21   40);
       --border:       oklch(85% 0.008  85);
-      --glass-bg:     oklch(97% 0.006  85 / 0.78);
+      --glass-bg:     oklch(97% 0.006  85 / 0.82);
       --glass-border: oklch(78% 0.010  85 / 0.55);
+      --poi:          oklch(36% 0.01   85);
+      --poi-fill:     oklch(90% 0.008  85);
       --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
       --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
+      /* filtro de tiles: empuja el gris de CARTO hacia el hueso cálido del papel */
+      --tile-filter:  saturate(0.55) brightness(1.04) contrast(0.94) sepia(0.10);
     }
     html[data-theme='grafito'] {
-      --bg:           oklch(9%  0.008 250);
+      --bg:           oklch(18% 0.008 250);
       --text:         oklch(93% 0.005 250);
-      --muted:        oklch(48% 0.01  250);
-      --border:       oklch(17% 0.01  250);
-      --glass-bg:     oklch(13% 0.01  250 / 0.72);
-      --glass-border: oklch(25% 0.012 250 / 0.55);
+      --muted:        oklch(52% 0.01  250);
+      --label:        oklch(62% 0.01  250);
+      --border:       oklch(26% 0.01  250);
+      --glass-bg:     oklch(22% 0.01  250 / 0.80);
+      --glass-border: oklch(34% 0.012 250 / 0.55);
+      --poi:          oklch(82% 0.006 250);
+      --poi-fill:     oklch(26% 0.01  250);
+      --tile-filter:  saturate(0.7) brightness(0.96) contrast(1.0) hue-rotate(8deg);
     }
 
     html, body {
@@ -48,7 +58,138 @@
       overflow: hidden;
     }
 
-    /* ── NAV ── */
+    /* ── MAPA ── */
+    #map {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: var(--bg);
+      opacity: 0;
+      transition: opacity 1.4s ease-out;
+    }
+    #map.ready { opacity: 1; }
+    .leaflet-tile-pane { filter: var(--tile-filter); transition: filter 0.5s; }
+    .leaflet-container { background: var(--bg); font-family: var(--font-body); }
+    .leaflet-control-attribution {
+      background: var(--glass-bg) !important;
+      color: var(--muted) !important;
+      font-size: 0.5rem !important;
+      letter-spacing: 0.02em;
+      backdrop-filter: blur(6px);
+    }
+    .leaflet-control-attribution a { color: var(--muted) !important; }
+    .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .leaflet-control-zoom a {
+      background: var(--glass-bg) !important;
+      color: var(--muted) !important;
+      border: 1px solid var(--glass-border) !important;
+      width: 30px; height: 30px; line-height: 30px;
+      backdrop-filter: blur(8px);
+      transition: color 0.2s;
+    }
+    .leaflet-control-zoom a:hover { color: var(--text) !important; }
+
+    /* ── MARCADORES ── */
+    .mk { display: flex; align-items: center; justify-content: center; }
+
+    .mk-proyecto {
+      width: 22px; height: 22px;
+      position: relative;
+    }
+    .mk-proyecto .core {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px oklch(62% 0.21 40 / 0.22);
+    }
+    .mk-proyecto .pulse {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid var(--accent);
+      animation: pulse 2.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { transform: scale(0.5); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    .mk-poi {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: var(--poi-fill);
+      border: 2px solid var(--poi);
+      transition: transform 0.15s;
+    }
+    .mk-poi:hover { transform: scale(1.4); }
+
+    /* anillo de distancia caminable (radio configurable) */
+    .ring-radio {
+      stroke: var(--accent);
+      stroke-width: 1.25;
+      stroke-opacity: 0.5;
+      stroke-dasharray: 3 5;
+      fill: var(--accent);
+      fill-opacity: 0.035;
+    }
+    .ring-label {
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      opacity: 0.75;
+      white-space: nowrap;
+      pointer-events: none;
+      text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg), 0 0 6px var(--bg);
+    }
+
+    /* etiquetas de vías — solo las avenidas curadas */
+    .mk-via {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      pointer-events: none;
+      text-shadow:
+        0 0 3px var(--bg), 0 0 3px var(--bg),
+        0 0 6px var(--bg), 0 0 6px var(--bg);
+      opacity: 0.9;
+    }
+
+    /* tooltips */
+    .leaflet-tooltip.tt {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border-radius: 6px;
+      padding: 4px 9px;
+      box-shadow: 0 4px 16px oklch(24% 0.006 85 / 0.12);
+      backdrop-filter: blur(10px);
+    }
+    .leaflet-tooltip.tt::before { display: none; }
+    .leaflet-tooltip.tt .tt-dist {
+      color: var(--accent); font-weight: 700; margin-left: 6px;
+    }
+    .leaflet-tooltip.tt-proyecto {
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 6px 13px;
+    }
+
+    /* ── NAV (idéntico al canon) ── */
     #nav {
       position: fixed;
       top: 20px;
@@ -67,236 +208,158 @@
       white-space: nowrap;
       transition: background 0.4s;
     }
-
     .nav-brand {
-      font-size: 0.6875rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      color: oklch(93% 0.005 250 / 0.6);
-      text-decoration: none;
-      transition: color 0.2s;
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
+      color: var(--muted); text-decoration: none; transition: color 0.2s;
     }
-    .nav-brand:hover { color: oklch(93% 0.005 250 / 0.9); }
-
-    .nav-links {
-      display: flex;
-      gap: 28px;
-      list-style: none;
-    }
-
+    .nav-brand:hover { color: var(--text); }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
     .nav-links a {
-      font-size: 0.6875rem;
-      font-weight: 600;
-      color: oklch(93% 0.005 250);
-      opacity: 0.40;
-      text-decoration: none;
-      letter-spacing: 0.10em;
-      text-transform: uppercase;
-      transition: opacity 0.2s;
+      font-size: 0.6875rem; font-weight: 600; color: var(--text);
+      opacity: 0.45; text-decoration: none; letter-spacing: 0.10em;
+      text-transform: uppercase; transition: opacity 0.2s;
     }
-    .nav-links a:hover  { opacity: 0.80; }
-    .nav-links a.active { opacity: 1; }
-
+    .nav-links a:hover  { opacity: 0.85; }
+    .nav-links a.active { opacity: 1; color: var(--accent); }
     .nav-cta {
-      font-size: 0.6875rem;
-      font-weight: 700;
-      color: var(--bg);
-      background: var(--accent);
-      border: none;
-      padding: 7px 18px;
-      border-radius: 100px;
-      cursor: pointer;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      text-decoration: none;
-      transition: opacity 0.2s;
+      font-size: 0.6875rem; font-weight: 700; color: var(--bg);
+      background: var(--accent); border: none; padding: 7px 18px;
+      border-radius: 100px; cursor: pointer; letter-spacing: 0.06em;
+      text-transform: uppercase; text-decoration: none; transition: opacity 0.2s;
     }
     .nav-cta:hover { opacity: 0.85; }
-
-    /* Wrapper — transparente en desktop, contenedor fijo en móvil */
     #nav-wrapper { display: contents; }
-
-    /* Dropdown — oculto en desktop, visible en móvil */
     #nav-mobile-dropdown { display: none; }
 
-    /* ── PLACEHOLDER — mismo tratamiento de entrada que Ownership ── */
-    .lo-content {
+    /* ── PANEL ── */
+    .loc-panel {
       position: fixed;
-      left: 32px;
-      bottom: 11vh;
-      display: flex;
-      flex-direction: column;
+      top: 88px;
+      left: 28px;
+      z-index: 40;
+      width: 320px;
+      max-width: calc(100vw - 56px);
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+      padding: 24px 24px 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(1.3);
+      -webkit-backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: 0 10px 40px oklch(24% 0.006 85 / 0.10);
     }
+    html[data-theme='grafito'] .loc-panel { box-shadow: 0 10px 40px oklch(0% 0.008 250 / 0.4); }
 
-    .lo-label {
-      font-size: 0.5625rem;
-      font-weight: 600;
-      letter-spacing: 0.22em;
-      color: oklch(44% 0.008 85);
-      text-transform: uppercase;
-      margin-bottom: 16px;
+    .loc-label {
+      font-size: 0.5625rem; font-weight: 600; letter-spacing: 0.22em;
+      color: var(--label); text-transform: uppercase;
     }
-    html[data-theme='grafito'] .lo-label { color: oklch(62% 0.01 250); }
-
-    .lo-heading {
+    .loc-heading {
       font-family: var(--font-display);
-      font-size: clamp(4rem, 8vw, 8rem);
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      line-height: 1;
-      color: var(--text);
-      text-transform: uppercase;
+      font-size: 2.4rem; font-weight: 700; line-height: 1;
+      letter-spacing: 0.02em; text-transform: uppercase;
+      color: var(--text); margin: 8px 0 14px;
+    }
+    .loc-narrativa {
+      font-size: 0.8125rem; line-height: 1.6; color: var(--muted);
       margin-bottom: 20px;
-      text-shadow: 0 3px 6px oklch(24% 0.006 85 / 0.18), 0 12px 32px oklch(24% 0.006 85 / 0.14);
-    }
-    html[data-theme='grafito'] .lo-heading {
-      text-shadow: 0 3px 6px oklch(0% 0.008 250 / 0.5), 0 12px 32px oklch(0% 0.008 250 / 0.4);
     }
 
-    .lo-quote {
-      font-size: 0.875rem;
-      font-weight: 400;
-      line-height: 1.65;
-      color: oklch(46% 0.008 85);
-      letter-spacing: 0.01em;
-      max-width: 440px;
+    .loc-cats-title {
+      font-size: 0.5625rem; font-weight: 600; letter-spacing: 0.16em;
+      color: var(--label); text-transform: uppercase;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
     }
-    html[data-theme='grafito'] .lo-quote { color: oklch(52% 0.008 250); }
-
-    .lo-label, .lo-heading, .lo-quote { opacity: 1; }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .lo-label {
-        opacity: 0;
-        transform: translateY(8px);
-        animation: lo-rise   0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
-      }
-      .lo-heading {
-        opacity: 0;
-        filter: blur(20px);
-        animation: lo-emerge 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.85s forwards;
-      }
-      .lo-quote {
-        opacity: 0;
-        animation: lo-fade   0.8s ease-out 1.55s forwards;
-      }
+    .loc-cat {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 2px; cursor: pointer; user-select: none;
+      border-bottom: 1px solid var(--border);
+      transition: opacity 0.2s;
     }
-    @keyframes lo-rise   { to { opacity: 1; transform: translateY(0); } }
-    @keyframes lo-emerge { to { opacity: 1; filter: blur(0px); } }
-    @keyframes lo-fade   { to { opacity: 1; } }
+    .loc-cat:last-child { border-bottom: none; }
+    .loc-cat .cat-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--poi-fill); border: 2px solid var(--poi);
+      flex-shrink: 0; transition: transform 0.15s;
+    }
+    .loc-cat .cat-name {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
+      color: var(--text); flex: 1;
+    }
+    .loc-cat .cat-count {
+      font-size: 0.6875rem; font-weight: 600; color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .loc-cat:hover .cat-name { color: var(--accent); }
+    .loc-cat:hover .cat-dot  { transform: scale(1.3); }
+    .loc-cat.off { opacity: 0.4; }
+    .loc-cat.off .cat-name { text-decoration: line-through; }
 
+    /* entrada */
+    .loc-panel { opacity: 0; transform: translateY(10px); }
+    .loc-panel.in { opacity: 1; transform: translateY(0); transition: opacity 0.9s ease-out 0.3s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.3s; }
+
+    /* ── MÓVIL ── */
     @media (max-width: 767px) {
-      .lo-content { left: 14px; bottom: calc(72px + env(safe-area-inset-bottom) + 4vh); }
-    }
+      .loc-panel {
+        top: auto; bottom: 0; left: 0;
+        width: 100%; max-width: 100%;
+        max-height: 52vh;
+        border-radius: 20px 20px 0 0;
+        padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+      }
+      .loc-heading { font-size: 1.9rem; }
 
-    /* ── MOBILE ≤ 767px ── */
-    @media (max-width: 767px) {
       #nav-wrapper {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        min-width: 180px;
-        z-index: 55;
+        display: flex; flex-direction: column; position: fixed;
+        top: 20px; left: 50%; transform: translateX(-50%);
+        min-width: 180px; z-index: 55;
       }
-
       .nav-links { display: none; }
-
       #nav {
-        position: relative;
-        top: auto; left: auto;
-        transform: none;
-        z-index: 2;
-        width: 100%;
-        justify-content: center;
-        gap: 16px;
-        padding: 9px 16px;
-        min-height: 62px;
-        border-radius: 100px;
-        transition: background 0.4s;
+        position: relative; top: auto; left: auto; transform: none;
+        z-index: 2; width: 100%; justify-content: center; gap: 16px;
+        padding: 9px 16px; min-height: 62px; border-radius: 100px;
       }
-
       .nav-cta { display: none; }
-
       .nav-brand::after {
-        content: '▾';
-        margin-left: 5px;
-        font-size: 0.5rem;
-        opacity: 0.40;
-        display: inline-block;
-        transition: transform 0.2s ease;
-        vertical-align: middle;
+        content: '▾'; margin-left: 5px; font-size: 0.5rem; opacity: 0.40;
+        display: inline-block; transition: transform 0.2s ease; vertical-align: middle;
       }
-      .nav-brand[aria-expanded="true"]::after {
-        transform: rotate(180deg);
-        opacity: 0.70;
-      }
-
+      .nav-brand[aria-expanded="true"]::after { transform: rotate(180deg); opacity: 0.70; }
       #nav-mobile-dropdown {
-        display: block;
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        margin-top: -31px;
-        padding-top: 31px;
-        background: oklch(17% 0.01 250 / 0.78);
+        display: block; position: relative; z-index: 1; width: 100%;
+        margin-top: -31px; padding-top: 31px;
+        background: var(--glass-bg);
         backdrop-filter: blur(20px) saturate(1.4);
         -webkit-backdrop-filter: blur(20px) saturate(1.4);
-        border: 1px solid var(--glass-border);
-        border-top: none;
-        border-radius: 0 0 28px 28px;
-        overflow: hidden;
-        max-height: 0;
-        opacity: 0;
-        pointer-events: none;
+        border: 1px solid var(--glass-border); border-top: none;
+        border-radius: 0 0 28px 28px; overflow: hidden;
+        max-height: 0; opacity: 0; pointer-events: none;
         transition: max-height 0.30s ease-out, opacity 0.22s ease;
       }
-
-      #nav-mobile-dropdown.open {
-        max-height: 280px;
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .nav-mobile-links {
-        display: flex;
-        flex-direction: column;
-        padding: 10px 0 6px;
-      }
-
+      #nav-mobile-dropdown.open { max-height: 280px; opacity: 1; pointer-events: auto; }
+      .nav-mobile-links { display: flex; flex-direction: column; padding: 10px 0 6px; }
       .nav-mobile-links a {
-        display: block;
-        padding: 9px 0;
-        font-size: 0.6875rem;
-        font-weight: 500;
-        color: oklch(93% 0.005 250);
-        opacity: 0.45;
-        text-decoration: none;
-        letter-spacing: 0.10em;
-        text-transform: uppercase;
-        text-align: center;
+        display: block; padding: 9px 0; font-size: 0.6875rem; font-weight: 500;
+        color: var(--text); opacity: 0.55; text-decoration: none;
+        letter-spacing: 0.10em; text-transform: uppercase; text-align: center;
         transition: opacity 0.2s;
       }
-
-      .nav-mobile-links a:hover  { opacity: 0.85; }
-      .nav-mobile-links a.active { opacity: 1; }
-
+      .nav-mobile-links a:hover  { opacity: 0.9; }
+      .nav-mobile-links a.active { opacity: 1; color: var(--accent); }
       #nav-mobile-dropdown .nav-cta {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 6px 16px 14px;
-        padding: 10px 0;
-        min-height: 44px;
-        width: calc(100% - 32px);
-        font-size: 0.6875rem;
+        display: flex; align-items: center; justify-content: center;
+        margin: 6px 16px 14px; padding: 10px 0; min-height: 44px;
+        width: calc(100% - 32px); font-size: 0.6875rem;
       }
     }
   </style>
 </head>
 <body>
+
+  <div id="map"></div>
 
   <div id="nav-wrapper">
     <nav id="nav" aria-label="Navegación principal">
@@ -321,11 +384,153 @@
     </div>
   </div>
 
-  <div class="lo-content">
-    <span class="lo-label">Próximamente</span>
-    <h1 class="lo-heading">Location</h1>
-    <p class="lo-quote" lang="en">A building belongs to its place.</p>
-  </div>
+  <aside class="loc-panel" id="loc-panel" aria-label="Ubicación y equipamiento">
+    <span class="loc-label">Ubicación</span>
+    <h1 class="loc-heading">Location</h1>
+    <p class="loc-narrativa" id="loc-narrativa"></p>
+    <div class="loc-cats-title">Equipamiento cercano</div>
+    <div id="loc-cats"></div>
+  </aside>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    (async function () {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const root = document.documentElement;
+      const isGrafito = () => root.dataset.theme === 'grafito';
+
+      // ── Datos
+      let data;
+      try {
+        data = await fetch('content/data/nashira_location.json').then(r => r.json());
+      } catch (e) {
+        document.getElementById('loc-narrativa').textContent = 'No se pudo cargar la ubicación.';
+        return;
+      }
+      const P = data.proyecto;
+      document.getElementById('loc-narrativa').textContent = data.narrativa || '';
+
+      // ── Mapa
+      const map = L.map('map', {
+        center: [P.lat, P.lng],
+        zoom: 15,
+        zoomControl: false,
+        attributionControl: true,
+        scrollWheelZoom: true,
+        zoomSnap: 0,   // permite zoom fraccional (proyecto.zoom puede ser 16.7)
+      });
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      const TILES = {
+        papel:   'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+        grafito: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+      };
+      const ATTR = '&copy; OpenStreetMap &copy; CARTO';
+      let tileLayer = L.tileLayer(TILES[isGrafito() ? 'grafito' : 'papel'],
+        { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+
+      // ── Marcador del proyecto
+      const proyectoIcon = L.divIcon({
+        className: '',
+        html: '<div class="mk mk-proyecto"><span class="pulse"></span><span class="core"></span></div>',
+        iconSize: [22, 22], iconAnchor: [11, 11],
+      });
+      L.marker([P.lat, P.lng], { icon: proyectoIcon, zIndexOffset: 1000 })
+        .addTo(map)
+        .bindTooltip(P.nombre, { permanent: true, direction: 'top', offset: [0, -12], className: 'tt tt-proyecto' });
+
+      // ── Anillo de distancia caminable
+      if (P.radio) {
+        const ring = L.circle([P.lat, P.lng], {
+          radius: P.radio, className: 'ring-radio', interactive: false,
+        }).addTo(map);
+        // etiqueta del radio, anclada al borde norte del círculo
+        const edge = L.latLng(P.lat + (P.radio / 111320), P.lng);
+        const ringLabel = L.divIcon({
+          className: '',
+          html: `<span class="ring-label">${P.radio} m</span>`,
+          iconSize: [60, 12], iconAnchor: [30, 14],
+        });
+        L.marker(edge, { icon: ringLabel, interactive: false, zIndexOffset: -100 }).addTo(map);
+      }
+
+      // ── Equipamiento por categoría
+      const poiIcon = L.divIcon({
+        className: '',
+        html: '<div class="mk mk-poi"></div>',
+        iconSize: [11, 11], iconAnchor: [5.5, 5.5],
+      });
+      const catsEl = document.getElementById('loc-cats');
+      const groups = {};
+      const allPts = [[P.lat, P.lng]];
+
+      (data.categorias || []).forEach(cat => {
+        const g = L.layerGroup();
+        (cat.puntos || []).forEach(pt => {
+          allPts.push([pt.lat, pt.lng]);
+          const m = L.marker([pt.lat, pt.lng], { icon: poiIcon });
+          const dist = pt.distancia ? `<span class="tt-dist">${pt.distancia}</span>` : '';
+          m.bindTooltip(`${pt.nombre}${dist}`, { direction: 'top', offset: [0, -8], className: 'tt' });
+          m.addTo(g);
+        });
+        g.addTo(map);
+        groups[cat.id] = g;
+
+        // fila de categoría en el panel
+        const row = document.createElement('div');
+        row.className = 'loc-cat';
+        row.innerHTML = `
+          <span class="cat-dot"></span>
+          <span class="cat-name">${cat.label}</span>
+          <span class="cat-count">${(cat.puntos || []).length}</span>`;
+        row.addEventListener('click', () => {
+          const off = row.classList.toggle('off');
+          if (off) map.removeLayer(g); else g.addTo(map);
+        });
+        catsEl.appendChild(row);
+      });
+
+      // ── Etiquetas de vías (avenidas curadas), alineadas al trazo real
+      // El ángulo se calcula proyectando el punto de la vía y un punto en su
+      // dirección; Web Mercator preserva ángulos, así que es invariante al zoom.
+      function viaAngle(via) {
+        if (!via.dir) return via.rot || 0;
+        const p1 = map.latLngToLayerPoint([via.lat, via.lng]);
+        const p2 = map.latLngToLayerPoint(via.dir);
+        let a = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        if (a > 90) a -= 180; else if (a < -90) a += 180;   // mantener el texto derecho
+        return a;
+      }
+      const viaMarkers = (data.vias || []).map(via => {
+        const icon = L.divIcon({
+          className: '',
+          html: `<span class="mk-via" style="display:inline-block;transform:rotate(${viaAngle(via)}deg)">${via.nombre}</span>`,
+          iconSize: [140, 14], iconAnchor: [70, 7],
+        });
+        return { via, marker: L.marker([via.lat, via.lng], { icon, interactive: false, zIndexOffset: -200 }).addTo(map) };
+      });
+
+      // ── Encuadre inicial: zoom fijo centrado en el proyecto (ajustable en el
+      // JSON, proyecto.zoom). Los puntos lejanos se alcanzan con pan/zoom.
+      map.setView([P.lat, P.lng], P.zoom || 16, { animate: false });
+
+      // ── Reaccionar al cambio de tema (papel/grafito)
+      new MutationObserver(() => {
+        const url = TILES[isGrafito() ? 'grafito' : 'papel'];
+        const next = L.tileLayer(url, { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' });
+        next.addTo(map);
+        next.once('load', () => { if (tileLayer) map.removeLayer(tileLayer); tileLayer = next; });
+      }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+      // ── Entrada
+      requestAnimationFrame(() => {
+        document.getElementById('map').classList.add('ready');
+        document.getElementById('loc-panel').classList.add('in');
+        setTimeout(() => map.invalidateSize(), reduced ? 0 : 500);
+      });
+    })();
+  </script>
 
   <script>
     (function () {
@@ -338,26 +543,17 @@
         navDropdown.classList.remove('open');
         navBrand.setAttribute('aria-expanded', 'false');
       }
-
       navBrand.addEventListener('click', (e) => {
         if (!mq.matches) return;
         e.preventDefault();
-        if (navDropdown.classList.contains('open')) {
-          closeDropdown();
-        } else {
-          navDropdown.classList.add('open');
-          navBrand.setAttribute('aria-expanded', 'true');
-        }
+        if (navDropdown.classList.contains('open')) closeDropdown();
+        else { navDropdown.classList.add('open'); navBrand.setAttribute('aria-expanded', 'true'); }
       });
-
       document.addEventListener('pointerdown', (e) => {
         if (!navDropdown.classList.contains('open')) return;
         if (!navWrapper.contains(e.target)) closeDropdown();
       });
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeDropdown();
-      });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDropdown(); });
     })();
   </script>
   <script src="transition.js"></script>

@@ -1,0 +1,60 @@
+{
+  "proyecto": {
+    "nombre": "Nashira",
+    "lat": 20.69529,
+    "lng": -103.37498,
+    "zoom": 17.7,
+    "radio": 500
+  },
+  "narrativa": "Nashira se asienta en el corazón de Zapopan, donde la ciudad consolidada y la vida de barrio se encuentran. Reemplazar este texto con la narrativa real del entorno.",
+  "vias": [
+    { "nombre": "Av. de las Américas", "lat": 20.6986461, "lng": -103.3744351, "dir": [20.6961342, -103.3730018] },
+    { "nombre": "Av. de las Américas", "lat": 20.6932322, "lng": -103.3731771, "dir": [20.6928992, -103.3731614] },
+    { "nombre": "Av. López Mateos",    "lat": 20.6917659, "lng": -103.3757967, "dir": [20.6912909, -103.3761115] },
+    { "nombre": "Pablo Neruda",        "lat": 20.6988367, "lng": -103.3765527, "dir": [20.6986996, -103.3767165] },
+    { "nombre": "Av. Circunvalación",  "lat": 20.6966432, "lng": -103.3722144, "dir": [20.6967647, -103.3720196] }
+  ],
+  "categorias": [
+    {
+      "id": "educacion",
+      "label": "Educación",
+      "puntos": [
+        { "nombre": "The American School", "lat": 20.6963559, "lng": -103.3758575, "distancia": "150 m" }
+      ]
+    },
+    {
+      "id": "salud",
+      "label": "Salud",
+      "puntos": [
+        { "nombre": "Hospital México Americano", "lat": 20.6916371, "lng": -103.3701875, "distancia": "650 m" },
+        { "nombre": "Hospital Américas", "lat": 20.6954, "lng": -103.3727, "distancia": "250 m" }
+      ]
+    },
+    {
+      "id": "comercio",
+      "label": "Comercio",
+      "puntos": [
+        { "nombre": "Midtown Jalisco", "lat": 20.6945418, "lng": -103.3761469, "distancia": "150 m" },
+        { "nombre": "Punto São Paulo", "lat": 20.7021094, "lng": -103.3764555, "distancia": "800 m" },
+        { "nombre": "Soriana Híper Américas", "lat": 20.69234, "lng": -103.37320, "distancia": "400 m" },
+        { "nombre": "Torre Mil 500", "lat": 20.6975329, "lng": -103.3737871, "distancia": "300 m" }
+      ]
+    },
+    {
+      "id": "movilidad",
+      "label": "Movilidad",
+      "puntos": [
+        { "nombre": "Glorieta Colón", "lat": 20.6957944, "lng": -103.3732278, "distancia": "200 m" }
+      ]
+    },
+    {
+      "id": "esparcimiento",
+      "label": "Esparcimiento",
+      "puntos": [
+        { "nombre": "Guadalajara Country Club", "lat": 20.7055997, "lng": -103.3722792, "distancia": "1.2 km" },
+        { "nombre": "Parque Dr. Atl", "lat": 20.6959955, "lng": -103.3786067, "distancia": "400 m" },
+        { "nombre": "Parque Silvano Barba", "lat": 20.6999717, "lng": -103.3823080, "distancia": "900 m" }
+      ]
+    }
+  ]
+}
