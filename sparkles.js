@@ -18,7 +18,7 @@
       #nashira-sparkles {
         position: fixed;
         top: 6px;
-        right: 60px;
+        left: 12px;
         z-index: 54;
         width: var(--spk-size, 140px);
         pointer-events: none;
@@ -46,7 +46,7 @@
         #nashira-sparkles .spark { animation: none !important; opacity: 1 !important; transform: none !important; }
       }
       @media (max-width: 767px) {
-        #nashira-sparkles { top: 8px; right: 56px; width: var(--spk-size-m, 104px); }
+        #nashira-sparkles { top: 8px; left: 10px; width: var(--spk-size-m, 104px); }
       }
     `;
     document.head.appendChild(style);
