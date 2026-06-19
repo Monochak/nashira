@@ -70,7 +70,7 @@
         transition: color 0.2s, border-color 0.2s;
       }
       #fs-toggle:hover { color: var(--text, oklch(24% 0.006 85)); border-color: var(--muted, oklch(52% 0.008 85)); }
-      #fs-toggle:focus-visible { outline: 2px solid var(--accent, oklch(62% 0.21 40)); outline-offset: 3px; }
+      #fs-toggle:focus-visible { outline: 2px solid var(--accent, oklch(54.8% 0.157 35.7)); outline-offset: 3px; }
       #fs-toggle svg {
         width: 17px; height: 17px;
         stroke: currentColor; stroke-width: 1.6; fill: none;

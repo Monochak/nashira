@@ -79,22 +79,22 @@
     .rail-item:hover { color: oklch(28% 0.006 85); }
     .rail-item:hover .rail-label,
     .rail-item:focus-visible .rail-label { opacity: 1; transform: translateX(0); }
-    .rail-item.active { color: oklch(62% 0.21 40); }
+    .rail-item.active { color: oklch(54.8% 0.157 35.7); }
     .rail-item:focus-visible {
-      outline: 2px solid oklch(62% 0.21 40);
+      outline: 2px solid oklch(54.8% 0.157 35.7);
       outline-offset: 3px;
       border-radius: 50%;
     }
-    .rail-contact { color: oklch(62% 0.21 40); margin-top: 14px; }
-    .rail-contact:hover { color: oklch(54% 0.19 40); }
+    .rail-contact { color: oklch(54.8% 0.157 35.7); margin-top: 14px; }
+    .rail-contact:hover { color: oklch(47.8% 0.157 35.7); }
 
     /* Tema grafito */
     html[data-theme='grafito'] .rail-item          { color: oklch(48% 0.01 250); }
     html[data-theme='grafito'] .rail-item:hover    { color: oklch(82% 0.005 250); }
     html[data-theme='grafito'] .rail-label         { color: oklch(93% 0.005 250); }
-    html[data-theme='grafito'] .rail-item.active   { color: oklch(62% 0.21 40); }
-    html[data-theme='grafito'] .rail-contact       { color: oklch(62% 0.21 40); }
-    html[data-theme='grafito'] .rail-contact:hover { color: oklch(70% 0.18 40); }
+    html[data-theme='grafito'] .rail-item.active   { color: oklch(54.8% 0.157 35.7); }
+    html[data-theme='grafito'] .rail-contact       { color: oklch(54.8% 0.157 35.7); }
+    html[data-theme='grafito'] .rail-contact:hover { color: oklch(64.8% 0.157 35.7); }
 
     /* El rail reemplaza al pill en todos los tamaños */
     #nav-wrapper { display: none !important; }
