@@ -20,7 +20,7 @@
         top: 6px;
         left: 12px;
         z-index: 54;
-        width: var(--spk-size, 140px);
+        width: var(--spk-size, 70px);
         pointer-events: none;
       }
       #nashira-sparkles svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -46,7 +46,7 @@
         #nashira-sparkles .spark { animation: none !important; opacity: 1 !important; transform: none !important; }
       }
       @media (max-width: 767px) {
-        #nashira-sparkles { top: 8px; left: 10px; width: var(--spk-size-m, 104px); }
+        #nashira-sparkles { top: 8px; left: 10px; width: var(--spk-size-m, 52px); }
       }
     `;
     document.head.appendChild(style);
