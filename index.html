@@ -3,254 +3,244 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FORMA · Stillness</title>
-  <meta name="description" content="FORMA. Un desarrollo residencial que se experimenta antes de habitarse.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23e55c1e'/%3E%3C/svg%3E">
-  <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
-  <meta property="og:title" content="FORMA">
-  <meta property="og:description" content="Un desarrollo residencial que se experimenta antes de habitarse.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#24262b">
+  <link rel="apple-touch-icon" href="content/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nashira">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Nashira Residencial</title>
+  <meta name="description" content="Nashira Residencial. Managua No. 907 — bajo la constelacion de Capricornio.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23121127'/%3E%3Cpath d='M32 14 C34 28 36 30 50 32 C36 34 34 36 32 50 C30 36 28 34 14 32 C28 30 30 28 32 14 Z' fill='%23f7ae7b'/%3E%3C/svg%3E">
+  <meta property="og:title" content="Nashira Residencial">
+  <meta property="og:description" content="Managua No. 907 — bajo la constelacion de Capricornio.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
-  <!-- Prefetch Emotion so it's ready when we navigate -->
   <link rel="prefetch" href="emotion.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --dim:    oklch(34% 0.009 250);
-      --muted:  oklch(52% 0.01  250);
-      --accent: oklch(62% 0.21   40); /* naranja señal Braun */
-      --border: oklch(26% 0.01  250);
-      --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
-      --font-body:    'Barlow', system-ui, -apple-system, sans-serif;
-    }
+  /* ============================================================
+     NASHIRA RESIDENCIAL — reveal de logo (motion graphics web)
+     Constelacion REAL (de Constelacion.png) + lettering REAL vectorizado.
+     Concepto: "El cielo revela la constelacion de Capricornio".
+     Uso: splash / intro de carga (frecuencia rara -> motion expresivo).
+     Pesos: Jakub (polish) + Jhey (constelacion + 1 acento). Emil: sin loops.
+     ============================================================ */
+  :root {
+    --azul:#3b4a84; --cielo:#edf8fe; --durazno:#f7ae7b;
+    --terracota:#ba4627; --cafe:#6b5340; --noche:#121127;
+    --ease-out: cubic-bezier(0.22,1,0.36,1);
+    --ease-soft:cubic-bezier(0.16,1,0.30,1);
+    --ease-pop: cubic-bezier(0.34,1.56,0.64,1);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    display:grid;place-items:center;
+    font-family:system-ui,sans-serif;
+    background:radial-gradient(140% 120% at 50% 6%, #44558f 0%, #25295a 38%, var(--noche) 100%);
+    color:var(--cielo);overflow:hidden;
+  }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: oklch(18% 0.008 250); /* grafito — punto de partida del reveal */
-      font-family: var(--font-body);
-      font-optical-sizing: auto;
-      -webkit-font-smoothing: antialiased;
-    }
+  /* ---------- Bloque embebible ---------- */
+  .nashira-logo{position:relative;width:min(88vw,520px);text-align:center;user-select:none}
 
-    /* Brand — esquina superior izquierda */
-    #loading-brand {
-      position: fixed;
-      top: 40px;
-      left: 64px;
-      font-size: 0.625rem;
-      font-weight: 700;
-      letter-spacing: 0.25em;
-      color: var(--dim);
-      z-index: 2;
-    }
+  /* polvo estelar de fondo (decorativo, estatico) */
+  .dust{position:absolute;inset:-34% -8% -12%;pointer-events:none;z-index:0;opacity:0;
+        animation:dust-in 1.2s var(--ease-out) .1s both}
+  .dust i{position:absolute;width:2px;height:2px;border-radius:50%;background:var(--cielo);
+          opacity:var(--a,.5);box-shadow:0 0 4px rgba(237,248,254,.6)}
 
-    /* Heading — domina el frame */
-    #loading-heading {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -52%);
-      font-family: var(--font-display);
-      font-size: clamp(2.5rem, 6.5vw, 6.5rem);
-      font-weight: 700;
-      letter-spacing: 0.5em;
-      line-height: 1;
-      color: oklch(18% 0.008 250); /* grafito — invisible sobre fondo grafito, emerge al aclarar */
-      white-space: nowrap;
-      opacity: 0;
-      filter: blur(20px);
-      text-shadow: 0 3px 6px oklch(18% 0.008 250 / 0.18), 0 12px 32px oklch(18% 0.008 250 / 0.14);
-      z-index: 2;
-    }
+  /* ---------- Direccion (eyebrow) ---------- */
+  .addr{position:relative;z-index:1;margin:0 0 26px;
+        font-family:"Outfit",system-ui,sans-serif;font-weight:300;
+        font-size:clamp(9px,1.7vw,11px);letter-spacing:.34em;text-indent:.34em;
+        text-transform:uppercase;color:rgba(237,248,254,.85);
+        opacity:0;animation:addr-in .55s var(--ease-soft) 2.85s both}  /* 4o: MANAGUA */
 
-    /* Tagline — inferior centro */
-    #loading-tagline {
-      position: fixed;
-      bottom: 72px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.8125rem;
-      font-weight: 400;
-      color: oklch(28% 0.009 250);
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-      z-index: 2;
-    }
+  /* ---------- Constelacion ---------- */
+  .constelacion{position:relative;z-index:1;width:63%;margin:0 auto 22px;display:block;overflow:visible}
+  .constelacion .link{
+    fill:none;stroke:var(--cielo);stroke-width:2.2;stroke-linecap:butt;
+    stroke-dasharray:8 9;                    /* guiones, como la marca */
+    opacity:0;
+    animation:link-in .42s var(--ease-out) both;
+    animation-delay:calc(.78s + var(--i)*.06s);   /* 1o: constelacion (lineas) */
+  }
+  .constelacion .star{
+    fill:var(--cielo);transform-box:fill-box;transform-origin:center;opacity:0;
+    filter:drop-shadow(0 0 6px rgba(237,248,254,.7));
+    animation:twinkle .55s var(--ease-pop) both;
+    animation-delay:calc(.15s + var(--i)*.06s);   /* 1o: constelacion (estrellas) */
+  }
+  .constelacion .spk{filter:drop-shadow(0 0 7px rgba(237,248,254,.85))}
 
-    .loading-word {
-      display: inline;
-      opacity: 0;
-      transform: translateY(10px);
-    }
+  /* ---------- Lockup (lettering real) ---------- */
+  .lockup{position:relative;z-index:1;display:block;width:100%;height:auto;overflow:visible}
+  #word path{fill:var(--cielo)}
+  #res  path{fill:var(--cielo)}
+  #spk  path{fill:var(--durazno)}          /* la 4a estrella: "la afortunada" */
 
-    /* Barra de progreso — borde inferior */
-    #loading-track {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background: var(--border);
-      z-index: 2;
-    }
+  .wipe{transform-box:fill-box;transform-origin:left center;transform:scaleX(0);
+        animation:wipe .8s var(--ease-out) 1.7s forwards}          /* 2o: NASHIRA */
+  #spk{transform-box:fill-box;transform-origin:center;opacity:0;
+       filter:drop-shadow(0 0 7px rgba(247,174,123,.85));
+       animation:spark-pop .5s var(--ease-pop) 3.2s both}          /* 5o: estrella roja (isotipo), al final */
+  #res{transform-box:fill-box;transform-origin:center;opacity:0;transform:translateY(7px);
+       animation:rise-in .5s var(--ease-soft) 2.5s both}           /* 3o: RESIDENCIAL */
 
-    #loading-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--accent);
-      transition: width 0.3s ease;
-    }
+  /* ============================ KEYFRAMES ============================ */
+  @keyframes twinkle{0%{opacity:0;transform:scale(.35)}60%{opacity:1}100%{opacity:1;transform:scale(1)}}
+  @keyframes link-in{to{opacity:.55}}
+  @keyframes wipe{to{transform:scaleX(1)}}
+  @keyframes spark-pop{0%{opacity:0;transform:scale(.2) rotate(-35deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+  @keyframes rise-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes dust-in{from{opacity:0}to{opacity:.9}}
+  @keyframes addr-in{from{opacity:0;transform:translateY(-4px)}to{opacity:.85;transform:translateY(0)}}
 
-    /* Porcentaje — inferior derecha */
-    #loading-pct {
-      position: fixed;
-      bottom: 20px;
-      right: 48px;
-      font-size: 0.5rem;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      color: var(--dim);
-      font-variant-numeric: tabular-nums;
-      z-index: 2;
-    }
+  /* ===== Accesibilidad: prefers-reduced-motion (obligatorio) ===== */
+  @media (prefers-reduced-motion: reduce){
+    .nashira-logo *{animation:none !important;transition:none !important}
+    .dust,.constelacion .star,#spk,#res{opacity:1 !important;transform:none !important}
+    .addr{opacity:.85 !important;transform:none !important}
+    .constelacion .link{opacity:.55 !important}
+    .wipe{transform:scaleX(1) !important}
+  }
 
-    @media (max-width: 767px) {
-      #loading-brand { left: 24px; }
-      #loading-pct   { right: 24px; }
-    }
-  </style>
+  /* ---------- preloader: barra de marca ---------- */
+  #loading-track{position:fixed;bottom:0;left:0;width:100%;height:1px;
+    background:rgba(237,248,254,.12);z-index:5}
+  #loading-fill{height:100%;width:0;
+    background:linear-gradient(90deg,var(--durazno),var(--cielo));
+    box-shadow:0 0 8px rgba(247,174,123,.5);transition:width .3s ease}
+  #loading-pct{position:fixed;bottom:18px;right:26px;
+    font-family:"Outfit",system-ui,sans-serif;font-size:9px;font-weight:300;
+    letter-spacing:.2em;color:rgba(237,248,254,.45);
+    font-variant-numeric:tabular-nums;z-index:5}
+  #exit-veil{position:fixed;inset:0;background:#0d0c1a;opacity:0;
+    pointer-events:none;z-index:9;transition:opacity .9s ease}
+  @media (max-width:767px){#loading-pct{right:18px}}
+</style>
 </head>
 <body>
+  <div class="nashira-logo" id="logo">
+    <div class="dust" aria-hidden="true">
+      <i style="left:6%;top:10%;--a:.4"></i><i style="left:18%;top:60%;--a:.5"></i>
+      <i style="left:30%;top:4%;--a:.35"></i><i style="left:48%;top:74%;--a:.45"></i>
+      <i style="left:70%;top:8%;--a:.5"></i><i style="left:84%;top:52%;--a:.4"></i>
+      <i style="left:92%;top:22%;--a:.35"></i><i style="left:60%;top:38%;--a:.3"></i>
+    </div>
 
-  <span id="loading-brand">FORMA</span>
-  <h1 id="loading-heading" lang="en">Stillness</h1>
-  <p id="loading-tagline" lang="en">
-    <span class="loading-word">Every</span>
-    <span class="loading-word">motion</span>
-    <span class="loading-word">begins</span>
-    <span class="loading-word">in</span>
-    <span class="loading-word">stillness.</span>
-  </p>
+    <!-- Direccion del desarrollo (eyebrow) -->
+    <p class="addr">Managua No. 907</p>
+
+    <!-- Constelacion de Capricornio (simbolo de marca) -->
+    <svg class="constelacion" viewBox="72 31 809 744" role="img" aria-label="Constelacion de Capricornio, simbolo de Nashira">
+      <g class="links">
+        <path class="link" style="--i:0" d="M122,236 L200,282"/>
+        <path class="link" style="--i:1" d="M200,282 L445,296"/>
+        <path class="link" style="--i:2" d="M445,296 L802,174"/>
+        <path class="link" style="--i:3" d="M802,174 L831,81"/>
+        <path class="link" style="--i:4" d="M802,174 L751,296"/>
+        <path class="link" style="--i:5" d="M751,296 L641,630"/>
+        <path class="link" style="--i:6" d="M641,630 L543,725"/>
+        <path class="link" style="--i:7" d="M543,725 L249,526"/>
+        <path class="link" style="--i:8" d="M249,526 L122,236"/>
+      </g>
+      <g class="stars">
+        <circle class="star" style="--i:0" cx="122" cy="236" r="8.5"/>
+        <g transform="translate(200 282) scale(1.727)"><path class="star spk" style="--i:1" d="M0,-11 C1.6,-3.4 3.4,-1.6 11,0 C3.4,1.6 1.6,3.4 0,11 C-1.6,3.4 -3.4,1.6 -11,0 C-3.4,-1.6 -1.6,-3.4 0,-11 Z"/></g>
+        <g transform="translate(445 296) scale(1.727)"><path class="star spk" style="--i:2" d="M0,-11 C1.6,-3.4 3.4,-1.6 11,0 C3.4,1.6 1.6,3.4 0,11 C-1.6,3.4 -3.4,1.6 -11,0 C-3.4,-1.6 -1.6,-3.4 0,-11 Z"/></g>
+        <circle class="star" style="--i:3" cx="802" cy="174" r="8.5"/>
+        <g transform="translate(831 81) scale(1.727)"><path class="star spk" style="--i:4" d="M0,-11 C1.6,-3.4 3.4,-1.6 11,0 C3.4,1.6 1.6,3.4 0,11 C-1.6,3.4 -3.4,1.6 -11,0 C-3.4,-1.6 -1.6,-3.4 0,-11 Z"/></g>
+        <circle class="star" style="--i:5" cx="751" cy="296" r="8.5"/>
+        <circle class="star" style="--i:6" cx="249" cy="526" r="8.5"/>
+        <circle class="star" style="--i:7" cx="641" cy="630" r="8.5"/>
+        <g transform="translate(543 725) scale(1.727)"><path class="star spk" style="--i:8" d="M0,-11 C1.6,-3.4 3.4,-1.6 11,0 C3.4,1.6 1.6,3.4 0,11 C-1.6,3.4 -3.4,1.6 -11,0 C-3.4,-1.6 -1.6,-3.4 0,-11 Z"/></g>
+      </g>
+    </svg>
+
+    <!-- Lockup vectorizado del logo oficial -->
+    <svg class="lockup" viewBox="44 61 1005 308" role="img" aria-label="nashira residencial">
+      <defs>
+        <clipPath id="wordWipe">
+          <rect class="wipe" x="44" y="61" width="1005" height="308"/>
+        </clipPath>
+      </defs>
+      <g id="word" clip-path="url(#wordWipe)"><path d="M296.00,230.45 C292.43,229.68 285.23,226.95 280.00,224.38 C272.00,220.45 269.06,218.27 261.40,210.60 C253.98,203.19 251.53,199.92 248.15,193.00 C242.32,181.03 240.60,173.65 240.60,160.50 C240.60,147.35 242.32,139.97 248.15,128.00 C251.53,121.08 253.98,117.81 261.40,110.40 C269.07,102.72 271.99,100.56 280.00,96.62 C290.99,91.22 300.11,89.04 311.80,89.02 C341.66,88.95 368.82,107.93 379.07,136.03 C383.27,147.55 384.12,158.49 383.79,197.00 L383.50,230.50 L375.75,230.79 L368.00,231.08 L368.00,218.44 L368.00,205.80 L360.34,212.96 C351.46,221.25 338.97,227.85 327.30,230.42 C318.61,232.33 304.85,232.34 296.00,230.45 Z M922.50,231.35 C905.56,227.83 895.13,222.28 883.46,210.57 C876.15,203.23 873.63,199.88 870.27,193.00 C864.39,180.96 862.67,173.63 862.67,160.50 C862.67,147.37 864.39,140.04 870.27,128.00 C873.62,121.15 876.18,117.73 883.46,110.39 C891.14,102.64 893.93,100.57 902.00,96.61 C913.07,91.18 922.15,89.03 934.00,89.03 C945.85,89.03 954.93,91.18 966.00,96.61 C974.07,100.57 976.86,102.64 984.54,110.39 C991.79,117.70 994.40,121.18 997.76,128.00 C1005.22,143.18 1005.47,145.15 1005.48,190.50 L1005.50,230.50 L997.75,230.79 L990.00,231.08 L990.00,218.44 L990.00,205.80 L982.34,212.96 C973.46,221.25 960.97,227.85 949.30,230.42 C942.77,231.85 927.48,232.39 922.50,231.35 Z M459.37,229.23 C455.52,227.85 436.89,217.64 434.14,215.41 C433.83,215.16 438.19,207.20 440.87,203.12 C441.60,202.01 443.85,202.98 451.95,207.88 C463.62,214.92 468.84,216.49 475.60,214.98 C481.66,213.62 484.83,211.88 488.64,207.84 C493.54,202.62 495.34,198.23 495.36,191.45 C495.38,184.27 492.47,177.41 487.69,173.39 C485.95,171.93 477.76,167.47 469.48,163.47 C452.43,155.25 448.86,152.16 443.65,141.12 C440.88,135.27 440.53,133.52 440.58,126.00 C440.66,115.05 443.31,108.01 450.15,100.53 C456.75,93.30 465.15,89.12 474.67,88.32 C483.77,87.56 490.14,89.12 498.71,94.21 C508.94,100.29 508.70,99.74 504.31,106.83 C502.21,110.21 500.13,112.98 499.68,112.99 C499.23,113.00 496.98,111.71 494.68,110.14 C487.23,105.05 483.96,103.80 478.01,103.80 C468.53,103.80 459.84,109.88 456.99,118.52 C455.00,124.56 456.14,133.31 459.56,138.26 C462.10,141.92 464.79,143.67 479.18,151.00 C488.35,155.68 497.06,160.62 498.54,162.00 C510.37,173.06 514.38,192.76 507.74,207.25 C504.06,215.30 496.13,223.36 488.15,227.17 C479.68,231.21 467.36,232.09 459.37,229.23 Z M565.00,160.50 L565.00,90.00 L572.50,90.00 L580.00,90.00 L580.00,125.00 C580.00,144.25 580.22,160.00 580.48,160.00 C580.74,160.00 584.23,158.92 588.23,157.59 C592.23,156.27 599.77,154.66 605.00,154.02 C636.68,150.16 641.64,149.04 647.80,144.34 C654.46,139.26 655.44,135.22 655.83,111.25 L656.17,90.00 L663.59,90.00 L671.00,90.00 L671.00,160.50 L671.00,231.00 L663.50,231.00 L656.00,231.00 L656.00,195.00 C656.00,170.75 655.66,159.00 654.96,159.00 C654.39,159.00 652.14,159.91 649.97,161.02 C644.18,163.97 631.53,166.66 614.50,168.55 C590.94,171.17 583.46,174.41 580.98,183.07 C580.44,184.95 580.00,196.50 580.00,208.74 L580.00,231.00 L572.50,231.00 L565.00,231.00 L565.00,160.50 Z M720.00,160.50 L720.00,90.00 L727.50,90.00 L735.00,90.00 L735.00,160.50 L735.00,231.00 L727.50,231.00 L720.00,231.00 L720.00,160.50 Z M781.39,229.57 C781.08,228.78 781.02,210.66 781.25,189.32 C781.64,152.68 781.79,150.08 783.90,143.02 C789.95,122.80 803.81,106.04 821.62,97.43 C830.10,93.33 842.44,90.00 849.16,90.00 L854.00,90.00 L854.00,97.38 L854.00,104.76 L846.59,105.86 C827.34,108.72 812.39,119.21 803.53,136.08 C797.42,147.70 797.03,151.12 797.01,193.25 L797.00,231.00 L789.47,231.00 C783.85,231.00 781.80,230.64 781.39,229.57 Z M50.27,190.25 C50.77,145.77 51.02,143.81 57.97,129.50 C67.34,110.23 85.72,95.32 106.00,90.56 C115.40,88.35 131.89,88.54 141.38,90.97 C161.05,96.00 178.54,110.10 187.33,128.00 C195.30,144.24 195.30,144.24 195.75,189.75 L196.16,230.00 L188.13,230.00 L180.10,230.00 L179.80,189.25 L179.50,148.50 L176.80,141.77 C163.07,107.51 124.96,94.13 93.38,112.50 C86.11,116.72 77.04,126.49 72.70,134.75 C66.51,146.53 66.04,150.64 66.02,192.75 L66.00,230.00 L57.91,230.00 L49.82,230.00 L50.27,190.25 Z M328.38,213.95 C352.94,206.32 369.37,182.53 367.71,157.01 C366.19,133.67 350.75,114.16 328.00,106.83 C318.77,103.86 303.94,103.91 295.00,106.94 C271.17,115.03 256.00,135.86 256.00,160.50 C256.00,176.41 261.11,188.38 272.89,200.04 C288.24,215.25 308.15,220.24 328.38,213.95 Z M948.00,214.80 C961.89,211.41 977.65,198.73 983.81,186.00 C989.70,173.83 991.44,161.08 988.90,148.80 C984.77,128.85 967.17,110.84 947.00,105.94 C939.99,104.24 928.08,104.22 921.00,105.91 C906.54,109.37 891.17,121.36 884.24,134.59 C878.52,145.52 876.55,159.90 879.10,172.20 C883.24,192.22 901.65,210.96 921.00,214.87 C924.02,215.48 927.40,216.18 928.50,216.43 C931.30,217.06 942.62,216.11 948.00,214.80 Z M1001.50,90.00 C1001.84,89.45 1003.22,89.00 1004.56,89.00 C1005.90,89.00 1007.00,89.45 1007.00,90.00 C1007.00,90.55 1005.62,91.00 1003.94,91.00 C1002.16,91.00 1001.14,90.58 1001.50,90.00 Z"/></g>
+      <g id="res"><path d="M142.00,347.47 L142.00,330.80 L151.09,331.15 C159.21,331.46 160.38,331.75 162.09,333.86 C164.89,337.33 164.63,343.46 161.55,346.55 C160.20,347.90 158.40,349.00 157.55,349.00 C155.14,349.00 155.64,350.10 160.97,356.52 C163.71,359.81 165.96,362.84 165.97,363.25 C165.99,363.66 164.98,364.00 163.73,364.00 C162.12,364.00 159.62,361.80 155.20,356.50 C151.75,352.38 148.52,349.00 148.01,349.00 C147.50,349.00 146.96,352.26 146.79,356.25 C146.52,362.90 146.31,363.53 144.25,363.82 L142.00,364.14 L142.00,347.47 Z M218.67,363.33 C218.30,362.97 218.00,355.54 218.00,346.83 L218.00,331.00 L229.00,331.00 C239.33,331.00 240.00,331.12 240.00,333.00 C240.00,334.84 239.33,335.00 231.50,335.00 L223.00,335.00 L223.00,340.00 L223.00,345.00 L231.00,345.00 C238.33,345.00 239.00,345.17 239.00,347.00 C239.00,348.83 238.33,349.00 231.00,349.00 L223.00,349.00 L223.00,354.50 L223.00,360.00 L231.50,360.00 C239.33,360.00 240.00,360.16 240.00,362.00 C240.00,363.87 239.33,364.00 229.67,364.00 C223.98,364.00 219.03,363.70 218.67,363.33 Z M294.36,362.14 C290.33,359.60 289.69,358.50 291.42,357.07 C292.50,356.17 293.56,356.37 296.15,357.95 C302.16,361.61 308.00,360.11 308.00,354.90 C308.00,352.15 307.42,351.61 301.68,349.01 C294.18,345.61 292.60,343.94 292.60,339.43 C292.60,332.65 300.30,328.43 307.33,331.36 C311.52,333.11 312.56,334.62 310.94,336.57 C309.86,337.88 309.51,337.87 308.03,336.53 C306.02,334.71 299.89,334.51 298.20,336.20 C295.09,339.31 297.62,342.60 305.27,345.42 C312.79,348.19 315.29,355.23 310.67,360.60 C307.50,364.29 299.05,365.08 294.36,362.14 Z M366.00,347.57 L366.00,331.00 L368.52,331.00 L371.05,331.00 L370.77,347.25 C370.50,363.25 370.46,363.51 368.25,363.82 L366.00,364.14 L366.00,347.57 Z M425.75,363.44 C425.34,363.01 425.00,355.54 425.00,346.83 L425.00,331.00 L433.85,331.00 C443.86,331.00 447.45,332.61 451.81,339.02 C453.79,341.93 454.11,343.44 453.77,348.26 C453.05,358.65 447.52,363.13 434.59,363.79 C430.14,364.02 426.16,363.86 425.75,363.44 Z M508.00,347.50 L508.00,331.00 L518.50,331.00 C528.33,331.00 529.00,331.13 529.00,333.00 C529.00,334.84 528.33,335.00 520.50,335.00 L512.00,335.00 L512.00,340.00 L512.00,345.00 L520.00,345.00 C527.33,345.00 528.00,345.17 528.00,347.00 C528.00,348.83 527.33,349.00 520.00,349.00 L512.00,349.00 L512.00,354.50 L512.00,360.00 L520.50,360.00 C528.33,360.00 529.00,360.16 529.00,362.00 C529.00,363.87 528.33,364.00 518.50,364.00 L508.00,364.00 L508.00,347.50 Z M583.00,347.50 C583.00,333.58 583.23,331.00 584.48,331.00 C585.30,331.00 589.91,336.25 594.73,342.67 L603.50,354.35 L603.78,342.67 C604.04,331.82 604.20,331.00 606.03,331.00 C607.91,331.00 608.00,331.76 608.00,347.50 C608.00,360.30 607.71,364.00 606.71,364.00 C606.00,364.00 601.39,358.57 596.46,351.94 L587.50,339.89 L587.22,351.94 C586.96,363.18 586.80,364.00 584.97,364.00 C583.09,364.00 583.00,363.25 583.00,347.50 Z M672.00,362.88 C665.93,360.45 662.00,354.42 662.00,347.52 C662.00,338.83 666.19,333.10 674.08,330.98 C678.66,329.75 686.04,331.28 688.46,333.96 C689.86,335.50 689.87,335.86 688.57,336.94 C687.38,337.93 686.63,337.86 684.82,336.59 C683.53,335.68 680.53,335.00 677.85,335.00 C673.95,335.00 672.64,335.52 670.11,338.04 C664.35,343.80 665.22,353.21 671.93,357.73 C676.03,360.49 679.40,360.60 684.27,358.12 C687.31,356.57 688.15,356.47 689.06,357.58 C692.53,361.76 679.42,365.83 672.00,362.88 Z M743.00,347.50 C743.00,331.67 743.08,331.00 745.00,331.00 C746.92,331.00 747.00,331.67 747.00,347.50 C747.00,363.33 746.92,364.00 745.00,364.00 C743.08,364.00 743.00,363.33 743.00,347.50 Z M800.28,362.75 C808.45,341.88 813.49,331.00 814.97,331.00 C816.58,331.00 819.09,336.41 828.01,359.03 L829.97,364.00 L827.59,364.00 C825.75,364.00 824.86,363.10 823.62,360.00 L822.02,356.00 L814.93,356.00 L807.84,356.00 L806.27,360.00 C805.03,363.15 804.18,364.00 802.24,364.00 C800.68,364.00 799.96,363.54 800.28,362.75 Z M882.67,363.33 C882.30,362.97 882.00,355.54 882.00,346.83 L882.00,331.00 L884.50,331.00 L887.00,331.00 L887.00,345.50 L887.00,360.00 L895.00,360.00 C902.33,360.00 903.00,360.17 903.00,362.00 C903.00,363.86 902.33,364.00 893.17,364.00 C887.76,364.00 883.03,363.70 882.67,363.33 Z M439.31,359.35 C446.97,358.08 451.62,349.81 448.66,342.72 C446.36,337.22 442.67,335.00 435.87,335.00 L430.00,335.00 L430.00,347.50 L430.00,360.00 L432.75,359.99 C434.26,359.98 437.22,359.69 439.31,359.35 Z M819.74,350.75 C819.47,350.06 818.42,347.14 817.39,344.25 C816.37,341.36 815.30,339.00 815.01,339.00 C814.48,339.00 810.00,349.99 810.00,351.29 C810.00,351.68 812.30,352.00 815.11,352.00 C818.78,352.00 820.08,351.65 819.74,350.75 Z M157.78,344.44 C159.01,343.58 160.00,341.83 160.00,340.51 C160.00,336.75 157.45,335.00 151.93,335.00 L147.00,335.00 L147.00,340.50 L147.00,346.00 L151.28,346.00 C153.63,346.00 156.56,345.30 157.78,344.44 Z"/></g>
+      <g id="spk"><path d="M1021.59,107.50 C1020.19,96.81 1017.87,93.55 1010.57,92.05 C1006.67,91.25 1006.17,89.22 1009.68,88.46 C1017.49,86.76 1019.60,84.12 1021.36,73.85 L1022.62,66.50 L1023.35,72.00 C1024.96,84.20 1027.74,87.48 1037.40,88.62 C1040.51,88.98 1043.26,89.61 1043.50,90.01 C1043.75,90.40 1041.45,91.02 1038.39,91.38 C1031.92,92.14 1027.52,94.17 1025.95,97.10 C1025.34,98.24 1024.28,102.40 1023.60,106.34 L1022.37,113.50 L1021.59,107.50 Z"/></g>
+    </svg>
+  </div>
+
   <div id="loading-track"><div id="loading-fill"></div></div>
   <span id="loading-pct">0%</span>
+  <div id="exit-veil"></div>
 
   <script>
-    // ── Acceso a sessionStorage blindado: algunos navegadores / modos de
-    // privacidad lo bloquean y lanzan SecurityError, lo que detendría el intro.
-    const safeStorage = {
-      get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
-      set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+  (function(){
+    // sessionStorage blindado (modos privados lanzan SecurityError)
+    var safeStorage = {
+      get:function(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},
+      set:function(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
     };
+    // si el intro ya se vio en esta sesion, ir directo a Emotion
+    if (safeStorage.get('nashira_intro_shown')) { window.location.replace('emotion.html'); return; }
 
-    // ── Si Stillness ya se mostró en esta sesión, ir directo a Emotion
-    if (safeStorage.get('stillness_shown')) {
-      window.location.replace('emotion.html');
-    }
+    var loadingFill = document.getElementById('loading-fill');
+    var loadingPct  = document.getElementById('loading-pct');
+    var veil        = document.getElementById('exit-veil');
 
-    const body        = document.body;
-    const loadingFill = document.getElementById('loading-fill');
-    const loadingPct  = document.getElementById('loading-pct');
-    const heading     = document.getElementById('loading-heading');
-
-    // ── Frames críticos a precargar en segundo plano (6 stop frames)
-    const CRITICAL_FRAMES = [
+    // frames criticos + primer video (se precargan mientras corre el reveal)
+    var CRITICAL_FRAMES = [
       'content/images/sequence/frame_000.jpg',
       'content/images/sequence/frame_060.jpg',
       'content/images/sequence/frame_120.jpg',
       'content/images/sequence/frame_180.jpg',
       'content/images/sequence/frame_240.jpg',
-      'content/images/sequence/frame_300.jpg',
+      'content/images/sequence/frame_300.jpg'
     ];
+    function preloadImage(src){return new Promise(function(res){var i=new Image();i.onload=i.onerror=res;i.src=src;});}
+    function preloadVideo(src){return new Promise(function(res){var v=document.createElement('video');v.preload='auto';v.muted=true;v.src=src;v.oncanplaythrough=res;v.onerror=res;setTimeout(res,15000);v.load();});}
 
-    function preloadImage(src) {
-      return new Promise(resolve => {
-        const img = new Image();
-        img.onload = img.onerror = resolve;
-        img.src = src;
-      });
-    }
-
-    // Precarga de video usando elemento <video> para que quede en caché
-    // compartida con los elementos <video> de emotion.html.
-    function preloadVideo(src) {
-      return new Promise(resolve => {
-        const v = document.createElement('video');
-        v.preload = 'auto';
-        v.muted   = true;
-        v.src     = src;
-        v.oncanplaythrough = resolve;
-        v.onerror          = resolve;
-        setTimeout(resolve, 15000); // 15s de timeout máximo
-        v.load();
-      });
-    }
-
-    // ── Animación del loader: ease-out-cubic 0→95% en 5s
-    const LOADER_MS = 5000;
-    const loadStart = performance.now();
-    let   loaderRaf = null;
-
-    function animateLoader(now) {
-      const t     = Math.min((now - loadStart) / LOADER_MS, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const pct   = Math.round(eased * 95);
-      loadingFill.style.width = pct + '%';
-      loadingPct.textContent  = pct + '%';
-      if (t < 1) loaderRaf = requestAnimationFrame(animateLoader);
+    // barra 0->95% en LOADER_MS (ease-out-cubic)
+    var LOADER_MS = 4500;
+    var loadStart = performance.now();
+    var loaderRaf = null;
+    function animateLoader(now){
+      var t = Math.min((now-loadStart)/LOADER_MS,1);
+      var eased = 1-Math.pow(1-t,3);
+      var pct = Math.round(eased*95);
+      loadingFill.style.width = pct+'%';
+      loadingPct.textContent  = pct+'%';
+      if (t<1) loaderRaf = requestAnimationFrame(animateLoader);
     }
     loaderRaf = requestAnimationFrame(animateLoader);
 
-    // ── REVEAL 1: fondo grafito → blanco-beige en 3s (comienza de inmediato)
-    body.style.transition      = 'background-color 3s ease';
-    body.style.backgroundColor = 'oklch(96% 0.006 80)';
-
-    // ── REVEAL 2: "Stillness" emerge mientras el fondo aclara
-    setTimeout(() => {
-      heading.style.transition = 'opacity 2.5s ease, filter 2.5s ease';
-      heading.style.opacity    = '1';
-      heading.style.filter     = 'blur(0px)';
-    }, 300);
-
-    // ── REVEAL 3: tagline aparece sobre el fondo ya claro
-    document.querySelectorAll('.loading-word').forEach((word, i) => {
-      setTimeout(() => {
-        word.style.transition = 'opacity 0.85s ease, transform 0.85s ease';
-        word.style.opacity    = '1';
-        word.style.transform  = 'translateY(0)';
-      }, 3200 + i * 220);
-    });
-
-    // ── Precarga de frames críticos + video inicial + espera mínima de 5.4s
-    const minWait = new Promise(r => setTimeout(r, LOADER_MS + 400));
-    Promise.all([
-      ...CRITICAL_FRAMES.map(preloadImage),
-      preloadVideo('content/videos/video-01.mp4'),
-      minWait
-    ]).then(() => {
-      // Barra a 100%
+    // navegar cuando: reveal+barra terminaron Y los assets estan listos
+    var minWait = new Promise(function(r){setTimeout(r, LOADER_MS+400);});
+    Promise.all(CRITICAL_FRAMES.map(preloadImage).concat([
+      preloadVideo('content/videos/video-01.mp4'), minWait
+    ])).then(function(){
       cancelAnimationFrame(loaderRaf);
-      loadingFill.style.transition = 'width 0.4s ease';
-      loadingFill.style.width      = '100%';
-      loadingPct.textContent       = '100%';
-
-      // Pausa breve en 100%, luego oscurecer y navegar
-      setTimeout(() => {
-        body.style.transition      = 'background-color 1.5s ease';
-        body.style.backgroundColor = 'oklch(18% 0.008 250)';
-
-        setTimeout(() => {
-          safeStorage.set('stillness_shown', '1');
+      loadingFill.style.transition = 'width .4s ease';
+      loadingFill.style.width = '100%';
+      loadingPct.textContent  = '100%';
+      setTimeout(function(){
+        veil.style.opacity = '1';            // fundido a oscuro -> Emotion arranca en grafito
+        setTimeout(function(){
+          safeStorage.set('nashira_intro_shown','1');
           window.location.href = 'emotion.html';
-        }, 1500);
-      }, 800);
+        }, 900);
+      }, 700);
     });
+  })();
   </script>
   <script src="fullscreen.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>

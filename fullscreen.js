@@ -11,6 +11,41 @@
   const isFS = () =>
     !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
 
+  // ── Persistencia entre secciones ─────────────────────────────────────────
+  // La Fullscreen API se sale al navegar a otra URL y la página nueva no puede
+  // re-entrar sin gesto del usuario. Guardamos la intención y re-entramos en la
+  // primera interacción de la página nueva.
+  const FLAG = 'forma-fullscreen';
+  const wantsFS = () => { try { return sessionStorage.getItem(FLAG) === '1'; } catch (e) { return false; } };
+  const setWant = (v) => { try { v ? sessionStorage.setItem(FLAG, '1') : sessionStorage.removeItem(FLAG); } catch (e) {} };
+
+  // Marcar cuando una navegación está en curso, para no confundirla con un
+  // Esc / cierre intencional al actualizar la intención guardada.
+  let navigating = false;
+  document.addEventListener('click', (e) => {
+    const a = e.target && e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (href && href[0] !== '#' && href.indexOf('javascript:') !== 0 && a.target !== '_blank') {
+      navigating = true;
+    }
+  }, true);
+  window.addEventListener('pagehide', () => { navigating = true; });
+
+  function reenterOnFirstGesture() {
+    if (!wantsFS() || isFS()) return;
+    const go = () => {
+      cleanup();
+      if (wantsFS() && !isFS()) { try { const p = request.call(el); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    };
+    const cleanup = () => {
+      document.removeEventListener('pointerdown', go, true);
+      document.removeEventListener('keydown', go, true);
+    };
+    document.addEventListener('pointerdown', go, true);
+    document.addEventListener('keydown', go, true);
+  }
+
   function mount() {
     const style = document.createElement('style');
     style.textContent = `
@@ -62,20 +97,26 @@
       </svg>`;
 
     btn.addEventListener('click', () => {
-      if (!isFS()) request.call(el);
-      else if (exit) exit.call(document);
+      if (!isFS()) { setWant(true); try { const p = request.call(el); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+      else { setWant(false); if (exit) exit.call(document); }
     });
 
     function sync() {
       const fs = isFS();
       btn.classList.toggle('is-fs', fs);
       btn.setAttribute('aria-label', fs ? 'Salir de pantalla completa' : 'Pantalla completa');
+      if (fs) setWant(true);
+      // Salió sin navegar (Esc o botón) → el usuario ya no quiere fullscreen.
+      else if (!navigating) setWant(false);
     }
     document.addEventListener('fullscreenchange', sync);
     document.addEventListener('webkitfullscreenchange', sync);
     document.addEventListener('msfullscreenchange', sync);
 
     document.body.appendChild(btn);
+
+    // Si venimos de otra sección con fullscreen activo, re-entrar al primer gesto.
+    reenterOnFirstGesture();
   }
 
   if (document.body) mount();
