@@ -421,18 +421,6 @@
     </div>
   </div>
 
-  <aside class="loc-panel" id="loc-panel" aria-label="Ubicación y equipamiento">
-    <button class="loc-close" id="loc-close" aria-label="Cerrar">&#10005;</button>
-    <span class="loc-label">Ubicación</span>
-    <h1 class="loc-heading">Location</h1>
-    <p class="loc-narrativa" id="loc-narrativa"></p>
-    <div class="loc-cats-title">Equipamiento cercano</div>
-    <div id="loc-cats"></div>
-  </aside>
-
-  <button class="loc-info" id="loc-info" aria-label="Ver ubicación y equipamiento" aria-expanded="false">
-    <span class="dot"></span> Ubicación
-  </button>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -447,11 +435,9 @@
       try {
         data = await fetch('content/data/nashira_location.json').then(r => r.json());
       } catch (e) {
-        document.getElementById('loc-narrativa').textContent = 'No se pudo cargar la ubicación.';
         return;
       }
       const P = data.proyecto;
-      document.getElementById('loc-narrativa').textContent = data.narrativa || '';
 
       // ── Mapa
       const map = L.map('map', {
@@ -503,34 +489,16 @@
         html: '<div class="mk mk-poi"></div>',
         iconSize: [11, 11], iconAnchor: [5.5, 5.5],
       });
-      const catsEl = document.getElementById('loc-cats');
-      const groups = {};
       const allPts = [[P.lat, P.lng]];
 
       (data.categorias || []).forEach(cat => {
-        const g = L.layerGroup();
         (cat.puntos || []).forEach(pt => {
           allPts.push([pt.lat, pt.lng]);
           const m = L.marker([pt.lat, pt.lng], { icon: poiIcon });
           const dist = pt.distancia ? `<span class="tt-dist">${pt.distancia}</span>` : '';
           m.bindTooltip(`${pt.nombre}${dist}`, { direction: 'top', offset: [0, -8], className: 'tt' });
-          m.addTo(g);
+          m.addTo(map);
         });
-        g.addTo(map);
-        groups[cat.id] = g;
-
-        // fila de categoría en el panel
-        const row = document.createElement('div');
-        row.className = 'loc-cat';
-        row.innerHTML = `
-          <span class="cat-dot"></span>
-          <span class="cat-name">${cat.label}</span>
-          <span class="cat-count">${(cat.puntos || []).length}</span>`;
-        row.addEventListener('click', () => {
-          const off = row.classList.toggle('off');
-          if (off) map.removeLayer(g); else g.addTo(map);
-        });
-        catsEl.appendChild(row);
       });
 
       // ── Etiquetas de vías (avenidas curadas), alineadas al trazo real
@@ -567,25 +535,9 @@
       }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 
       // ── Entrada
-      const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
       requestAnimationFrame(() => {
         document.getElementById('map').classList.add('ready');
-        // En móvil el panel arranca oculto; se invoca con el botón info.
-        if (!isMobile()) document.getElementById('loc-panel').classList.add('in');
         setTimeout(() => map.invalidateSize(), reduced ? 0 : 500);
-      });
-
-      // ── Toggle del panel en móvil (botón info / cierre)
-      const locPanel = document.getElementById('loc-panel');
-      const locInfo  = document.getElementById('loc-info');
-      const locClose = document.getElementById('loc-close');
-      locInfo.addEventListener('click', () => {
-        const open = locPanel.classList.toggle('open');
-        locInfo.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-      locClose.addEventListener('click', () => {
-        locPanel.classList.remove('open');
-        locInfo.setAttribute('aria-expanded', 'false');
       });
     })();
   </script>
