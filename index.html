@@ -201,8 +201,7 @@
       'content/images/sequence/frame_060.jpg',
       'content/images/sequence/frame_120.jpg',
       'content/images/sequence/frame_180.jpg',
-      'content/images/sequence/frame_240.jpg',
-      'content/images/sequence/frame_300.jpg'
+      'content/images/sequence/frame_240.jpg'
     ];
     function preloadImage(src){return new Promise(function(res){var i=new Image();i.onload=i.onerror=res;i.src=src;});}
     function preloadVideo(src){return new Promise(function(res){var v=document.createElement('video');v.preload='auto';v.muted=true;v.src=src;v.oncanplaythrough=res;v.onerror=res;setTimeout(res,15000);v.load();});}
