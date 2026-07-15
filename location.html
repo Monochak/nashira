@@ -196,48 +196,6 @@
       padding: 6px 13px;
     }
 
-    /* ── NAV (idéntico al canon) ── */
-    #nav {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 55;
-      display: flex;
-      align-items: center;
-      gap: 36px;
-      padding: 11px 24px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px) saturate(1.4);
-      -webkit-backdrop-filter: blur(20px) saturate(1.4);
-      border: 1px solid var(--glass-border);
-      border-radius: 100px;
-      white-space: nowrap;
-      transition: background 0.4s;
-    }
-    .nav-brand {
-      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.18em;
-      color: var(--muted); text-decoration: none; transition: color 0.2s;
-    }
-    .nav-brand:hover { color: var(--text); }
-    .nav-links { display: flex; gap: 28px; list-style: none; }
-    .nav-links a {
-      font-size: 0.6875rem; font-weight: 600; color: var(--text);
-      opacity: 0.45; text-decoration: none; letter-spacing: 0.10em;
-      text-transform: uppercase; transition: opacity 0.2s;
-    }
-    .nav-links a:hover  { opacity: 0.85; }
-    .nav-links a.active { opacity: 1; color: var(--accent); }
-    .nav-cta {
-      font-size: 0.6875rem; font-weight: 700; color: var(--bg);
-      background: var(--accent); border: none; padding: 7px 18px;
-      border-radius: 100px; cursor: pointer; letter-spacing: 0.06em;
-      text-transform: uppercase; text-decoration: none; transition: opacity 0.2s;
-    }
-    .nav-cta:hover { opacity: 0.85; }
-    #nav-wrapper { display: contents; }
-    #nav-mobile-dropdown { display: none; }
-
     /* ── PANEL ── */
     .loc-panel {
       position: fixed;
@@ -347,50 +305,6 @@
       .loc-panel.open { transform: translateY(0); }
       .loc-info, .loc-close { display: flex; }
       .loc-heading { font-size: 1.9rem; }
-
-      #nav-wrapper {
-        display: flex; flex-direction: column; position: fixed;
-        top: 20px; left: 50%; transform: translateX(-50%);
-        min-width: 180px; z-index: 55;
-      }
-      .nav-links { display: none; }
-      #nav {
-        position: relative; top: auto; left: auto; transform: none;
-        z-index: 2; width: 100%; justify-content: center; gap: 16px;
-        padding: 9px 16px; min-height: 62px; border-radius: 100px;
-      }
-      .nav-cta { display: none; }
-      .nav-brand::after {
-        content: '▾'; margin-left: 5px; font-size: 0.5rem; opacity: 0.40;
-        display: inline-block; transition: transform 0.2s ease; vertical-align: middle;
-      }
-      .nav-brand[aria-expanded="true"]::after { transform: rotate(180deg); opacity: 0.70; }
-      #nav-mobile-dropdown {
-        display: block; position: relative; z-index: 1; width: 100%;
-        margin-top: -31px; padding-top: 31px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px) saturate(1.4);
-        -webkit-backdrop-filter: blur(20px) saturate(1.4);
-        border: 1px solid var(--glass-border); border-top: none;
-        border-radius: 0 0 28px 28px; overflow: hidden;
-        max-height: 0; opacity: 0; pointer-events: none;
-        transition: max-height 0.30s ease-out, opacity 0.22s ease;
-      }
-      #nav-mobile-dropdown.open { max-height: 280px; opacity: 1; pointer-events: auto; }
-      .nav-mobile-links { display: flex; flex-direction: column; padding: 10px 0 6px; }
-      .nav-mobile-links a {
-        display: block; padding: 9px 0; font-size: 0.6875rem; font-weight: 500;
-        color: var(--text); opacity: 0.55; text-decoration: none;
-        letter-spacing: 0.10em; text-transform: uppercase; text-align: center;
-        transition: opacity 0.2s;
-      }
-      .nav-mobile-links a:hover  { opacity: 0.9; }
-      .nav-mobile-links a.active { opacity: 1; color: var(--accent); }
-      #nav-mobile-dropdown .nav-cta {
-        display: flex; align-items: center; justify-content: center;
-        margin: 6px 16px 14px; padding: 10px 0; min-height: 44px;
-        width: calc(100% - 32px); font-size: 0.6875rem;
-      }
     }
     /* ── Control de radio (slider) ─────────────────────────────────────── */
     #radio-control {
@@ -436,6 +350,15 @@
       #radio-control { bottom: calc(78px + env(safe-area-inset-bottom)); padding: 8px 14px; gap: 8px; }
       #radio-slider { width: 130px; }
     }
+    /* Vialidades principales: resaltado sólido en tinte claro (marcador) */
+    .via-hl {
+      stroke: oklch(72% 0.10 42) !important;
+      stroke-opacity: 1 !important;
+      stroke-width: 7px !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      fill: none !important;
+    }
   </style>
 </head>
 <body>
@@ -449,30 +372,6 @@
            aria-label="Ajustar radio de puntos de interés">
     <span id="radio-val">500 m</span>
   </div>
-
-  <div id="nav-wrapper">
-    <nav id="nav" aria-label="Navegación principal">
-      <a href="#" class="nav-brand" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
-      <ul class="nav-links">
-        <li><a href="emotion.html">Emotion</a></li>
-        <li><a href="ownership.html">Ownership</a></li>
-        <li><a href="action.html">Action</a></li>
-        <li><a href="location.html" class="active">Location</a></li>
-      </ul>
-      <a href="#" class="nav-cta">Contacto</a>
-    </nav>
-
-    <div id="nav-mobile-dropdown" role="menu" aria-label="Menú de navegación">
-      <nav class="nav-mobile-links" aria-label="Secciones del sitio">
-        <a href="emotion.html" role="menuitem">Emotion</a>
-        <a href="ownership.html" role="menuitem">Ownership</a>
-        <a href="action.html" role="menuitem">Action</a>
-        <a href="location.html" role="menuitem" class="active">Location</a>
-      </nav>
-      <a href="#" class="nav-cta" role="menuitem">Contacto</a>
-    </div>
-  </div>
-
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -524,7 +423,7 @@
       const R_MIN  = P.radioMin  || 250;
       const R_MAX  = P.radioMax  || 1500;
       const R_STEP = P.radioStep || 50;
-      let ringRadius = P.radio || 500;
+      let ringRadius = P.radioMax || 1500;   // Location abre en el radio máximo
 
       const ring = L.circle([P.lat, P.lng], {
         radius: ringRadius, className: 'ring-radio', interactive: false,
@@ -559,6 +458,43 @@
         });
       });
 
+      // ── Vialidades principales (OSM trunk/primary/secondary/tertiary),
+      //    recortadas al radio: solo se resalta la parte dentro del círculo
+      //    (marcador). updateRoads(r) recalcula al cambiar el radio.
+      const MX = 111320 * Math.cos(P.lat * Math.PI / 180), MY = 110540;
+      function clipRoad(coords, R) {
+        const pts = coords.map(c => ({ x: (c[1] - P.lng) * MX, y: (c[0] - P.lat) * MY, lat: c[0], lng: c[1] }));
+        const ins = p => (p.x * p.x + p.y * p.y) <= R * R;
+        const interp = (a, b, t) => [a.lat + t * (b.lat - a.lat), a.lng + t * (b.lng - a.lng)];
+        const tCross = (a, b) => {
+          const dx = b.x - a.x, dy = b.y - a.y, A = dx * dx + dy * dy;
+          if (A === 0) return [];
+          const B = 2 * (a.x * dx + a.y * dy), C = a.x * a.x + a.y * a.y - R * R;
+          const disc = B * B - 4 * A * C;
+          if (disc <= 0) return [];
+          const s = Math.sqrt(disc);
+          return [(-B - s) / (2 * A), (-B + s) / (2 * A)].filter(t => t >= 0 && t <= 1).sort((p, q) => p - q);
+        };
+        const runs = []; let run = [];
+        const flush = () => { if (run.length > 1) runs.push(run); run = []; };
+        for (let i = 0; i < pts.length - 1; i++) {
+          const a = pts[i], b = pts[i + 1], ai = ins(a), bi = ins(b);
+          if (ai && bi) { if (!run.length) run.push([a.lat, a.lng]); run.push([b.lat, b.lng]); }
+          else if (ai && !bi) { const ts = tCross(a, b); if (!run.length) run.push([a.lat, a.lng]); run.push(interp(a, b, ts.length ? ts[ts.length - 1] : 1)); flush(); }
+          else if (!ai && bi) { const ts = tCross(a, b); flush(); run = [interp(a, b, ts.length ? ts[0] : 0), [b.lat, b.lng]]; }
+          else { const ts = tCross(a, b); if (ts.length === 2) { flush(); runs.push([interp(a, b, ts[0]), interp(a, b, ts[1])]); } }
+        }
+        flush();
+        return runs;
+      }
+      const roadLayer = L.layerGroup().addTo(map);
+      const roadLines = (data.vialidades || []).map(v => {
+        const pl = L.polyline([], { className: 'via-hl', interactive: false }).addTo(roadLayer);
+        pl._coords = v.coords;
+        return pl;
+      });
+      function updateRoads(r) { roadLines.forEach(pl => pl.setLatLngs(clipRoad(pl._coords, r))); }
+
       // ── Encuadrar el mapa al anillo: el círculo siempre llena la pantalla
       //    (radio grande → zoom out; radio chico → zoom in). El padding deja
       //    aire arriba (etiqueta) y abajo (slider + control de zoom).
@@ -581,6 +517,7 @@
         });
         const sv = document.getElementById('radio-val');
         if (sv) sv.textContent = r + ' m';
+        updateRoads(r);
         fitToRadius();
       }
 
@@ -639,30 +576,6 @@
     })();
   </script>
 
-  <script>
-    (function () {
-      const mq          = window.matchMedia('(max-width: 767px)');
-      const navBrand    = document.querySelector('.nav-brand');
-      const navDropdown = document.getElementById('nav-mobile-dropdown');
-      const navWrapper  = document.getElementById('nav-wrapper');
-
-      function closeDropdown() {
-        navDropdown.classList.remove('open');
-        navBrand.setAttribute('aria-expanded', 'false');
-      }
-      navBrand.addEventListener('click', (e) => {
-        if (!mq.matches) return;
-        e.preventDefault();
-        if (navDropdown.classList.contains('open')) closeDropdown();
-        else { navDropdown.classList.add('open'); navBrand.setAttribute('aria-expanded', 'true'); }
-      });
-      document.addEventListener('pointerdown', (e) => {
-        if (!navDropdown.classList.contains('open')) return;
-        if (!navWrapper.contains(e.target)) closeDropdown();
-      });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDropdown(); });
-    })();
-  </script>
   <script src="transition.js"></script>
   <script src="rail.js"></script>
   <script src="fullscreen.js"></script>

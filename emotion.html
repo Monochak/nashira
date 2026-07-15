@@ -31,10 +31,10 @@
       --text-secondary: oklch(88% 0.006 250);   /* body text, slightly dimmer     */
       --muted:          oklch(52% 0.01  250);   /* inactive UI elements           */
       --dim:            oklch(34% 0.009 250);   /* loading label                  */
-      --accent:         oklch(54.8% 0.157 35.7);   /* naranja señal Braun            */
+      --accent:         oklch(54.8% 0.157 35.7);   /* terracota señal (acento Nashira) */
       --border:         oklch(26% 0.01  250);   /* borders, inactive dots         */
-      --glass-bg:       oklch(22% 0.01  250 / 0.80); /* nav pill background       */
-      --glass-border:   oklch(34% 0.012 250 / 0.55); /* nav pill border           */
+      --glass-bg:       oklch(22% 0.01  250 / 0.80); /* glass surfaces (stop-pill, chevrons) */
+      --glass-border:   oklch(34% 0.012 250 / 0.55); /* glass surface border      */
 
       /* display headings / body + UI */
       --font-display: 'Big Shoulders Display', 'Arial Black', system-ui, sans-serif;
@@ -291,84 +291,6 @@
     }
 
     /* =====================================================
-       NAV — floating glass pill
-    ===================================================== */
-    #nav {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 55;
-      display: flex;
-      align-items: center;
-      gap: 36px;
-      padding: 11px 24px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px) saturate(1.4);
-      -webkit-backdrop-filter: blur(20px) saturate(1.4);
-      border: 1px solid var(--glass-border);
-      border-radius: 100px;
-      white-space: nowrap;
-      transition: background 0.4s;
-    }
-
-    .nav-brand {
-      font-size: 0.6875rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      color: oklch(93% 0.005 250 / 0.6);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .nav-brand:hover { color: oklch(93% 0.005 250 / 0.9); }
-
-    .nav-links {
-      display: flex;
-      gap: 28px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      font-size: 0.6875rem;
-      font-weight: 600;
-      color: oklch(93% 0.005 250);
-      opacity: 0.40;
-      text-decoration: none;
-      letter-spacing: 0.10em;
-      text-transform: uppercase;
-      transition: opacity 0.2s;
-    }
-
-    .nav-links a:hover  { opacity: 0.80; }
-    .nav-links a.active { opacity: 1; }
-
-    .nav-cta {
-      font-size: 0.6875rem;
-      font-weight: 700;
-      color: var(--bg);
-      background: var(--accent);
-      border: none;
-      padding: 7px 18px;
-      border-radius: 100px;
-      cursor: pointer;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-      text-decoration: none;
-    }
-
-    .nav-cta:hover { opacity: 0.85; transform: scale(1.03); }
-    /* CTA sits on --accent background — use --text so the outline is visible */
-    .nav-cta:focus-visible { outline-color: var(--text); }
-
-    /* Wrapper — transparent on desktop, becomes the fixed container on mobile */
-    #nav-wrapper { display: contents; }
-
-    /* Mobile dropdown — hidden on desktop, revealed in mobile media query */
-    #nav-mobile-dropdown { display: none; }
-
-    /* =====================================================
        SCROLL HINT
     ===================================================== */
     /* =====================================================
@@ -557,116 +479,6 @@
        MOBILE  ≤ 767px
     ===================================================== */
     @media (max-width: 767px) {
-      /* Wrapper toma el control del posicionamiento fijo en móvil */
-      #nav-wrapper {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        min-width: 180px;
-        z-index: 55;
-      }
-
-      /* Nav collapse — links ocultos; pill cede posición al wrapper */
-      .nav-links { display: none; }
-
-      #nav {
-        position: relative;
-        top: auto; left: auto;
-        transform: none;
-        z-index: 2;
-        width: 100%;
-        justify-content: center;
-        gap: 16px;
-        padding: 9px 16px;
-        min-height: 62px;
-        border-radius: 100px;
-        transition: background 0.4s;
-      }
-
-      /* CTA oculto del pill en móvil — vive en la extensión */
-      .nav-cta { display: none; }
-
-      /* Brand toggle indicator */
-      .nav-brand::after {
-        content: '▾';
-        margin-left: 5px;
-        font-size: 0.5rem;
-        opacity: 0.40;
-        display: inline-block;
-        transition: transform 0.2s ease;
-        vertical-align: middle;
-      }
-      .nav-brand[aria-expanded="true"]::after {
-        transform: rotate(180deg);
-        opacity: 0.70;
-      }
-
-      /* Extensión — emerge desde detrás del pill (z-index menor, margin-top negativo) */
-      #nav-mobile-dropdown {
-        display: block;
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        margin-top: -31px;
-        padding-top: 31px;
-        background: oklch(17% 0.01 250 / 0.78);
-        backdrop-filter: blur(20px) saturate(1.4);
-        -webkit-backdrop-filter: blur(20px) saturate(1.4);
-        border: 1px solid var(--glass-border);
-        border-top: none;
-        border-radius: 0 0 28px 28px;
-        overflow: hidden;
-        max-height: 0;
-        opacity: 0;
-        pointer-events: none;
-        transition: max-height 0.30s ease-out, opacity 0.22s ease;
-      }
-
-      #nav-mobile-dropdown.open {
-        max-height: 280px;
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      /* Links dentro de la extensión */
-      .nav-mobile-links {
-        display: flex;
-        flex-direction: column;
-        padding: 10px 0 6px;
-      }
-
-      .nav-mobile-links a {
-        display: block;
-        padding: 9px 0;
-        font-size: 0.6875rem;
-        font-weight: 500;
-        color: oklch(93% 0.005 250);
-        opacity: 0.45;
-        text-decoration: none;
-        letter-spacing: 0.10em;
-        text-transform: uppercase;
-        text-align: center;
-        transition: opacity 0.2s;
-      }
-
-      .nav-mobile-links a:hover  { opacity: 0.85; }
-      .nav-mobile-links a.active { opacity: 1; }
-
-      /* CTA dentro de la extensión */
-      #nav-mobile-dropdown .nav-cta {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 6px 16px 14px;
-        padding: 10px 0;
-        min-height: 44px;
-        width: calc(100% - 32px);
-        font-size: 0.6875rem;
-      }
-
       /* Text overlay — centrado */
       #text-overlay {
         width: calc(100% - 48px);
@@ -781,31 +593,6 @@
 
   <!-- Page-level heading (screen readers only) -->
   <h1 class="sr-only">FORMA</h1>
-
-  <!-- NAV -->
-  <div id="nav-wrapper">
-    <nav id="nav" aria-label="Navegación principal">
-      <a href="#" class="nav-brand" aria-label="FORMA, inicio" aria-expanded="false" aria-controls="nav-mobile-dropdown">FORMA</a>
-      <ul class="nav-links">
-        <li><a href="emotion.html" class="active">Emotion</a></li>
-        <li><a href="ownership.html">Ownership</a></li>
-        <li><a href="action.html">Action</a></li>
-        <li><a href="location.html">Location</a></li>
-      </ul>
-      <a href="#" class="nav-cta">Contacto</a>
-    </nav>
-
-    <!-- Mobile nav extension (only active on ≤767px) -->
-    <div id="nav-mobile-dropdown" role="menu" aria-label="Menú de navegación">
-      <nav class="nav-mobile-links" aria-label="Secciones del sitio">
-        <a href="emotion.html" role="menuitem" class="active">Emotion</a>
-        <a href="ownership.html" role="menuitem">Ownership</a>
-        <a href="action.html" role="menuitem">Action</a>
-        <a href="location.html" role="menuitem">Location</a>
-      </nav>
-      <a href="#" class="nav-cta" role="menuitem">Contacto</a>
-    </div>
-  </div>
 
   <!-- INTRO VIDEO — ambient/visual only, no dialogue or meaningful audio -->
   <div id="intro-overlay">
@@ -1787,46 +1574,6 @@
         setTimeout(loadRemainingVideos, 2000);
       });
     }
-
-    /* =====================================================
-       MOBILE NAV TOGGLE
-       FORMA pill → tap → extensión desliza como cola del pill.
-       Solo activo en ≤767px (matchMedia guard).
-    ===================================================== */
-    (function () {
-      const mq          = window.matchMedia('(max-width: 767px)');
-      const navBrand    = document.querySelector('.nav-brand');
-      const navEl       = document.getElementById('nav');
-      const navDropdown = document.getElementById('nav-mobile-dropdown');
-      const navWrapper  = document.getElementById('nav-wrapper');
-
-      function closeDropdown() {
-        navDropdown.classList.remove('open');
-        navBrand.setAttribute('aria-expanded', 'false');
-      }
-
-      navBrand.addEventListener('click', (e) => {
-        if (!mq.matches) return;
-        e.preventDefault();
-        if (navDropdown.classList.contains('open')) {
-          closeDropdown();
-        } else {
-          navDropdown.classList.add('open');
-          navBrand.setAttribute('aria-expanded', 'true');
-        }
-      });
-
-      // Cerrar al tocar fuera del wrapper completo
-      document.addEventListener('pointerdown', (e) => {
-        if (!navDropdown.classList.contains('open')) return;
-        if (!navWrapper.contains(e.target)) closeDropdown();
-      });
-
-      // Cerrar con Escape
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeDropdown();
-      });
-    })();
 
     boot();
   </script>

@@ -96,9 +96,6 @@
     html[data-theme='grafito'] .rail-contact       { color: oklch(54.8% 0.157 35.7); }
     html[data-theme='grafito'] .rail-contact:hover { color: oklch(64.8% 0.157 35.7); }
 
-    /* El rail reemplaza al pill en todos los tamaños */
-    #nav-wrapper { display: none !important; }
-
     @media (min-width: 768px) {
       /* emotion: los chevrons laterales se ocultan; el stop-pill inferior
          (prev/next + contador) asume la navegación entre escenas */
