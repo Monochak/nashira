@@ -6,3 +6,7 @@ desktop.ini
 serve.bat
 # masters de producción — la web usa los .jpg
 content/panoramas/*.png
+
+# fuera del sitio publicado hasta decidir su destino (no referenciados)
+content/images/sequence/Video-*.mp4
+content/images/Nashira_Aerial.jpg
