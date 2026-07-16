@@ -12,11 +12,13 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>Nashira Residencial</title>
   <meta name="description" content="Nashira Residencial. Managua No. 907 — bajo la constelacion de Capricornio.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23121127'/%3E%3Cpath d='M32 14 C34 28 36 30 50 32 C36 34 34 36 32 50 C30 36 28 34 14 32 C28 30 30 28 32 14 Z' fill='%23f7ae7b'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="content/brand/favicon.svg">
   <meta property="og:title" content="Nashira Residencial">
   <meta property="og:description" content="Managua No. 907 — bajo la constelacion de Capricornio.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
+  <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
+  <script src="site.js"></script>
   <link rel="prefetch" href="emotion.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -183,31 +185,33 @@
 
   <script>
   (function(){
+    // Ficha del proyecto (site.json → window.SITE)
+    var SPLASH     = window.SITE.pages.index.splash;
+    var REDIRECT   = window.SITE.pages.index.redirectTo;
+    var FRAMES_CFG = window.SITE.pages.emotion.frames;
+    var INTRO_KEY  = window.SITE.slug + '_intro_shown';
+
     // sessionStorage blindado (modos privados lanzan SecurityError)
     var safeStorage = {
       get:function(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},
       set:function(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
     };
     // si el intro ya se vio en esta sesion, ir directo a Emotion
-    if (safeStorage.get('nashira_intro_shown')) { window.location.replace('emotion.html'); return; }
+    if (safeStorage.get(INTRO_KEY)) { window.location.replace(REDIRECT); return; }
 
     var loadingFill = document.getElementById('loading-fill');
     var loadingPct  = document.getElementById('loading-pct');
     var veil        = document.getElementById('exit-veil');
 
     // frames criticos + primer video (se precargan mientras corre el reveal)
-    var CRITICAL_FRAMES = [
-      'content/images/sequence/frame_000.jpg',
-      'content/images/sequence/frame_060.jpg',
-      'content/images/sequence/frame_120.jpg',
-      'content/images/sequence/frame_180.jpg',
-      'content/images/sequence/frame_240.jpg'
-    ];
+    var CRITICAL_FRAMES = SPLASH.preloadFrames.map(function(n){
+      return FRAMES_CFG.dir + FRAMES_CFG.prefix + String(n).padStart(FRAMES_CFG.pad, '0') + FRAMES_CFG.ext;
+    });
     function preloadImage(src){return new Promise(function(res){var i=new Image();i.onload=i.onerror=res;i.src=src;});}
     function preloadVideo(src){return new Promise(function(res){var v=document.createElement('video');v.preload='auto';v.muted=true;v.src=src;v.oncanplaythrough=res;v.onerror=res;setTimeout(res,15000);v.load();});}
 
     // barra 0->95% en LOADER_MS (ease-out-cubic)
-    var LOADER_MS = 4500;
+    var LOADER_MS = SPLASH.loaderMs;
     var loadStart = performance.now();
     var loaderRaf = null;
     function animateLoader(now){
@@ -223,7 +227,7 @@
     // navegar cuando: reveal+barra terminaron Y los assets estan listos
     var minWait = new Promise(function(r){setTimeout(r, LOADER_MS+400);});
     Promise.all(CRITICAL_FRAMES.map(preloadImage).concat([
-      preloadVideo('content/videos/video-01.mp4'), minWait
+      preloadVideo(SPLASH.preloadVideo), minWait
     ])).then(function(){
       cancelAnimationFrame(loaderRaf);
       loadingFill.style.transition = 'width .4s ease';
@@ -232,8 +236,8 @@
       setTimeout(function(){
         veil.style.opacity = '1';            // fundido a oscuro -> Emotion arranca en grafito
         setTimeout(function(){
-          safeStorage.set('nashira_intro_shown','1');
-          window.location.href = 'emotion.html';
+          safeStorage.set(INTRO_KEY,'1');
+          window.location.href = REDIRECT;
         }, 900);
       }, 700);
     });

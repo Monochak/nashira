@@ -10,14 +10,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Nashira">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>FORMA · Emotion</title>
-  <meta name="description" content="FORMA. Una secuencia cinematográfica sobre el movimiento y la quietud del espacio habitado.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23ba4627'/%3E%3C/svg%3E">
+  <title>Nashira · Emotion</title>
+  <meta name="description" content="Nashira. Una secuencia cinematográfica sobre el movimiento y la quietud del espacio habitado.">
+  <link rel="icon" type="image/svg+xml" href="content/brand/favicon.svg">
   <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
-  <meta property="og:title" content="FORMA · Emotion">
+  <meta property="og:title" content="Nashira · Emotion">
   <meta property="og:description" content="Una secuencia cinematográfica sobre el movimiento y la quietud del espacio habitado.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
+  <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
+  <script src="site.js"></script>
   <!-- Fonts: Big Shoulders Display (display headings) + Barlow (body + UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -565,34 +567,12 @@
 <body>
 
   <!-- ======================================================
-       SITE CONFIG — edit all content here
+       SITE CONFIG — el contenido vive en site.json (la ficha
+       del proyecto); este motor lo lee vía window.SITE.
   ====================================================== -->
-  <script type="application/json" id="site-config">
-  {
-    "brand": "FORMA",
-
-    "totalFrames": 300,
-    "frameDir":    "content/images/sequence/",
-    "framePrefix": "frame_",
-    "framePad":    3,
-    "frameExt":    ".jpg",
-
-    "scrollPerFrame": 8,
-
-    "intro": "content/videos/intro.mp4",
-
-    "stops": [
-      { "frame": 0,   "video": "content/videos/video-01.mp4", "num": "01", "label": "Origin",  "body": "Every motion begins in stillness. The pause before a gesture holds all its potential energy." },
-      { "frame": 60,  "video": "content/videos/video-02.mp4", "num": "02", "label": "Impulse", "body": "Stillness choosing direction. The invisible decision that precedes the visible act." },
-      { "frame": 120, "video": "content/videos/video-03.mp4", "num": "03", "label": "Tension", "body": "Force meeting resistance creates form. The point of maximum stress is where beauty lives." },
-      { "frame": 180, "video": "content/videos/video-04.mp4", "num": "04", "label": "Release", "body": "The moment tension becomes flow. Not an ending, but a transition into something new." },
-      { "frame": 240, "video": "content/videos/video-05.mp4", "num": "05", "label": "Trace",   "body": "The line motion leaves in passing. Gesture becoming geometry before it dissolves." }
-    ]
-  }
-  </script>
 
   <!-- Page-level heading (screen readers only) -->
-  <h1 class="sr-only">FORMA</h1>
+  <h1 class="sr-only">Nashira</h1>
 
   <!-- INTRO VIDEO — ambient/visual only, no dialogue or meaningful audio -->
   <div id="intro-overlay">
@@ -633,7 +613,7 @@
     <button class="pill-btn" id="pill-prev" aria-label="Escena anterior">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <span id="pill-counter" aria-live="polite">1 / 6</span>
+    <span id="pill-counter" aria-live="polite">1 / 5</span>
     <button class="pill-btn" id="pill-next" aria-label="Escena siguiente">
       <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
@@ -641,9 +621,22 @@
 
   <script>
     /* =====================================================
-       CONFIG
+       CONFIG — adaptador sobre la ficha (site.json → window.SITE)
     ===================================================== */
-    const C = JSON.parse(document.getElementById('site-config').textContent);
+    const C = (() => {
+      const E = window.SITE.pages.emotion;
+      return {
+        brand:          window.SITE.brand.name,
+        totalFrames:    E.frames.total,
+        frameDir:       E.frames.dir,
+        framePrefix:    E.frames.prefix,
+        framePad:       E.frames.pad,
+        frameExt:       E.frames.ext,
+        scrollPerFrame: E.scrollPerFrame,
+        intro:          E.intro,
+        stops:          E.stops,
+      };
+    })();
 
     // Frames reserved for the post-video state (stopFrame + 1).
     // The scrubber skips these — they only appear when a video ends naturally.
@@ -682,8 +675,6 @@
       stopOverlay.appendChild(v);
       return v;
     });
-
-    document.title = C.brand;
 
     /* =====================================================
        STATE

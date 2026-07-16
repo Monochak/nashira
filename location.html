@@ -10,11 +10,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Nashira">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>FORMA · Location</title>
-  <meta name="description" content="FORMA. Un desarrollo residencial que se experimenta antes de habitarse.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23ba4627'/%3E%3C/svg%3E">
+  <title>Nashira · Location</title>
+  <meta name="description" content="Nashira. Un desarrollo residencial que se experimenta antes de habitarse.">
+  <link rel="icon" type="image/svg+xml" href="content/brand/favicon.svg">
+  <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
+  <script src="site.js"></script>
   <script src="theme.js"></script>
-  <meta property="og:title" content="FORMA · Location">
+  <meta property="og:title" content="Nashira · Location">
   <meta property="og:description" content="Un desarrollo residencial que se experimenta antes de habitarse.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
@@ -381,10 +383,13 @@
       const root = document.documentElement;
       const isGrafito = () => root.dataset.theme === 'grafito';
 
+      // ── Ficha del proyecto (site.json → window.SITE)
+      const LOC = window.SITE.pages.location;
+
       // ── Datos
       let data;
       try {
-        data = await fetch('content/data/nashira_location.json').then(r => r.json());
+        data = await fetch(LOC.data).then(r => r.json());
       } catch (e) {
         return;
       }
@@ -402,12 +407,12 @@
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
       const TILES = {
-        papel:   'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
-        grafito: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+        papel:   `https://{s}.basemaps.cartocdn.com/${LOC.tiles.papel}/{z}/{x}/{y}{r}.png`,
+        grafito: `https://{s}.basemaps.cartocdn.com/${LOC.tiles.grafito}/{z}/{x}/{y}{r}.png`,
       };
-      const ATTR = '&copy; OpenStreetMap &copy; CARTO';
+      const ATTR = LOC.tiles.attribution;
       let tileLayer = L.tileLayer(TILES[isGrafito() ? 'grafito' : 'papel'],
-        { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+        { attribution: ATTR, maxZoom: LOC.tiles.maxZoom, subdomains: 'abcd' }).addTo(map);
 
       // ── Marcador del proyecto
       const proyectoIcon = L.divIcon({
@@ -556,7 +561,7 @@
       // ── Reaccionar al cambio de tema (papel/grafito)
       new MutationObserver(() => {
         const url = TILES[isGrafito() ? 'grafito' : 'papel'];
-        const next = L.tileLayer(url, { attribution: ATTR, maxZoom: 19, subdomains: 'abcd' });
+        const next = L.tileLayer(url, { attribution: ATTR, maxZoom: LOC.tiles.maxZoom, subdomains: 'abcd' });
         next.addTo(map);
         next.once('load', () => { if (tileLayer) map.removeLayer(tileLayer); tileLayer = next; });
       }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });

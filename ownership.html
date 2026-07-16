@@ -10,13 +10,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Nashira">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>FORMA · Ownership</title>
-  <meta name="description" content="FORMA. Explora la Torre Nashira nivel por nivel y descubre las unidades disponibles en un visor 3D interactivo.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f0ece3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%23ba4627'/%3E%3C/svg%3E">
+  <title>Nashira · Ownership</title>
+  <meta name="description" content="Nashira. Explora la Torre Nashira nivel por nivel y descubre las unidades disponibles en un visor 3D interactivo.">
+  <link rel="icon" type="image/svg+xml" href="content/brand/favicon.svg">
+  <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
+  <script src="site.js"></script>
   <script src="theme.js"></script>
   <script src="backend.js"></script>
   <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
-  <meta property="og:title" content="FORMA · Ownership">
+  <meta property="og:title" content="Nashira · Ownership">
   <meta property="og:description" content="Explora la Torre Nashira nivel por nivel y descubre las unidades disponibles.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
@@ -923,9 +925,9 @@
   <!-- ── LOADING ─────────────────────────────────────────────────────────── -->
   <div id="loading-overlay">
     <div class="lo-content">
-      <span class="lo-label">Torre Nashira · Nivel 10</span>
-      <span class="lo-heading">Ownership</span>
-      <p class="lo-quote" lang="en">The door handle is the handshake of the building.</p>
+      <span class="lo-label" data-site="pages.ownership.copy.loadingEyebrow">Torre Nashira · Nivel 10</span>
+      <span class="lo-heading" data-site="pages.ownership.copy.loadingHeading">Ownership</span>
+      <p class="lo-quote" lang="en" data-site="pages.ownership.copy.loadingQuote">The door handle is the handshake of the building.</p>
     </div>
     <div class="lo-bar-track">
       <div id="loading-bar"></div>
@@ -945,7 +947,7 @@
 
   <!-- ── BACK BUTTON ─────────────────────────────────────────────────────── -->
   <button id="back-btn" aria-label="Volver a vista orbital">
-    <span class="back-arrow">&#8592;</span> Torre
+    <span class="back-arrow">&#8592;</span> <span data-site="pages.ownership.copy.backButton">Torre</span>
   </button>
 
   <!-- ── INFO BUTTON ───────────────────────────────────────────────────────── -->
@@ -955,7 +957,7 @@
       <line x1="12" y1="8" x2="12" y2="8"/>
       <line x1="12" y1="12" x2="12" y2="16"/>
     </svg>
-    <span class="info-label">Info</span>
+    <span class="info-label" data-site="pages.ownership.copy.infoButton">Info</span>
   </button>
 
   <!-- ── UNIT HOVER LABEL ────────────────────────────────────────────────── -->
@@ -976,45 +978,48 @@
       <!-- Estado: detalle de unidad -->
       <div id="panel-detail" class="panel-section">
         <div class="panel-stats" id="panel-stats"></div>
-        <button class="panel-cta" id="panel-cta-contact">Hablar con un asesor</button>
+        <button class="panel-cta" id="panel-cta-contact" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
       </div>
 
       <!-- Estado: formulario de contacto -->
       <div id="panel-form" class="panel-section" hidden>
-        <button class="panel-back" id="panel-back">&#8592; Volver</button>
+        <button class="panel-back" id="panel-back">&#8592; <span data-site="pages.ownership.copy.formBack">Volver</span></button>
         <form id="contact-form" novalidate>
           <div class="form-fields">
             <div class="form-field">
-              <label class="form-label" for="f-nombre">Nombre</label>
+              <label class="form-label" for="f-nombre" data-site="pages.ownership.copy.formLabels.nombre">Nombre</label>
               <input class="form-input" id="f-nombre" name="nombre"
                      type="text" required autocomplete="name"
                      placeholder="Tu nombre completo"
+                     data-site-placeholder="pages.ownership.copy.formPlaceholders.nombre"
                      aria-describedby="f-nombre-error">
-              <span class="form-error" id="f-nombre-error" role="alert">Campo requerido</span>
+              <span class="form-error" id="f-nombre-error" role="alert" data-site="pages.ownership.copy.formErrors.required">Campo requerido</span>
             </div>
             <div class="form-field">
-              <label class="form-label" for="f-email">Email</label>
+              <label class="form-label" for="f-email" data-site="pages.ownership.copy.formLabels.email">Email</label>
               <input class="form-input" id="f-email" name="email"
                      type="email" required autocomplete="email"
                      placeholder="tu@email.com"
+                     data-site-placeholder="pages.ownership.copy.formPlaceholders.email"
                      aria-describedby="f-email-error">
-              <span class="form-error" id="f-email-error" role="alert">Email válido requerido</span>
+              <span class="form-error" id="f-email-error" role="alert" data-site="pages.ownership.copy.formErrors.email">Email válido requerido</span>
             </div>
             <div class="form-field">
-              <label class="form-label" for="f-tel">Teléfono</label>
+              <label class="form-label" for="f-tel" data-site="pages.ownership.copy.formLabels.telefono">Teléfono</label>
               <input class="form-input" id="f-tel" name="tel"
                      type="tel" autocomplete="tel"
-                     placeholder="+52 000 000 0000">
+                     placeholder="+52 000 000 0000"
+                     data-site-placeholder="pages.ownership.copy.formPlaceholders.telefono">
             </div>
           </div>
-          <button type="submit" class="panel-cta">Enviar solicitud</button>
+          <button type="submit" class="panel-cta" data-site="pages.ownership.copy.formSubmit">Enviar solicitud</button>
         </form>
       </div>
 
       <!-- Estado: confirmación de envío -->
       <div id="panel-success" class="panel-section" hidden>
         <div class="success-ring">&#10003;</div>
-        <span class="success-title">Enviado</span>
+        <span class="success-title" data-site="pages.ownership.copy.successTitle">Enviado</span>
         <p class="success-body">
           Tu solicitud fue enviada.<br>
           Un asesor te contactará en breve.
@@ -1046,6 +1051,10 @@
     // ── MOTION PREFERENCE ────────────────────────────────────────────────────
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // ── FICHA DEL PROYECTO (site.json → window.SITE) ─────────────────────────
+    const OWN   = window.SITE.pages.ownership;
+    const AVAIL = window.SITE.tokens.availability;
+
     // ── STATE ────────────────────────────────────────────────────────────────
     let mode            = 'orbital';
     let selectedFloor   = null;
@@ -1057,7 +1066,7 @@
     let isTransitioning = false;
     let panelOpen       = false;
     let dimmerStart     = null;
-    const DIMMER_MS     = 4000;
+    const DIMMER_MS     = OWN.camera.dimmerMs;
     let glbModel        = null;   // referencia al modelo completo para hide-all
     let panelState      = 'detail'; // 'detail' | 'form' | 'success'
     let currentUnitData = null;
@@ -1134,7 +1143,7 @@
     };
 
     // ── CAMERA ───────────────────────────────────────────────────────────────
-    const camera = new THREE.PerspectiveCamera(15, W() / H(), 0.1, 2000);
+    const camera = new THREE.PerspectiveCamera(OWN.camera.fov, W() / H(), 0.1, 2000);
 
     // ── CONTROLS ─────────────────────────────────────────────────────────────
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -1178,9 +1187,9 @@
     const IS_GRAFITO_AT_LOAD = document.documentElement.dataset.theme === 'grafito';
     const MAT_BASE = new THREE.MeshLambertMaterial({ color: IS_GRAFITO_AT_LOAD ? 0xd8d5cf : 0xd2cec6, side: THREE.DoubleSide });
     const MAT_HOVER = new THREE.MeshLambertMaterial({ color: 0xfaf6ee, side: THREE.DoubleSide });
-    const MAT_UNIT_HOVER = new THREE.MeshLambertMaterial({ color: 0x6375b3, side: THREE.DoubleSide }); // azul marca Nashira (claro): disponible
-    const MAT_UNIT_APARTADA = new THREE.MeshLambertMaterial({ color: 0xba4627, side: THREE.DoubleSide }); // terracota Nashira: apartada
-    const MAT_UNIT_SEL   = new THREE.MeshLambertMaterial({ color: 0xba4627, side: THREE.DoubleSide }); // naranja señal Nashira
+    const MAT_UNIT_HOVER = new THREE.MeshLambertMaterial({ color: parseInt(AVAIL.disponible.hex3d, 16), side: THREE.DoubleSide }); // disponible (ficha: tokens.availability)
+    const MAT_UNIT_APARTADA = new THREE.MeshLambertMaterial({ color: parseInt(AVAIL.apartada.hex3d, 16), side: THREE.DoubleSide }); // apartada
+    const MAT_UNIT_SEL   = new THREE.MeshLambertMaterial({ color: parseInt(AVAIL.apartada.hex3d, 16), side: THREE.DoubleSide }); // selección = mismo acento que apartada
     const MAT_EDGE = new THREE.LineBasicMaterial({ color: 0x1a1820, transparent: true, opacity: IS_GRAFITO_AT_LOAD ? 0.22 : 0.3, depthWrite: false });
 
     // ── RAYCASTERS ───────────────────────────────────────────────────────────
@@ -1220,7 +1229,7 @@
       return disponibilidad[`${parseInt(parts[1], 10)}-${parts[2].toLowerCase()}`] ?? null;
     }
 
-    const ESTADO_LABELS = { disponible: 'Disponible', apartada: 'Apartada', vendida: 'Vendida' };
+    const ESTADO_LABELS = OWN.copy.estados;
     function estadoLabel(d) {
       return ESTADO_LABELS[d?.estado] ?? 'Disponible';
     }
@@ -1769,20 +1778,20 @@
       document.getElementById('panel-unit-name').textContent   = unitLabel;
       document.getElementById('panel-stats').innerHTML = `
         <div class="panel-stat">
-          <span class="stat-label">Tipología</span>
+          <span class="stat-label">${OWN.copy.stats.tipologia}</span>
           <span class="stat-value">${d?.tipo ?? '—'}</span>
         </div>
         <div class="panel-stat">
-          <span class="stat-label">Superficie</span>
+          <span class="stat-label">${OWN.copy.stats.superficie}</span>
           <span class="stat-value">${d?.m2 ? d.m2 + ' m²' : '—'}</span>
         </div>
         ${precioStr && d?.estado !== 'vendida' ? `
         <div class="panel-stat">
-          <span class="stat-label">Precio</span>
+          <span class="stat-label">${OWN.copy.stats.precio}</span>
           <span class="stat-value accent">${precioStr}</span>
         </div>` : ''}
         <div class="panel-stat">
-          <span class="stat-label">Estado</span>
+          <span class="stat-label">${OWN.copy.stats.estado}</span>
           <span class="stat-value${d?.estado === 'disponible' || !d ? ' accent' : ''}">${estadoLabel(d)}</span>
         </div>
       `;
@@ -2069,14 +2078,14 @@
       await loadDisponibilidad();
 
       // 2. Load floor labels JSON
-      const floorData = await fetch('content/data/nashira_floors.json').then(r => r.json());
+      const floorData = await fetch(OWN.floors.data).then(r => r.json());
       const labelMap  = new Map();
       floorData.floors.forEach(fd => labelMap.set(fd.nodeName, fd.label));
 
       // 3. Load GLB
       const gltf = await new Promise((resolve, reject) => {
         new GLTFLoader().load(
-          'content/models/Nashira_Modelo_Web.glb?v=11',
+          `${OWN.model.src}?v=${OWN.model.version}`,
           resolve,
           xhr => {
             if (xhr.lengthComputable)
@@ -2134,7 +2143,7 @@
         const floorNum = parts[1];
         const unitNum  = parts[2] || '01';
         const floorLbl = 'N' + floorNum.padStart(2, '0');
-        const unitLbl  = `Unidad ${parseInt(unitNum, 10)}`;
+        const unitLbl  = OWN.copy.unitLabel.replace('{n}', parseInt(unitNum, 10));
         const items = [];
         obj.traverse(child => {
           if (!child.isMesh) return;
@@ -2216,8 +2225,8 @@
         setTimeout(runFloorCascade, reducedMotion ? 0 : DIMMER_MS + 100);
         if (!reducedMotion) {
           controls.autoRotate      = true;
-          controls.autoRotateSpeed = 0.4;
-          setTimeout(() => { controls.autoRotate = false; }, 4500);
+          controls.autoRotateSpeed = OWN.camera.autoRotateSpeed;
+          setTimeout(() => { controls.autoRotate = false; }, OWN.camera.autoRotateDelayMs);
         }
       }, delay);
     }
@@ -2231,9 +2240,9 @@
     function openPanorama(nodeName) {
       const raw  = nodeName.replace(/^Obj_/, '').replace(/_\d+$/, '');
       const tipo = raw.split('-').pop().toLowerCase();    // 'CAT-Unit-10-02B' → '02b'
-      const url  = `content/panoramas/pano_tipo_${tipo}.jpg`;
+      const url  = OWN.panoramas.pattern.replace('{tipo}', tipo);
 
-      panoLabel.textContent = `Tipo ${tipo.toUpperCase()} · Vista 360°`;
+      panoLabel.textContent = OWN.copy.panoramaLabel.replace('{t}', tipo.toUpperCase());
       panoOverlay.classList.add('open');
       document.body.style.overflow = 'hidden';
 
@@ -2245,7 +2254,7 @@
         showControls: false,
         compass:     false,
         mouseZoom:   true,
-        hfov:        100,
+        hfov:        OWN.panoramas.hfov,
       });
     }
 
