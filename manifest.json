@@ -1,16 +1,29 @@
 {
-  "name": "Nashira · FORMA",
+  "name": "Nashira Residencial",
   "short_name": "Nashira",
-  "description": "Nashira — showroom interactivo. Un desarrollo residencial que se experimenta antes de habitarse.",
+  "description": "Nashira Residencial. Managua No. 907 — bajo la constelacion de Capricornio.",
   "start_url": "index.html",
   "scope": "./",
   "display": "fullscreen",
-  "display_override": ["fullscreen", "standalone"],
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
   "orientation": "any",
   "background_color": "#24262b",
   "theme_color": "#24262b",
   "icons": [
-    { "src": "content/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "content/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "content/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "content/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
