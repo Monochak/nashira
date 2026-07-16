@@ -1,22 +1,225 @@
 {
-  "schemaVersion": 1,
+  "nav": [
+    {
+      "key": "emotion",
+      "href": "emotion.html",
+      "label": "Emotion"
+    },
+    {
+      "key": "ownership",
+      "href": "ownership.html",
+      "label": "Ownership"
+    },
+    {
+      "key": "action",
+      "href": "action.html",
+      "label": "Action"
+    },
+    {
+      "key": "location",
+      "href": "location.html",
+      "label": "Location"
+    },
+    {
+      "key": "contact",
+      "href": "#",
+      "label": "Contacto",
+      "accent": true
+    }
+  ],
+  "meta": {
+    "index": {
+      "title": "Nashira Residencial",
+      "ogImage": "content/images/sequence/frame_000.jpg",
+      "description": "Nashira Residencial. Managua No. 907 — bajo la constelacion de Capricornio."
+    },
+    "action": {
+      "title": "Nashira · Action",
+      "ogImage": "content/images/sequence/frame_000.jpg",
+      "description": "Nashira. Da el siguiente paso: habla con un asesor."
+    },
+    "emotion": {
+      "title": "Nashira · Emotion",
+      "ogImage": "content/images/sequence/frame_000.jpg",
+      "description": "Nashira. Una secuencia cinematográfica sobre el movimiento y la quietud del espacio habitado."
+    },
+    "location": {
+      "title": "Nashira · Location",
+      "ogImage": "content/images/sequence/frame_000.jpg",
+      "description": "Nashira. El entorno del proyecto: avenidas, servicios y todo lo que está a minutos."
+    },
+    "ownership": {
+      "title": "Nashira · Ownership",
+      "ogImage": "content/images/sequence/frame_000.jpg",
+      "description": "Nashira. Explora la torre en 3D y descubre las unidades disponibles."
+    }
+  },
   "slug": "nashira",
   "brand": {
     "name": "Nashira",
-    "fullName": "Nashira Residencial",
-    "tagline": "Managua No. 907 — bajo la constelación de Capricornio.",
     "address": "Managua No. 907",
-    "themeColor": "#24262b",
     "favicon": "content/brand/favicon.svg",
+    "tagline": "Managua No. 907 — bajo la constelación de Capricornio.",
+    "fullName": "Nashira Residencial",
+    "ornament": "sparkles.js",
     "wordmark": "content/brand/wordmark.svg",
-    "constellation": "content/brand/constelacion.svg",
-    "ornament": "sparkles.js"
+    "themeColor": "#24262b",
+    "constellation": "content/brand/constelacion.svg"
+  },
+  "pages": {
+    "index": {
+      "mode": "splash",
+      "splash": {
+        "loaderMs": 4500,
+        "preloadVideo": "content/videos/video-01.mp4",
+        "preloadFrames": [
+          0,
+          60,
+          120,
+          180,
+          240
+        ]
+      },
+      "redirectTo": "emotion.html"
+    },
+    "action": {
+      "copy": {
+        "quote": "Good design is honest.",
+        "eyebrow": "Próximamente",
+        "heading": "Action"
+      }
+    },
+    "emotion": {
+      "intro": null,
+      "stops": [
+        {
+          "num": "01",
+          "body": "Every motion begins in stillness. The pause before a gesture holds all its potential energy.",
+          "frame": 0,
+          "label": "Origen",
+          "video": "content/videos/video-01.mp4"
+        },
+        {
+          "num": "02",
+          "body": "Stillness choosing direction. The invisible decision that precedes the visible act.",
+          "frame": 60,
+          "label": "Impulso",
+          "video": "content/videos/video-02.mp4"
+        },
+        {
+          "num": "03",
+          "body": "Force meeting resistance creates form. The point of maximum stress is where beauty lives.",
+          "frame": 120,
+          "label": "Tension",
+          "video": "content/videos/video-03.mp4"
+        },
+        {
+          "num": "04",
+          "body": "The moment tension becomes flow. Not an ending, but a transition into something new.",
+          "frame": 180,
+          "label": "Release",
+          "video": "content/videos/video-04.mp4"
+        },
+        {
+          "num": "05",
+          "body": "The line motion leaves in passing. Gesture becoming geometry before it dissolves.",
+          "frame": 240,
+          "label": "Trace",
+          "video": "content/videos/video-05.mp4"
+        }
+      ],
+      "theme": "grafito-fijo",
+      "engine": "frames",
+      "frames": {
+        "dir": "content/images/sequence/",
+        "ext": ".jpg",
+        "pad": 3,
+        "total": 300,
+        "prefix": "frame_"
+      },
+      "scrollPerFrame": 8
+    },
+    "location": {
+      "data": "content/data/nashira_location.json",
+      "radio": {
+        "max": 1500,
+        "min": 250,
+        "step": 50,
+        "default": 500
+      },
+      "tiles": {
+        "papel": "light_nolabels",
+        "grafito": "dark_nolabels",
+        "maxZoom": 19,
+        "attribution": "&copy; OpenStreetMap &copy; CARTO"
+      }
+    },
+    "ownership": {
+      "copy": {
+        "cta": "Hablar con un asesor",
+        "stats": {
+          "estado": "Estado",
+          "precio": "Precio",
+          "tipologia": "Tipología",
+          "superficie": "Superficie"
+        },
+        "estados": {
+          "vendida": "Vendida",
+          "apartada": "Apartada",
+          "disponible": "Disponible"
+        },
+        "formBack": "Volver",
+        "unitLabel": "Unidad {n}",
+        "backButton": "Torre",
+        "formErrors": {
+          "email": "Email válido requerido",
+          "required": "Campo requerido"
+        },
+        "formLabels": {
+          "email": "Email",
+          "nombre": "Nombre",
+          "telefono": "Teléfono"
+        },
+        "formSubmit": "Enviar solicitud",
+        "infoButton": "Info",
+        "successBody": "Tu solicitud fue enviada.\nUn asesor te contactará en breve.",
+        "loadingQuote": "The door handle is the handshake of the building.",
+        "successTitle": "Enviado",
+        "panoramaLabel": "Tipo {t} · Vista 360°",
+        "loadingEyebrow": "Torre Nashira · Nivel 10",
+        "loadingHeading": "Ownership",
+        "formPlaceholders": {
+          "email": "tu@email.com",
+          "nombre": "Tu nombre completo",
+          "telefono": "+52 000 000 0000"
+        }
+      },
+      "model": {
+        "src": "content/models/Nashira_Modelo_Web.glb",
+        "version": 11
+      },
+      "camera": {
+        "fov": 15,
+        "dimmerMs": 4000,
+        "autoRotateSpeed": 0.4,
+        "autoRotateDelayMs": 4500
+      },
+      "floors": {
+        "data": "content/data/nashira_floors.json"
+      },
+      "unitKey": "tipo",
+      "panoramas": {
+        "hfov": 100,
+        "enabled": true,
+        "pattern": "content/panoramas/pano_tipo_{tipo}.jpg"
+      },
+      "plantaBajaComercial": true
+    }
   },
   "tokens": {
-    "accent": "oklch(54.8% 0.157 35.7)",
     "fonts": {
-      "display": "Big Shoulders Display",
-      "body": "Barlow"
+      "body": "Barlow",
+      "display": "Big Shoulders Display"
     },
     "papel": {
       "bg": "oklch(94% 0.010 85)",
@@ -25,6 +228,15 @@
       "border": "oklch(85% 0.008 85)",
       "glassBg": "oklch(97% 0.006 85 / 0.78)",
       "glassBorder": "oklch(78% 0.010 85 / 0.55)"
+    },
+    "accent": "oklch(54.8% 0.157 35.7)",
+    "splash": {
+      "azul": "#3b4a84",
+      "cafe": "#6b5340",
+      "cielo": "#edf8fe",
+      "noche": "#121127",
+      "durazno": "#f7ae7b",
+      "terracota": "#ba4627"
     },
     "grafito": {
       "bg": "oklch(18% 0.008 250)",
@@ -35,230 +247,17 @@
       "glassBorder": "oklch(34% 0.012 250 / 0.55)"
     },
     "availability": {
-      "disponible": {
-        "css": "oklch(57.6% 0.098 270.8)",
-        "hex3d": "0x6375b3"
+      "vendida": {
+        "css": "oklch(72% 0.005 85)",
+        "hex3d": null
       },
       "apartada": {
         "css": "oklch(54.8% 0.157 35.7)",
         "hex3d": "0xba4627"
       },
-      "vendida": {
-        "css": "oklch(72% 0.005 85)",
-        "hex3d": null
-      }
-    },
-    "splash": {
-      "azul": "#3b4a84",
-      "cielo": "#edf8fe",
-      "durazno": "#f7ae7b",
-      "terracota": "#ba4627",
-      "cafe": "#6b5340",
-      "noche": "#121127"
-    }
-  },
-  "meta": {
-    "index": {
-      "title": "Nashira Residencial",
-      "description": "Nashira Residencial. Managua No. 907 — bajo la constelacion de Capricornio.",
-      "ogImage": "content/images/sequence/frame_000.jpg"
-    },
-    "emotion": {
-      "title": "Nashira · Emotion",
-      "description": "Nashira. Una secuencia cinematográfica sobre el movimiento y la quietud del espacio habitado.",
-      "ogImage": "content/images/sequence/frame_000.jpg"
-    },
-    "ownership": {
-      "title": "Nashira · Ownership",
-      "description": "Nashira. Explora la torre en 3D y descubre las unidades disponibles.",
-      "ogImage": "content/images/sequence/frame_000.jpg"
-    },
-    "location": {
-      "title": "Nashira · Location",
-      "description": "Nashira. El entorno del proyecto: avenidas, servicios y todo lo que está a minutos.",
-      "ogImage": "content/images/sequence/frame_000.jpg"
-    },
-    "action": {
-      "title": "Nashira · Action",
-      "description": "Nashira. Da el siguiente paso: habla con un asesor.",
-      "ogImage": "content/images/sequence/frame_000.jpg"
-    }
-  },
-  "nav": [
-    {
-      "key": "emotion",
-      "label": "Emotion",
-      "href": "emotion.html"
-    },
-    {
-      "key": "ownership",
-      "label": "Ownership",
-      "href": "ownership.html"
-    },
-    {
-      "key": "action",
-      "label": "Action",
-      "href": "action.html"
-    },
-    {
-      "key": "location",
-      "label": "Location",
-      "href": "location.html"
-    },
-    {
-      "key": "contact",
-      "label": "Contacto",
-      "href": "#",
-      "accent": true
-    }
-  ],
-  "pages": {
-    "index": {
-      "mode": "splash",
-      "redirectTo": "emotion.html",
-      "splash": {
-        "loaderMs": 4500,
-        "preloadFrames": [
-          0,
-          60,
-          120,
-          180,
-          240
-        ],
-        "preloadVideo": "content/videos/video-01.mp4"
-      }
-    },
-    "emotion": {
-      "engine": "frames",
-      "theme": "grafito-fijo",
-      "frames": {
-        "total": 300,
-        "dir": "content/images/sequence/",
-        "prefix": "frame_",
-        "pad": 3,
-        "ext": ".jpg"
-      },
-      "scrollPerFrame": 8,
-      "intro": null,
-      "stops": [
-        {
-          "frame": 0,
-          "video": "content/videos/video-01.mp4",
-          "num": "01",
-          "label": "Origin",
-          "body": "Every motion begins in stillness. The pause before a gesture holds all its potential energy."
-        },
-        {
-          "frame": 60,
-          "video": "content/videos/video-02.mp4",
-          "num": "02",
-          "label": "Impulse",
-          "body": "Stillness choosing direction. The invisible decision that precedes the visible act."
-        },
-        {
-          "frame": 120,
-          "video": "content/videos/video-03.mp4",
-          "num": "03",
-          "label": "Tension",
-          "body": "Force meeting resistance creates form. The point of maximum stress is where beauty lives."
-        },
-        {
-          "frame": 180,
-          "video": "content/videos/video-04.mp4",
-          "num": "04",
-          "label": "Release",
-          "body": "The moment tension becomes flow. Not an ending, but a transition into something new."
-        },
-        {
-          "frame": 240,
-          "video": "content/videos/video-05.mp4",
-          "num": "05",
-          "label": "Trace",
-          "body": "The line motion leaves in passing. Gesture becoming geometry before it dissolves."
-        }
-      ]
-    },
-    "ownership": {
-      "model": {
-        "src": "content/models/Nashira_Modelo_Web.glb",
-        "version": 11
-      },
-      "unitKey": "tipo",
-      "plantaBajaComercial": true,
-      "floors": {
-        "data": "content/data/nashira_floors.json"
-      },
-      "panoramas": {
-        "enabled": true,
-        "pattern": "content/panoramas/pano_tipo_{tipo}.jpg",
-        "hfov": 100
-      },
-      "camera": {
-        "fov": 15,
-        "autoRotateSpeed": 0.4,
-        "autoRotateDelayMs": 4500,
-        "dimmerMs": 4000
-      },
-      "copy": {
-        "loadingEyebrow": "Torre Nashira · Nivel 10",
-        "loadingHeading": "Ownership",
-        "loadingQuote": "The door handle is the handshake of the building.",
-        "backButton": "Torre",
-        "infoButton": "Info",
-        "cta": "Hablar con un asesor",
-        "formBack": "Volver",
-        "formLabels": {
-          "nombre": "Nombre",
-          "email": "Email",
-          "telefono": "Teléfono"
-        },
-        "formPlaceholders": {
-          "nombre": "Tu nombre completo",
-          "email": "tu@email.com",
-          "telefono": "+52 000 000 0000"
-        },
-        "formErrors": {
-          "required": "Campo requerido",
-          "email": "Email válido requerido"
-        },
-        "formSubmit": "Enviar solicitud",
-        "successTitle": "Enviado",
-        "successBody": "Tu solicitud fue enviada.\nUn asesor te contactará en breve.",
-        "stats": {
-          "tipologia": "Tipología",
-          "superficie": "Superficie",
-          "precio": "Precio",
-          "estado": "Estado"
-        },
-        "estados": {
-          "disponible": "Disponible",
-          "apartada": "Apartada",
-          "vendida": "Vendida"
-        },
-        "unitLabel": "Unidad {n}",
-        "panoramaLabel": "Tipo {t} · Vista 360°"
-      }
-    },
-    "location": {
-      "data": "content/data/nashira_location.json",
-      "tiles": {
-        "papel": "light_nolabels",
-        "grafito": "dark_nolabels",
-        "attribution": "&copy; OpenStreetMap &copy; CARTO",
-        "maxZoom": 19
-      },
-      "radio": {
-        "min": 250,
-        "max": 1500,
-        "step": 50,
-        "default": 500
-      }
-    },
-    "action": {
-      "copy": {
-        "eyebrow": "Próximamente",
-        "heading": "Action",
-        "quote": "Good design is honest."
+      "disponible": {
+        "css": "oklch(57.6% 0.098 270.8)",
+        "hex3d": "0x6375b3"
       }
     }
   },
@@ -266,5 +265,6 @@
     "supabaseUrl": "https://zpvdswqnhdqnpdtmgsmw.supabase.co",
     "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdmRzd3FuaGRxbnBkdG1nc213Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTMwODIsImV4cCI6MjA5Njg2OTA4Mn0.6i-ei2Z875hCce02sjE7g0byz9rD2wdLBq58qJUmtg8"
   },
-  "cacheVersion": 1
+  "cacheVersion": 1,
+  "schemaVersion": 1
 }
