@@ -14,9 +14,9 @@
   <meta name="description" content="Nashira. Explora la torre en 3D y descubre las unidades disponibles.">
   <link rel="icon" type="image/svg+xml" href="content/brand/favicon.svg">
   <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
-  <script src="site.js"></script>
-  <script src="theme.js"></script>
-  <script src="backend.js"></script>
+  <script src="site.js?v=1"></script>
+  <script src="theme.js?v=1"></script>
+  <script src="backend.js?v=1"></script>
   <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
   <meta property="og:title" content="Nashira · Ownership">
   <meta property="og:description" content="Nashira. Explora la torre en 3D y descubre las unidades disponibles.">
@@ -1189,7 +1189,11 @@
     const MAT_HOVER = new THREE.MeshLambertMaterial({ color: 0xfaf6ee, side: THREE.DoubleSide });
     const MAT_UNIT_HOVER = new THREE.MeshLambertMaterial({ color: parseInt(AVAIL.disponible.hex3d, 16), side: THREE.DoubleSide }); // disponible (ficha: tokens.availability)
     const MAT_UNIT_APARTADA = new THREE.MeshLambertMaterial({ color: parseInt(AVAIL.apartada.hex3d, 16), side: THREE.DoubleSide }); // apartada
-    const MAT_UNIT_SEL   = new THREE.MeshLambertMaterial({ color: parseInt(AVAIL.apartada.hex3d, 16), side: THREE.DoubleSide }); // selección = mismo acento que apartada
+    // selección = acento de la ficha; si el acento es oklch (canon), cae al color de apartada
+    const ACCENT_3D = (window.SITE.tokens.accent || '').startsWith('#')
+      ? parseInt('0x' + window.SITE.tokens.accent.slice(1), 16)
+      : parseInt(AVAIL.apartada.hex3d, 16);
+    const MAT_UNIT_SEL   = new THREE.MeshLambertMaterial({ color: ACCENT_3D, side: THREE.DoubleSide });
     const MAT_EDGE = new THREE.LineBasicMaterial({ color: 0x1a1820, transparent: true, opacity: IS_GRAFITO_AT_LOAD ? 0.22 : 0.3, depthWrite: false });
 
     // ── RAYCASTERS ───────────────────────────────────────────────────────────
@@ -2288,11 +2292,11 @@
     <span id="pano-label">Vista 360°</span>
   </div>
 
-  <script src="transition.js"></script>
-  <script src="rail.js"></script>
-  <script src="fullscreen.js"></script>
-  <script src="sparkles.js"></script>
-  <script src="pwa.js"></script>
+  <script src="transition.js?v=1"></script>
+  <script src="rail.js?v=1"></script>
+  <script src="fullscreen.js?v=1"></script>
+  <script src="sparkles.js?v=1"></script>
+  <script src="pwa.js?v=1"></script>
 
 </body>
 </html>
