@@ -1,9 +1,16 @@
-// site.js — canon FORMA: carga la ficha del proyecto (site.json) antes del primer paint.
+// site.js — canon FORMA: carga la ficha del proyecto antes del primer paint.
 // Debe incluirse como PRIMER <script> del <head>, sin defer/async: los motores de cada
 // página leen window.SITE de forma síncrona en cuanto arrancan.
 //
+// FICHA VIVA: la fuente de verdad es la nube (tabla `fichas` en Supabase, editable
+// desde el panel Contenido). Lo que se guarda en el panel impacta el sitio publicado
+// en la siguiente visita, sin republicar. El site.json empacado es el respaldo:
+// se usa si la nube no responde o si la ficha no pasa la verificación de cordura.
+// Los robots (Google/WhatsApp) leen el HTML estampado — metas/OG sí requieren publicar.
+//
 // Contrato:
 //   window.SITE          — la ficha completa (ver SITE-SCHEMA.md en 01_Admin)
+//   window.SITE_SOURCE   — 'nube' | 'nube-cache' | 'local' (diagnóstico)
 //   [data-site="a.b.c"]  — al DOMContentLoaded, el textContent del elemento se
 //                          reemplaza por el valor de esa ruta dentro de la ficha.
 //   SITE_GET('a.b.c')    — helper para leer rutas desde los motores.
@@ -11,7 +18,7 @@
 (function () {
   'use strict';
 
-  // XHR síncrono a propósito: site.json es pequeño (~7 KB) y necesitamos la ficha
+  // XHR síncrono a propósito: site.json es pequeño (~8 KB) y necesitamos la ficha
   // resuelta antes de que corran los scripts inline de la página (sin FOUC de copy).
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'site.json', false);
@@ -30,33 +37,41 @@
     return;
   }
 
-  // ── VISTA PREVIA ──────────────────────────────────────────────────────
-  // ?preview=ficha → el sitio lee el BORRADOR de la nube (tabla fichas) en
-  // vez de la ficha publicada. Persiste en la pestaña (sessionStorage) para
-  // sobrevivir la navegación del rail; ?preview=off o el letrero la apagan.
-  // Solo lectura: no escribe ni publica nada.
-  var q = new URLSearchParams(location.search);
-  if (q.get('preview') === 'off') { try { sessionStorage.removeItem('forma-preview'); } catch (e) {} }
-  var esPreview = q.get('preview') === 'ficha' ||
-    (function () { try { return sessionStorage.getItem('forma-preview') === '1'; } catch (e) { return false; } })();
+  // ── FICHA VIVA ────────────────────────────────────────────────────────
+  // Cache por pestaña (60 s): navegar entre páginas no repite la consulta;
+  // un editor que guarda en el panel ve su cambio al recargar en <1 min.
+  var LIVE_TTL_MS = 60000;
+  window.SITE_SOURCE = 'local';
+  try {
+    var cache = null;
+    try { cache = JSON.parse(sessionStorage.getItem('forma-ficha-viva')); } catch (e) {}
 
-  if (esPreview && SITE.backend) {
-    try {
-      var px = new XMLHttpRequest();
-      px.open('GET', SITE.backend.supabaseUrl + '/rest/v1/fichas?proyecto_slug=eq.' + SITE.slug + '&select=data', false);
-      px.setRequestHeader('apikey', SITE.backend.supabaseAnonKey);
-      px.setRequestHeader('Authorization', 'Bearer ' + SITE.backend.supabaseAnonKey);
-      px.send(null);
-      var rows = JSON.parse(px.responseText);
-      if (rows.length) {
-        SITE = rows[0].data;
-        try { sessionStorage.setItem('forma-preview', '1'); } catch (e) {}
-      } else { esPreview = false; }
-    } catch (e) {
-      console.warn('site.js: vista previa no disponible — ' + e.message);
-      esPreview = false;
+    if (cache && cache.slug === SITE.slug && (Date.now() - cache.t) < LIVE_TTL_MS) {
+      SITE = cache.data;
+      window.SITE_SOURCE = 'nube-cache';
+    } else if (SITE.backend) {
+      var lx = new XMLHttpRequest();
+      lx.open('GET', SITE.backend.supabaseUrl + '/rest/v1/fichas?proyecto_slug=eq.' +
+        SITE.slug + '&select=data', false);
+      lx.setRequestHeader('apikey', SITE.backend.supabaseAnonKey);
+      lx.setRequestHeader('Authorization', 'Bearer ' + SITE.backend.supabaseAnonKey);
+      lx.send(null);
+      var rows = JSON.parse(lx.responseText);
+      var f = rows.length ? rows[0].data : null;
+      // Verificación de cordura: debe ser la ficha de ESTE proyecto, del schema
+      // conocido y con la estructura mínima. Si no, se queda la empacada.
+      if (f && f.schemaVersion === 1 && f.slug === SITE.slug && f.brand && f.pages) {
+        SITE = f;
+        window.SITE_SOURCE = 'nube';
+        try {
+          sessionStorage.setItem('forma-ficha-viva',
+            JSON.stringify({ slug: f.slug, t: Date.now(), data: f }));
+        } catch (e) {}
+      }
     }
-  } else if (esPreview) { esPreview = false; }
+  } catch (e) {
+    console.warn('site.js: ficha viva no disponible — usando la empacada. ' + e.message);
+  }
 
   window.SITE = SITE;
 
@@ -66,6 +81,13 @@
     }, SITE);
   }
   window.SITE_GET = get;
+
+  // Acento en runtime: si la ficha trae un acento hex (elegido en el panel),
+  // pisa la variable estampada — así el color viaja sin republicar. El acento
+  // canon (oklch) se queda como esté estampado en el HTML.
+  if (SITE.tokens && typeof SITE.tokens.accent === 'string' && SITE.tokens.accent.charAt(0) === '#') {
+    document.documentElement.style.setProperty('--accent', SITE.tokens.accent);
+  }
 
   // Copy declarativo: <span data-site="pages.action.copy.heading"></span>
   // Placeholders:     <input data-site-placeholder="pages.ownership.copy.formPlaceholders.nombre">
@@ -79,25 +101,6 @@
     for (var j = 0; j < ph.length; j++) {
       var p = get(ph[j].getAttribute('data-site-placeholder'));
       if (typeof p === 'string') ph[j].setAttribute('placeholder', p);
-    }
-
-    // Vista previa: aplicar acento del borrador en runtime + letrero de salida
-    if (esPreview) {
-      if (SITE.tokens && SITE.tokens.accent) {
-        document.documentElement.style.setProperty('--accent', SITE.tokens.accent);
-      }
-      var aviso = document.createElement('button');
-      aviso.textContent = 'VISTA PREVIA · clic para salir';
-      aviso.setAttribute('style',
-        'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:99999;' +
-        'background:rgba(20,20,24,0.85);color:#fff;border:1px solid rgba(255,255,255,0.25);' +
-        'border-radius:999px;padding:6px 14px;font:600 10px/1 system-ui,sans-serif;' +
-        'letter-spacing:0.14em;cursor:pointer;backdrop-filter:blur(6px);');
-      aviso.addEventListener('click', function () {
-        try { sessionStorage.removeItem('forma-preview'); } catch (e) {}
-        location.href = location.pathname;
-      });
-      document.body.appendChild(aviso);
     }
   });
 })();

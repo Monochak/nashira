@@ -96,7 +96,7 @@
           "num": "01",
           "body": "Every motion begins in stillness. The pause before a gesture holds all its potential energy.",
           "frame": 0,
-          "label": "Origen",
+          "label": "Original",
           "video": "content/videos/video-01.mp4"
         },
         {
@@ -256,8 +256,8 @@
         "hex3d": "0xba4627"
       },
       "disponible": {
-        "css": "oklch(57.6% 0.098 270.8)",
-        "hex3d": "0x6375b3"
+        "css": "#ba4627",
+        "hex3d": "0xba4627"
       }
     }
   },
@@ -265,6 +265,7 @@
     "supabaseUrl": "https://zpvdswqnhdqnpdtmgsmw.supabase.co",
     "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdmRzd3FuaGRxbnBkdG1nc213Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTMwODIsImV4cCI6MjA5Njg2OTA4Mn0.6i-ei2Z875hCce02sjE7g0byz9rD2wdLBq58qJUmtg8"
   },
+  "siteUrl": "https://monochak.github.io/nashira/",
   "cacheVersion": 1,
   "schemaVersion": 1
 }

@@ -395,6 +395,14 @@
       }
       const P = data.proyecto;
 
+      // La ficha viva manda en coordenadas si las trae (editable en el panel):
+      // así un cambio de ubicación impacta el mapa sin regenerar el JSON.
+      if (LOC.coords && LOC.coords.lat != null) {
+        P.lat = LOC.coords.lat;
+        P.lng = LOC.coords.lng;
+        if (LOC.coords.zoom != null) P.zoom = LOC.coords.zoom;
+      }
+
       // ── Mapa
       const map = L.map('map', {
         center: [P.lat, P.lng],
