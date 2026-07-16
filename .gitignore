@@ -4,3 +4,5 @@ desktop.ini
 .claude/
 *.glb.log
 serve.bat
+# masters de producción — la web usa los .jpg
+content/panoramas/*.png
