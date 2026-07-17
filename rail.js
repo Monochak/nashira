@@ -106,6 +106,8 @@
       /* emotion: los chevrons laterales se ocultan; el stop-pill inferior
          (prev/next + contador) asume la navegación entre escenas */
       .nav-chevron { display: none !important; }
+      /* iconos ~15% más grandes en escritorio (móvil conserva su tamaño) */
+      .rail-icon svg { width: 23px; height: 23px; }
     }
 
     /* ── Móvil: barra inferior con iconos + labels ── */
