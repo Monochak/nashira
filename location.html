@@ -361,6 +361,19 @@
       stroke-linejoin: round !important;
       fill: none !important;
     }
+
+    /* ── Presentación de Location (película) ───────────────────────────── */
+    #radio-control { transition: opacity 0.5s ease; }
+    #radio-control.film-oculto { opacity: 0; pointer-events: none; }
+    .film-pop .mk-poi { animation: poiPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes poiPop { from { transform: scale(0); } to { transform: scale(1); } }
+    #loc-replay {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 0.95rem; line-height: 1;
+      padding: 0 0 0 2px; transition: color 0.2s;
+    }
+    #loc-replay:hover { color: var(--text); }
+    #loc-replay:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -402,6 +415,11 @@
         P.lng = LOC.coords.lng;
         if (LOC.coords.zoom != null) P.zoom = LOC.coords.zoom;
       }
+
+      // La ficha también manda en avenidas y puntos de interés si los trae
+      // (migrados al panel); las vialidades (geometría pesada) siguen en el JSON.
+      if (Array.isArray(LOC.vias) && LOC.vias.length) data.vias = LOC.vias;
+      if (Array.isArray(LOC.categorias) && LOC.categorias.length) data.categorias = LOC.categorias;
 
       // ── Mapa
       const map = L.map('map', {
@@ -467,7 +485,7 @@
           const m = L.marker([pt.lat, pt.lng], { icon: poiIcon });
           const dist = pt.distancia ? `<span class="tt-dist">${pt.distancia}</span>` : '';
           m.bindTooltip(`${pt.nombre}${dist}`, { direction: 'top', offset: [0, -8], className: 'tt' });
-          poiMarkers.push({ m, d: distM(pt.lat, pt.lng) });
+          poiMarkers.push({ m, d: distM(pt.lat, pt.lng), nombre: pt.nombre });
         });
       });
 
@@ -504,6 +522,7 @@
       const roadLines = (data.vialidades || []).map(v => {
         const pl = L.polyline([], { className: 'via-hl', interactive: false }).addTo(roadLayer);
         pl._coords = v.coords;
+        pl._clase  = v.clase || 'secondary';   // jerarquía para la presentación
         return pl;
       });
       function updateRoads(r) { roadLines.forEach(pl => pl.setLatLngs(clipRoad(pl._coords, r))); }
@@ -586,6 +605,99 @@
         clearTimeout(_rzT);
         _rzT = setTimeout(() => { map.invalidateSize(); fitToRadius(); }, 150);
       });
+
+      // ── PRESENTACIÓN DE LOCATION — película automática desde la ficha ──
+      // (pages.location.presentacion, editable en el panel). Secuencia:
+      // vialidades por jerarquía (con etiquetas de avenidas) → anillo →
+      // protagonistas uno a uno con su etiqueta. Cualquier gesto sobre el
+      // mapa la retira; el ↻ del control la repite. Con "menos movimiento"
+      // el mapa abre completo, sin película.
+      const PREZ = LOC.presentacion;
+      const hayPrez = !!(PREZ && PREZ.enabled !== false && (PREZ.puntos || []).length && !reduced);
+      let filmActiva = false, filmTimer = null, filmTooltipM = null;
+
+      const replayBtn = document.createElement('button');
+      replayBtn.id = 'loc-replay';
+      replayBtn.innerHTML = '&#8635;';
+      replayBtn.title = 'Repetir presentación';
+      replayBtn.setAttribute('aria-label', 'Repetir presentación');
+      if (hayPrez) document.getElementById('radio-control')?.appendChild(replayBtn);
+      replayBtn.addEventListener('click', () => { if (!filmActiva) filmCorrer(); });
+
+      function filmSet(el, visible, instante) {
+        if (!el) return;
+        el.style.transition = instante ? 'none' : 'opacity 0.8s ease';
+        el.style.opacity = visible ? '' : '0';
+      }
+      function filmOcultarTodo() {
+        poiMarkers.forEach(o => { if (map.hasLayer(o.m)) map.removeLayer(o.m); });
+        viaMarkers.forEach(v => filmSet(v.marker.getElement(), false, true));
+        filmSet(ring.getElement(), false, true);
+        filmSet(ringLabelMk.getElement(), false, true);
+        roadLines.forEach(pl => filmSet(pl.getElement(), false, true));
+        document.getElementById('radio-control')?.classList.add('film-oculto');
+      }
+      function filmFinal() {
+        filmActiva = false;
+        clearTimeout(filmTimer);
+        if (filmTooltipM) { filmTooltipM.closeTooltip(); filmTooltipM = null; }
+        viaMarkers.forEach(v => filmSet(v.marker.getElement(), true));
+        filmSet(ring.getElement(), true);
+        filmSet(ringLabelMk.getElement(), true);
+        roadLines.forEach(pl => filmSet(pl.getElement(), true));
+        applyRadius(ringRadius);           // repone los POIs según el radio
+        document.getElementById('radio-control')?.classList.remove('film-oculto');
+      }
+      const filmEspera = ms => new Promise(res => { filmTimer = setTimeout(res, ms); });
+
+      async function filmCorrer() {
+        filmActiva = true;
+        filmOcultarTodo();
+        await filmEspera(1200);            // el mapa termina de entrar
+        if (!filmActiva) return;
+
+        // salir al primer gesto del visitante sobre el mapa
+        const salir = () => { if (filmActiva) filmFinal(); };
+        map.once('dragstart', salir);
+        map.once('zoomstart', salir);
+        map.once('click', salir);
+
+        // 1) vialidades dibujándose por jerarquía; avenidas con la 1ª oleada
+        const oleadas = [['trunk', 'primary'], ['secondary'], ['tertiary']];
+        for (const clases of oleadas) {
+          if (!filmActiva) return;
+          roadLines.filter(pl => clases.includes(pl._clase))
+            .forEach(pl => filmSet(pl.getElement(), true));
+          if (clases.includes('primary'))
+            viaMarkers.forEach(v => filmSet(v.marker.getElement(), true));
+          await filmEspera(950);
+        }
+        if (!filmActiva) return;
+
+        // 2) el anillo caminable define el escenario
+        filmSet(ring.getElement(), true);
+        filmSet(ringLabelMk.getElement(), true);
+        await filmEspera(1100);
+
+        // 3) protagonistas, uno a la vez, con su etiqueta
+        const msPunto = PREZ.msPorPunto || 2000;
+        for (const p of (PREZ.puntos || [])) {
+          if (!filmActiva) return;
+          const o = poiMarkers.find(x => x.nombre === p.nombre);
+          if (!o) continue;
+          o.m.addTo(map);
+          const el = o.m.getElement();
+          if (el) el.classList.add('film-pop');
+          o.m.openTooltip();
+          filmTooltipM = o.m;
+          await filmEspera(msPunto);
+          o.m.closeTooltip();
+          filmTooltipM = null;
+        }
+        if (filmActiva) filmFinal();
+      }
+
+      if (hayPrez) filmCorrer();
     })();
   </script>
 

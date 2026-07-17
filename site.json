@@ -216,6 +216,52 @@
         "enabled": true,
         "pattern": "content/panoramas/pano_tipo_{tipo}.jpg"
       },
+      "presentacion": {
+        "pasos": [
+          {
+            "kpi": "10",
+            "num": "01",
+            "body": "(texto pendiente — captúralo en el panel)",
+            "label": "La torre",
+            "caption": "niveles",
+            "highlight": "todo"
+          },
+          {
+            "kpi": "",
+            "num": "02",
+            "body": "(texto pendiente — captúralo en el panel)",
+            "label": "La planta baja",
+            "caption": "comercio a pie de calle",
+            "highlight": "Planta-Baja"
+          },
+          {
+            "kpi": "02B",
+            "num": "03",
+            "body": "(texto pendiente — captúralo en el panel)",
+            "label": "Las tipologías",
+            "caption": "la tipología esquinera",
+            "highlight": "Unit-*-02B"
+          },
+          {
+            "kpi": "",
+            "num": "04",
+            "body": "(texto pendiente — captúralo en el panel)",
+            "label": "La azotea",
+            "caption": "amenidades bajo el cielo",
+            "highlight": "Azotea"
+          },
+          {
+            "kpi": "",
+            "num": "05",
+            "body": "(texto pendiente — captúralo aquí)",
+            "label": "(paso 5 pendiente)",
+            "caption": "",
+            "highlight": "none"
+          }
+        ],
+        "enabled": true,
+        "autoStart": true
+      },
       "plantaBajaComercial": true
     }
   },
