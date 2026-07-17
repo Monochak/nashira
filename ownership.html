@@ -918,6 +918,104 @@
       .panel-header { padding: 28px 24px 20px; }
       #panel-close  { top: 20px; right: 18px; }
     }
+
+    /* ── Presentación guiada (pasos desde la ficha) ─────────────────────── */
+    #prez-overlay {
+      position: fixed;
+      right: 110px;   /* deja libre el rail (right: 20px) */
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 30;
+      width: min(500px, 40vw);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #prez-overlay.visible { opacity: 1; }
+    .prez-text { position: relative; opacity: 0; transition: opacity 0.5s ease; }
+    .prez-text.in { opacity: 1; }
+    .prez-text::before {
+      content: '';
+      position: absolute;
+      inset: -20px -26px;
+      z-index: -1;
+      background: oklch(from var(--bg) l c h / 0.55);
+      backdrop-filter: blur(6px) saturate(0.8);
+      -webkit-backdrop-filter: blur(6px) saturate(0.8);
+      border-radius: 16px;
+    }
+    .prez-num {
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+    }
+    .prez-kpi {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 5vw, 4.5rem);
+      font-weight: 700; line-height: 1;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+    .prez-caption {
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--muted); margin: 7px 0 16px;
+    }
+    .prez-body {
+      font-size: 1.17rem; line-height: 1.7; color: var(--text);
+      letter-spacing: 0.01em; text-wrap: pretty; margin: 0;
+    }
+    #prez-pill {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      z-index: 30; display: flex; align-items: center; gap: 4px;
+      padding: 6px 8px 6px 14px;
+      background: var(--glass-bg); border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-radius: 100px; white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+    }
+    #prez-pill.visible { opacity: 1; pointer-events: auto; }
+    #prez-counter {
+      font-size: 0.625rem; font-weight: 600; letter-spacing: 0.14em;
+      color: var(--muted); min-width: 40px; text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    #prez-pill .pill-btn {
+      background: none; border: none; cursor: pointer; padding: 5px 10px;
+      color: var(--text); opacity: 0.45; transition: opacity 0.2s;
+      display: flex; align-items: center; border-radius: 100px;
+    }
+    #prez-pill .pill-btn:hover { opacity: 1; }
+    #prez-pill .pill-btn:disabled { opacity: 0.18; cursor: default; pointer-events: none; }
+    #prez-pill .pill-btn svg {
+      width: 14px; height: 14px; stroke: currentColor; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round; fill: none; display: block;
+    }
+    #prez-resume {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      z-index: 30;
+      background: var(--glass-bg); border: 1px solid var(--glass-border);
+      backdrop-filter: blur(14px) saturate(1.3);
+      -webkit-backdrop-filter: blur(14px) saturate(1.3);
+      color: var(--muted);
+      font-family: var(--font-body); font-size: 0.5625rem; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      padding: 8px 16px; border-radius: 100px; cursor: pointer;
+      opacity: 0; pointer-events: none; transition: opacity 0.4s ease, color 0.2s;
+    }
+    #prez-resume.visible { opacity: 1; pointer-events: auto; }
+    #prez-resume:hover { color: var(--text); }
+    #prez-resume:focus-visible, #prez-pill .pill-btn:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 3px;
+    }
+    @media (max-width: 767px) {
+      #prez-overlay {
+        left: 16px; right: 16px; top: auto;
+        bottom: calc(126px + env(safe-area-inset-bottom));
+        transform: none; width: auto;
+      }
+      .prez-kpi { font-size: 2.5rem; }
+      .prez-body { font-size: 1.05rem; }
+      #prez-pill, #prez-resume { bottom: calc(76px + env(safe-area-inset-bottom)); }
+    }
   </style>
 </head>
 <body>
@@ -1067,6 +1165,8 @@
     let panelOpen       = false;
     let dimmerStart     = null;
     const DIMMER_MS     = OWN.camera.dimmerMs;
+    let prezHighlightOn = false;   // presentación guiada: bloquea hover mientras ilumina
+    let prezExitHook    = null;    // la presentación se retira al seleccionar piso/unidad
     let glbModel        = null;   // referencia al modelo completo para hide-all
     let panelState      = 'detail'; // 'detail' | 'form' | 'success'
     let currentUnitData = null;
@@ -1283,6 +1383,7 @@
       );
     }
     function highlightFloor3D(fi) {
+      if (prezHighlightOn) return;
       if (fi === null || !floorGroups[fi]) return;
       const fg = floorGroups[fi];
       (fg.units || []).forEach(u => {
@@ -1295,6 +1396,7 @@
       });
     }
     function clearFloor3DHover(fi) {
+      if (prezHighlightOn) return;
       if (fi === null || !floorGroups[fi]) return;
       const fg = floorGroups[fi];
       fg.items.forEach(mesh => { mesh.material = MAT_BASE; });
@@ -1349,6 +1451,7 @@
     // ── SELECT FLOOR ─────────────────────────────────────────────────────────
     function selectFloor(fi) {
       if (isTransitioning) return;
+      if (prezExitHook) prezExitHook();
       if (panelOpen) closePanel();
 
       // Limpiar hover antes de transicionar
@@ -1700,6 +1803,7 @@
     // ── SELECT UNIT ──────────────────────────────────────────────────────────
     function selectUnit(unit) {
       if (isTransitioning || selectedFloor === null || !unit) return;
+      if (prezExitHook) prezExitHook();
       selectedUnit = unit;
 
       // Ocultar todo el modelo — mostrar únicamente la unidad seleccionada
@@ -2225,8 +2329,17 @@
         setTimeout(() => {
           loadingOverlay.classList.add('hidden');   // texto escala y se disuelve 200ms después
         }, reducedMotion ? 0 : 200);
-        // Cascada de niveles: arranca cuando el dimmer terminó y la torre está iluminada
-        setTimeout(runFloorCascade, reducedMotion ? 0 : DIMMER_MS + 100);
+        // Intro: presentación guiada si la ficha la trae activa; si no, cascada de niveles
+        const prezCfg    = OWN.presentacion;
+        const prezActiva = !!(prezCfg && prezCfg.enabled !== false && (prezCfg.pasos || []).length);
+        if (prezActiva) {
+          // La presentación ES la intro: la lista de pisos se revela junta, sin cascada
+          document.querySelectorAll('#floor-list .floor-item')
+            .forEach(it => it.classList.add('revealed'));
+          setTimeout(() => initPrez(prezCfg), reducedMotion ? 0 : DIMMER_MS + 100);
+        } else {
+          setTimeout(runFloorCascade, reducedMotion ? 0 : DIMMER_MS + 100);
+        }
         if (!reducedMotion) {
           controls.autoRotate      = true;
           controls.autoRotateSpeed = OWN.camera.autoRotateSpeed;
@@ -2273,12 +2386,156 @@
     panoClose.addEventListener('click', closePanorama);
     panoOverlay.addEventListener('keydown', e => { if (e.key === 'Escape') closePanorama(); });
 
+    /* =====================================================
+       PRESENTACIÓN GUIADA — pasos desde la ficha
+       (pages.ownership.presentacion, editable en el panel).
+       highlight = selectores por nombre separados por coma:
+         "N03" / "Floor-03"   → un piso completo
+         "Unit-*-02B"         → una tipología (el * no cruza guiones)
+         "Azotea"             → la azotea
+         "Planta-Baja" / "N01"→ la planta baja comercial
+         "Nombre-De-Capa"     → cualquier nodo nombrado del GLB
+         "none" | "nada" | "todo" → sin resaltado
+       Tocar piso/unidad la retira; el botón ▶ la retoma.
+    ===================================================== */
+    function prezResolveSelector(sel) {
+      const meshes = [];
+      const push = arr => (arr || []).forEach(m => { if (m && m.isMesh) meshes.push(m); });
+      const escapa = t => t.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+      String(sel || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean).forEach(t => {
+        if (t === 'none' || t === 'nada' || t === 'todo') return;
+        let hit = false;
+        // pisos por label (N03) o nombre de nodo (Floor-03)
+        floorGroups.forEach(fg => {
+          if (fg.label.toLowerCase() === t || (fg.nodeName || '').toLowerCase() === t) {
+            push(fg.items);
+            (fg.units || []).forEach(u => push(u.items));
+            hit = true;
+          }
+        });
+        if (t === 'azotea' || t === 'floor-azotea') { push(azoteaItems); hit = true; }
+        if (t === 'n01' || t === 'floor-01' || t === 'planta-baja' || t === 'plantabaja') {
+          push(plantaBajaItems); hit = true;
+        }
+        // unidades por patrón: unit-*-02b
+        if (t.startsWith('unit-')) {
+          const re = new RegExp('^' + escapa(t).replace(/\*/g, '[^-]*') + '$', 'i');
+          floorGroups.forEach(fg => (fg.units || []).forEach(u => {
+            if (re.test(u.id)) { push(u.items); hit = true; }
+          }));
+        }
+        // cualquier nodo del GLB con ese nombre (capas futuras: Terraza, Alberca…)
+        if (!hit && glbModel) {
+          const re = new RegExp('^' + escapa(t).replace(/\*/g, '.*') + '$', 'i');
+          glbModel.traverse(o => {
+            if (o.name && re.test(o.name.replace(/^Obj_/, '').replace(/_\d+$/, ''))) {
+              o.traverse(c => { if (c.isMesh) meshes.push(c); });
+            }
+          });
+        }
+      });
+      return meshes;
+    }
+
+    function initPrez(cfg) {
+      const steps = cfg.pasos || [];
+      if (!steps.length) return;
+
+      const overlay = document.getElementById('prez-overlay');
+      const pill    = document.getElementById('prez-pill');
+      const counter = document.getElementById('prez-counter');
+      const btnPrev = document.getElementById('prez-prev');
+      const btnNext = document.getElementById('prez-next');
+      const resume  = document.getElementById('prez-resume');
+      let cur = 0, active = false;
+
+      function setMaterialsBase() {
+        floorGroups.forEach(fg => {
+          fg.items.forEach(m => { m.material = MAT_BASE; });
+          (fg.units || []).forEach(u => u.items.forEach(m => { m.material = MAT_BASE; }));
+        });
+        azoteaItems.forEach(m => { m.material = MAT_BASE; });
+        plantaBajaItems.forEach(m => { m.material = MAT_BASE; });
+      }
+
+      function applyHighlight(sel) {
+        prezHighlightOn = false;          // permite pintar base sin bloqueo
+        setMaterialsBase();
+        const meshes = prezResolveSelector(sel);
+        prezHighlightOn = meshes.length > 0;
+        meshes.forEach(m => { m.material = MAT_UNIT_SEL; });
+      }
+
+      function renderStep(i) {
+        cur = i;
+        const s = steps[i];
+        const num = s.num || String(i + 1).padStart(2, '0');
+        overlay.innerHTML =
+          '<div class="prez-text">' +
+          `<div class="prez-num">${num} · ${s.label || ''}</div>` +
+          (s.kpi ? `<div class="prez-kpi">${s.kpi}</div>` : '') +
+          (s.caption ? `<div class="prez-caption">${s.caption}</div>` : '') +
+          (s.body ? `<p class="prez-body">${s.body}</p>` : '') +
+          '</div>';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const t = overlay.firstElementChild;
+          if (t) t.classList.add('in');
+        }));
+        counter.textContent = `${i + 1} / ${steps.length}`;
+        btnPrev.disabled = i === 0;
+        btnNext.disabled = i === steps.length - 1;
+        applyHighlight(s.highlight || 'none');
+      }
+
+      function enter() {
+        active = true;
+        overlay.classList.add('visible');
+        pill.classList.add('visible');
+        resume.classList.remove('visible');
+        renderStep(cur);
+      }
+      function exit() {
+        if (!active) return;
+        active = false;
+        prezHighlightOn = false;
+        setMaterialsBase();
+        overlay.classList.remove('visible');
+        pill.classList.remove('visible');
+        resume.classList.add('visible');
+      }
+
+      btnPrev.addEventListener('click', () => { if (cur > 0) renderStep(cur - 1); });
+      btnNext.addEventListener('click', () => { if (cur < steps.length - 1) renderStep(cur + 1); });
+      resume.addEventListener('click', enter);
+
+      // Convive con la órbita y el zoom; se retira al seleccionar piso/unidad
+      prezExitHook = exit;
+
+      if (cfg.autoStart !== false) enter();
+      else resume.classList.add('visible');
+    }
+
     init().catch(err => {
       const lbl = document.querySelector('#loading-overlay .lo-quote');
       if (lbl) lbl.textContent = 'Error al cargar: ' + err.message;
       console.error(err);
     });
   </script>
+
+  <!-- ── PRESENTACIÓN GUIADA ───────────────────────────────────────────────
+       Pasos desde la ficha (pages.ownership.presentacion, editable en el
+       panel). Cada paso ilumina piezas del modelo vía selectores por nombre. -->
+  <div id="prez-overlay" aria-live="polite"></div>
+  <div id="prez-pill" aria-label="Navegación de la presentación">
+    <button class="pill-btn" id="prez-prev" aria-label="Paso anterior">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span id="prez-counter">1 / 1</span>
+    <button class="pill-btn" id="prez-next" aria-label="Paso siguiente">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <button id="prez-resume" aria-label="Retomar presentación">▶ Presentación</button>
 
   <!-- ── PANORAMA OVERLAY ─────────────────────────────────────────────────── -->
   <div id="pano-overlay" role="dialog" aria-label="Vista panorámica de la unidad" aria-modal="true">
