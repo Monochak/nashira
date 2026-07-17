@@ -52,8 +52,10 @@
       justify-content: flex-end;
       gap: 12px;
       text-decoration: none;
-      color: oklch(52% 0.008 85);
-      transition: color 0.2s ease-out;
+      /* todos los iconos en acento; el inactivo a media intensidad, el activo pleno */
+      color: var(--accent, oklch(54.8% 0.157 35.7));
+      opacity: 0.55;
+      transition: opacity 0.2s ease-out;
     }
     .rail-icon {
       width: 44px;
@@ -85,25 +87,20 @@
       transition: opacity 0.25s ease-out, transform 0.25s ease-out;
       pointer-events: none;
     }
-    .rail-item:hover { color: oklch(28% 0.006 85); }
+    .rail-item:hover { opacity: 1; }
     .rail-item:hover .rail-label,
     .rail-item:focus-visible .rail-label { opacity: 1; transform: translateX(0); }
-    .rail-item.active { color: var(--accent, oklch(54.8% 0.157 35.7)); }
+    .rail-item.active { opacity: 1; }
     .rail-item:focus-visible {
+      opacity: 1;
       outline: 2px solid var(--accent, oklch(54.8% 0.157 35.7));
       outline-offset: 3px;
       border-radius: 50%;
     }
-    .rail-contact { color: var(--accent, oklch(54.8% 0.157 35.7)); margin-top: 14px; }
-    .rail-contact:hover { color: color-mix(in oklab, var(--accent, oklch(54.8% 0.157 35.7)), black 14%); }
+    .rail-contact { opacity: 1; margin-top: 14px; }
 
-    /* Tema grafito */
-    html[data-theme='grafito'] .rail-item          { color: oklch(48% 0.01 250); }
-    html[data-theme='grafito'] .rail-item:hover    { color: oklch(82% 0.005 250); }
-    html[data-theme='grafito'] .rail-label         { color: oklch(93% 0.005 250); }
-    html[data-theme='grafito'] .rail-item.active   { color: var(--accent, oklch(54.8% 0.157 35.7)); }
-    html[data-theme='grafito'] .rail-contact       { color: var(--accent, oklch(54.8% 0.157 35.7)); }
-    html[data-theme='grafito'] .rail-contact:hover { color: color-mix(in oklab, var(--accent, oklch(54.8% 0.157 35.7)), white 18%); }
+    /* Tema grafito — el acento es igual en ambos temas; solo el label cambia */
+    html[data-theme='grafito'] .rail-label { color: oklch(93% 0.005 250); }
 
     @media (min-width: 768px) {
       /* emotion: los chevrons laterales se ocultan; el stop-pill inferior

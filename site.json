@@ -20,14 +20,14 @@
       "key": "location",
       "href": "location.html",
       "label": "Location",
-      "enabled": false
+      "enabled": true
     },
     {
       "key": "contact",
       "href": "#",
       "label": "Contacto",
       "accent": true,
-      "enabled": false
+      "enabled": true
     }
   ],
   "meta": {
@@ -232,7 +232,7 @@
       "glassBg": "oklch(97% 0.006 85 / 0.78)",
       "glassBorder": "oklch(78% 0.010 85 / 0.55)"
     },
-    "accent": "oklch(54.8% 0.157 35.7)",
+    "accent": "#b74d31",
     "splash": {
       "azul": "#3b4a84",
       "cafe": "#6b5340",
@@ -255,12 +255,12 @@
         "hex3d": null
       },
       "apartada": {
-        "css": "#d6a829",
-        "hex3d": "0xd6a829"
+        "css": "#c8745f",
+        "hex3d": "0xc8745f"
       },
       "disponible": {
-        "css": "#ba4627",
-        "hex3d": "0xba4627"
+        "css": "#b74d31",
+        "hex3d": "0xb74d31"
       }
     }
   },
