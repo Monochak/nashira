@@ -13,18 +13,21 @@
     {
       "key": "action",
       "href": "action.html",
-      "label": "Action"
+      "label": "Action",
+      "enabled": false
     },
     {
       "key": "location",
       "href": "location.html",
-      "label": "Location"
+      "label": "Location",
+      "enabled": false
     },
     {
       "key": "contact",
       "href": "#",
       "label": "Contacto",
-      "accent": true
+      "accent": true,
+      "enabled": false
     }
   ],
   "meta": {
@@ -94,7 +97,7 @@
       "stops": [
         {
           "num": "01",
-          "body": "Una nueva estrella se levanta sobre Guadalajara. Se llama Nashira, y llegó para quedarse.",
+          "body": "Una nueva estrella se levanta sobre Guadalajara. Se llama Nashira, y llegó para quedarse. ",
           "frame": 0,
           "label": "ENTÉRATE",
           "video": "content/videos/video-01.mp4"
