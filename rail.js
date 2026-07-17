@@ -52,6 +52,7 @@
       justify-content: flex-end;
       gap: 12px;
       text-decoration: none;
+      position: relative; /* ancla para el label absoluto en emotion */
       /* todos los iconos en acento; el inactivo a media intensidad, el activo pleno */
       color: var(--accent, oklch(54.8% 0.157 35.7));
       opacity: 0.55;
@@ -108,6 +109,35 @@
       .nav-chevron { display: none !important; }
       /* iconos ~15% más grandes en escritorio (móvil conserva su tamaño) */
       .rail-icon svg { width: 23px; height: 23px; }
+
+      /* Emotion: respaldo de vidrio tras el rail para leerlo sobre cualquier
+         fotograma. Los labels pasan a absolutos (no ensanchan el rail) con su
+         propia pastillita de vidrio al hover. */
+      #rail.rail-on-emotion {
+        padding: 10px 7px;
+        border-radius: 999px;
+        background: var(--glass-bg, oklch(22% 0.01 250 / 0.80));
+        border: 1px solid var(--glass-border, oklch(34% 0.012 250 / 0.55));
+        backdrop-filter: blur(16px) saturate(1.3);
+        -webkit-backdrop-filter: blur(16px) saturate(1.3);
+        box-shadow: 0 8px 30px oklch(0% 0 0 / 0.28);
+      }
+      #rail.rail-on-emotion .rail-label {
+        position: absolute;
+        right: calc(100% + 8px);
+        top: 50%;
+        transform: translateY(-50%) translateX(6px);
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--glass-bg, oklch(22% 0.01 250 / 0.80));
+        border: 1px solid var(--glass-border, oklch(34% 0.012 250 / 0.55));
+        backdrop-filter: blur(12px) saturate(1.3);
+        -webkit-backdrop-filter: blur(12px) saturate(1.3);
+      }
+      #rail.rail-on-emotion .rail-item:hover .rail-label,
+      #rail.rail-on-emotion .rail-item:focus-visible .rail-label {
+        transform: translateY(-50%) translateX(0);
+      }
     }
 
     /* ── Móvil: barra inferior con iconos + labels ── */
@@ -161,6 +191,8 @@
   const nav = document.createElement('nav');
   nav.id = 'rail';
   nav.setAttribute('aria-label', 'Navegación principal');
+  // Emotion: fondo cambiante (frames/video) → el rail lleva respaldo de vidrio.
+  if (PAGE === 'emotion.html') nav.classList.add('rail-on-emotion');
   nav.innerHTML = ITEMS.map(it => {
     const active = PAGE === it.href.toLowerCase();
     return `<a class="rail-item${active ? ' active' : ''}${it.cls ? ' ' + it.cls : ''}"` +
