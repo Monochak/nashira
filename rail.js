@@ -14,13 +14,22 @@
     contact:   '<svg viewBox="0 0 24 24"><path d="M12 4l8 8-8 8-8-8z"/></svg>'
   };
 
-  const ITEMS = [
+  // La navegación la define la ficha (window.SITE.nav, editable en el panel:
+  // Secciones visibles). Una sección con enabled:false no aparece en el rail.
+  // El fallback cubre el caso de que la ficha no cargara.
+  const FALLBACK = [
     { key: 'emotion',   label: 'Emotion',   href: 'emotion.html'   },
     { key: 'ownership', label: 'Ownership', href: 'ownership.html' },
     { key: 'action',    label: 'Action',    href: 'action.html'    },
     { key: 'location',  label: 'Location',  href: 'location.html'  },
-    { key: 'contact',   label: 'Contacto',  href: '#', cls: 'rail-contact' }
+    { key: 'contact',   label: 'Contacto',  href: '#', accent: true }
   ];
+  const NAV = (window.SITE && Array.isArray(window.SITE.nav) && window.SITE.nav.length)
+    ? window.SITE.nav : FALLBACK;
+  const ITEMS = NAV
+    .filter(it => it.enabled !== false)
+    .map(it => ({ key: it.key, label: it.label, href: it.href,
+                  cls: it.accent ? 'rail-contact' : it.cls }));
 
   const style = document.createElement('style');
   style.textContent = `

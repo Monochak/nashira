@@ -75,6 +75,24 @@
 
   window.SITE = SITE;
 
+  // ── GUARDÁN DE SECCIONES ──────────────────────────────────────────────
+  // Si la sección actual fue ocultada en el panel (nav enabled:false), saltar
+  // a la primera sección visible ANTES de pintar — nadie entra por link directo.
+  (function () {
+    var nav = SITE.nav;
+    if (!Array.isArray(nav)) return;
+    var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    var actual = nav.filter(function (it) {
+      return it.href && it.href.toLowerCase() === page;
+    })[0];
+    if (actual && actual.enabled === false) {
+      var primera = nav.filter(function (it) {
+        return it.enabled !== false && it.href && it.href !== '#';
+      })[0];
+      if (primera) location.replace(primera.href);
+    }
+  })();
+
   function get(path) {
     return path.split('.').reduce(function (o, k) {
       return (o == null) ? undefined : o[k];

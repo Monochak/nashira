@@ -94,37 +94,37 @@
       "stops": [
         {
           "num": "01",
-          "body": "Every motion begins in stillness. The pause before a gesture holds all its potential energy.",
+          "body": "Una nueva estrella se levanta sobre Guadalajara. Se llama Nashira, y llegó para quedarse.",
           "frame": 0,
-          "label": "Original",
+          "label": "ENTÉRATE",
           "video": "content/videos/video-01.mp4"
         },
         {
           "num": "02",
-          "body": "Stillness choosing direction. The invisible decision that precedes the visible act.",
+          "body": "Es el pulso de la ciudad, desde Nashira. La zona más vibrante de Guadalajara, latiendo a tu alrededor.",
           "frame": 60,
-          "label": "Impulso",
+          "label": "SIÉNTELO",
           "video": "content/videos/video-02.mp4"
         },
         {
           "num": "03",
-          "body": "Force meeting resistance creates form. The point of maximum stress is where beauty lives.",
+          "body": "El atardecer, a la altura de tu terraza. Siete niveles arriba, el cielo se vuelve tuyo.",
           "frame": 120,
-          "label": "Tension",
+          "label": "IMAGÍNALO",
           "video": "content/videos/video-03.mp4"
         },
         {
           "num": "04",
-          "body": "The moment tension becomes flow. Not an ending, but a transition into something new.",
+          "body": "Encontraste la señal que buscabas. Cruza el umbral: a Nashira no se llega, se regresa.",
           "frame": 180,
-          "label": "Release",
+          "label": "BUENAS NOTICIAS",
           "video": "content/videos/video-04.mp4"
         },
         {
           "num": "05",
-          "body": "The line motion leaves in passing. Gesture becoming geometry before it dissolves.",
+          "body": "La vida te espera en la planta baja: un café, un encuentro, tu rutina al pie de casa.",
           "frame": 240,
-          "label": "Trace",
+          "label": "NO ESPERES MÁS",
           "video": "content/videos/video-05.mp4"
         }
       ],
@@ -183,10 +183,10 @@
         "formSubmit": "Enviar solicitud",
         "infoButton": "Info",
         "successBody": "Tu solicitud fue enviada.\nUn asesor te contactará en breve.",
-        "loadingQuote": "The door handle is the handshake of the building.",
+        "loadingQuote": "Esta es la señal  que estabas buscando, en Nashira esta  el departamento  de tus sueños.",
         "successTitle": "Enviado",
         "panoramaLabel": "Tipo {t} · Vista 360°",
-        "loadingEyebrow": "Torre Nashira · Nivel 10",
+        "loadingEyebrow": "Nashira",
         "loadingHeading": "Ownership",
         "formPlaceholders": {
           "email": "tu@email.com",
@@ -252,8 +252,8 @@
         "hex3d": null
       },
       "apartada": {
-        "css": "oklch(54.8% 0.157 35.7)",
-        "hex3d": "0xba4627"
+        "css": "#d6a829",
+        "hex3d": "0xd6a829"
       },
       "disponible": {
         "css": "#ba4627",
@@ -265,7 +265,7 @@
     "supabaseUrl": "https://zpvdswqnhdqnpdtmgsmw.supabase.co",
     "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdmRzd3FuaGRxbnBkdG1nc213Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTMwODIsImV4cCI6MjA5Njg2OTA4Mn0.6i-ei2Z875hCce02sjE7g0byz9rD2wdLBq58qJUmtg8"
   },
-  "siteUrl": "https://monochak.github.io/nashira/",
+  "siteUrl": "https://monolitoestudio.com/nashira",
   "cacheVersion": 1,
   "schemaVersion": 1
 }
