@@ -130,9 +130,10 @@
       border-radius: 50%;
       background: var(--poi-fill);
       border: 2px solid var(--poi);
-      transition: transform 0.15s;
+      transition: transform 0.15s, background 0.15s, border-color 0.15s;
     }
     .mk-poi:hover { transform: scale(1.4); }
+    .mk-poi.hl { transform: scale(1.7); background: var(--accent); border-color: var(--accent); }
 
     /* anillo de distancia caminable (radio configurable) */
     .ring-radio {
@@ -485,6 +486,8 @@
     }
     .pindex-item.in { opacity: 0.92; transform: translateX(0); }
     .pindex-item.oculto { display: none; }
+    .pindex-item { pointer-events: auto; cursor: pointer; }
+    .pindex-item.hl { opacity: 1; color: var(--accent); }
     .pindex-dist { color: var(--accent); font-weight: 700; margin-left: 6px; }
     #poi-lineas {
       position: fixed;
@@ -501,6 +504,7 @@
       transition: stroke-opacity 0.6s ease;
     }
     #poi-lineas line.in { stroke-opacity: 0.4; }
+    #poi-lineas line.hl { stroke-opacity: 0.95; stroke-width: 2; }
     @media (max-width: 767px) {
       #poi-indice, #poi-lineas { display: none; }
     }
@@ -767,7 +771,18 @@
         idxSvg.appendChild(line);
         const item = { el, line, o };
         idxItems.set(o.nombre, item);
+        // hover / clic: resalta etiqueta + línea + punto en el mapa
+        el.addEventListener('mouseenter', () => idxResaltar(item, true));
+        el.addEventListener('mouseleave', () => idxResaltar(item, false));
+        el.addEventListener('click', () => { if (map.hasLayer(o.m)) map.panTo(o.m.getLatLng()); });
         return item;
+      }
+      function idxResaltar(item, on) {
+        item.el.classList.toggle('hl', on);
+        item.line.classList.toggle('hl', on);
+        const mk = item.o.m.getElement();
+        const poi = mk && mk.querySelector('.mk-poi');
+        if (poi) poi.classList.toggle('hl', on);
       }
       function idxMostrar(item) {
         item.el.classList.remove('oculto');

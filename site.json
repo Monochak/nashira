@@ -311,33 +311,73 @@
           {
             "lat": 20.695562404207593,
             "lng": -103.37547630071641,
-            "nombre": "The American School"
+            "nombre": "The American School",
+            "categoria": "Educación"
           },
           {
             "lat": 20.691628037598505,
             "lng": -103.37009042501451,
-            "nombre": "Hospital México Americano"
+            "nombre": "Hospital México Americano",
+            "categoria": "Salud"
           },
           {
             "lat": 20.694585643863626,
             "lng": -103.37580621242525,
-            "nombre": "Midtown Jalisco"
+            "nombre": "Midtown Jalisco",
+            "categoria": "Comercio"
           },
           {
             "lat": 20.69586349948895,
             "lng": -103.37319642305376,
-            "nombre": "Glorieta Colón"
+            "nombre": "Glorieta Colón",
+            "categoria": "Transporte"
           },
           {
             "lat": 20.696184667130197,
             "lng": -103.37904900312425,
             "nombre": "Gaston Wine Bar",
-            "categoria": ""
+            "categoria": "Gastronomía"
+          },
+          {
+            "lat": 20.703216664438308,
+            "lng": -103.37079718708993,
+            "nombre": "Country Club",
+            "categoria": "Esparcimiento"
+          },
+          {
+            "lat": 20.69593414701917,
+            "lng": -103.3784830570221,
+            "nombre": "Parque Mirador Dr. Atl",
+            "categoria": "Esparcimiento"
+          },
+          {
+            "lat": 20.6999717,
+            "lng": -103.382308,
+            "nombre": "Parque Silvano Barba",
+            "categoria": "Esparcimiento"
+          },
+          {
+            "lat": 20.692461480083885,
+            "lng": -103.38358998298646,
+            "nombre": "Parque Rubén Darío",
+            "categoria": "Esparcimiento"
+          },
+          {
+            "lat": 20.689942,
+            "lng": -103.3843601,
+            "nombre": "Centro Deportivo Enrique Ladrón de Guevara",
+            "categoria": "Esparcimiento"
+          },
+          {
+            "lat": 20.69222059850385,
+            "lng": -103.37273240089418,
+            "nombre": "Soriana Híper",
+            "categoria": "Comercio"
           }
         ],
         "enabled": true,
         "autoStart": true,
-        "msPorPunto": 2000
+        "msPorPunto": 500
       }
     },
     "ownership": {
