@@ -968,11 +968,13 @@
           if (rutaLinea)  { map.removeLayer(rutaLinea);  rutaLinea = null; }
           if (rutaOrigen) { map.removeLayer(rutaOrigen); rutaOrigen = null; }
         }
-        function rutaAbrir() {
-          if (typeof filmFinal === 'function') filmFinal();
+        function rutaAbrir(conFoco) {
           panel.classList.add('abierto');
           rutaEsperandoClic = true;
-          rutaInput.focus();
+          if (conFoco) {
+            if (typeof filmFinal === 'function') filmFinal();
+            rutaInput.focus();
+          }
         }
         function rutaCerrar() {
           panel.classList.remove('abierto');
@@ -982,8 +984,13 @@
           fitToRadius();
         }
         rutaBtn.addEventListener('click', () =>
-          panel.classList.contains('abierto') ? rutaCerrar() : rutaAbrir());
+          panel.classList.contains('abierto') ? rutaCerrar() : rutaAbrir(true));
         panel.querySelector('#ruta-cerrar').addEventListener('click', rutaCerrar);
+
+        // Visible desde el arranque (convive con la película; sin robar el
+        // foco — en móvil abriría el teclado). Quien quiera pantalla limpia
+        // lo cierra con la ✕ y lo recupera con "¿Cómo llegar?".
+        rutaAbrir(false);
 
         panel.querySelectorAll('.ruta-perfil').forEach(b => b.addEventListener('click', () => {
           panel.querySelectorAll('.ruta-perfil').forEach(x => x.classList.remove('activo'));
