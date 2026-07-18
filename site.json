@@ -319,35 +319,11 @@
           },
           {
             "nombre": "Glorieta Colón"
-          },
-          {
-            "nombre": "Guadalajara Country Club"
-          },
-          {
-            "nombre": "Hospital Américas"
-          },
-          {
-            "nombre": "Punto São Paulo"
-          },
-          {
-            "nombre": "Soriana Híper Américas"
-          },
-          {
-            "nombre": "Torre Mil 500"
-          },
-          {
-            "nombre": "Parque Dr. Atl"
-          },
-          {
-            "nombre": "Parque Silvano Barba"
-          },
-          {
-            "nombre": "The American School"
           }
         ],
         "enabled": true,
         "autoStart": true,
-        "msPorPunto": 500
+        "msPorPunto": 2000
       }
     },
     "ownership": {

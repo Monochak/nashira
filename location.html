@@ -609,21 +609,31 @@
         const x = Math.sin(dLa / 2) ** 2 + Math.cos(toRad(P.lat)) * Math.cos(toRad(la)) * Math.sin(dLo / 2) ** 2;
         return 2 * Rm * Math.asin(Math.sqrt(x));
       }
-      const poiMarkers = [];
-      (data.categorias || []).forEach(cat => {
-        (cat.puntos || []).forEach(pt => {
-          const m = L.marker([pt.lat, pt.lng], { icon: poiIcon });
-          const dist = pt.distancia ? `<span class="tt-dist">${pt.distancia}</span>` : '';
-          m.bindTooltip(`${pt.nombre}${dist}`, { direction: 'top', offset: [0, -8], className: 'tt' });
-          poiMarkers.push({ m, d: distM(pt.lat, pt.lng), nombre: pt.nombre, dist: pt.distancia });
-        });
-      });
+      const fmtDist = m => m < 1000 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km';
 
-      // En el mapa solo se muestran los lugares ELEGIDOS en el panel
-      // (los protagonistas de la presentación). Las categorías completas son
-      // el catálogo del que se eligen. Sin elegidos → se muestran todos.
-      const _elegidos = new Set(((LOC.presentacion && LOC.presentacion.puntos) || []).map(p => p.nombre));
-      const esMostrable = o => _elegidos.size === 0 || _elegidos.has(o.nombre);
+      // ── Puntos de interés de Location — lista editable en el panel
+      //    (pages.location.presentacion.puntos). Cada punto es autocontenido
+      //    {nombre, categoria, lat, lng}; para fichas viejas las coords se
+      //    completan desde el catálogo `categorias` por nombre.
+      const _catCoords = {};
+      (data.categorias || []).forEach(c => (c.puntos || []).forEach(pt => { _catCoords[pt.nombre] = pt; }));
+      const LOC_PUNTOS = ((LOC.presentacion && LOC.presentacion.puntos) || [])
+        .map(p => {
+          const src = (p.lat != null && p.lng != null) ? p : (_catCoords[p.nombre] || {});
+          return { nombre: p.nombre, categoria: p.categoria || '',
+                   lat: src.lat, lng: src.lng, distancia: p.distancia || src.distancia || null };
+        })
+        .filter(p => p.lat != null && p.lng != null);
+
+      const poiMarkers = [];
+      LOC_PUNTOS.forEach(pt => {
+        const m = L.marker([pt.lat, pt.lng], { icon: poiIcon });
+        const d = distM(pt.lat, pt.lng);
+        const distStr = pt.distancia || fmtDist(d);
+        m.bindTooltip(`${pt.nombre}<span class="tt-dist">${distStr}</span>`,
+          { direction: 'top', offset: [0, -8], className: 'tt' });
+        poiMarkers.push({ m, d, nombre: pt.nombre, dist: distStr });
+      });
 
       // ── Vialidades principales (OSM trunk/primary/secondary/tertiary),
       //    recortadas al radio: solo se resalta la parte dentro del círculo
@@ -680,7 +690,7 @@
         ring.setRadius(r);
         ringLabelMk.setLatLng([P.lat + (r / 111320), P.lng]).setIcon(mkRingLabel(r));
         poiMarkers.forEach(o => {
-          if (esMostrable(o) && o.d <= r) { if (!map.hasLayer(o.m)) o.m.addTo(map); }
+          if (o.d <= r) { if (!map.hasLayer(o.m)) o.m.addTo(map); }
           else if (map.hasLayer(o.m)) map.removeLayer(o.m);
         });
         const sv = document.getElementById('radio-val');
@@ -781,10 +791,9 @@
           .forEach(item => idxWrap.appendChild(item.el));
         idxRedibujar();
       }
-      function idxSync() {                 // leyenda permanente: solo los elegidos, según el radio
+      function idxSync() {                 // leyenda permanente: los puntos visibles según el radio
         if (!idxListo || idxModoFilm) return;
         poiMarkers.forEach(o => {
-          if (!esMostrable(o)) return;
           const item = idxCrear(o);
           if (map.hasLayer(o.m)) idxMostrar(item); else idxEsconder(item);
         });
