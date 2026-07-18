@@ -144,6 +144,53 @@
     },
     "location": {
       "data": "content/data/nashira_location.json",
+      "vias": [
+        {
+          "dir": [
+            20.6961342,
+            -103.3730018
+          ],
+          "lat": 20.6986461,
+          "lng": -103.3744351,
+          "nombre": "Av. de las Américas"
+        },
+        {
+          "dir": [
+            20.6928992,
+            -103.3731614
+          ],
+          "lat": 20.6932322,
+          "lng": -103.3731771,
+          "nombre": "Av. de las Américas"
+        },
+        {
+          "dir": [
+            20.6912909,
+            -103.3761115
+          ],
+          "lat": 20.6917659,
+          "lng": -103.3757967,
+          "nombre": "Av. López Mateos"
+        },
+        {
+          "dir": [
+            20.6986996,
+            -103.3767165
+          ],
+          "lat": 20.6988367,
+          "lng": -103.3765527,
+          "nombre": "Pablo Neruda"
+        },
+        {
+          "dir": [
+            20.6967647,
+            -103.3720196
+          ],
+          "lat": 20.6966432,
+          "lng": -103.3722144,
+          "nombre": "Av. Circunvalación"
+        }
+      ],
       "radio": {
         "max": 1500,
         "min": 250,
@@ -155,6 +202,129 @@
         "grafito": "dark_nolabels",
         "maxZoom": 19,
         "attribution": "&copy; OpenStreetMap &copy; CARTO"
+      },
+      "categorias": [
+        {
+          "id": "educacion",
+          "label": "Educación",
+          "puntos": [
+            {
+              "lat": 20.6963559,
+              "lng": -103.3758575,
+              "nombre": "The American School",
+              "distancia": "150 m"
+            }
+          ]
+        },
+        {
+          "id": "salud",
+          "label": "Salud",
+          "puntos": [
+            {
+              "lat": 20.6916371,
+              "lng": -103.3701875,
+              "nombre": "Hospital México Americano",
+              "distancia": "650 m"
+            },
+            {
+              "lat": 20.6954,
+              "lng": -103.3727,
+              "nombre": "Hospital Américas",
+              "distancia": "250 m"
+            }
+          ]
+        },
+        {
+          "id": "comercio",
+          "label": "Comercio",
+          "puntos": [
+            {
+              "lat": 20.6945418,
+              "lng": -103.3761469,
+              "nombre": "Midtown Jalisco",
+              "distancia": "150 m"
+            },
+            {
+              "lat": 20.7021094,
+              "lng": -103.3764555,
+              "nombre": "Punto São Paulo",
+              "distancia": "800 m"
+            },
+            {
+              "lat": 20.69234,
+              "lng": -103.3732,
+              "nombre": "Soriana Híper Américas",
+              "distancia": "400 m"
+            },
+            {
+              "lat": 20.6975329,
+              "lng": -103.3737871,
+              "nombre": "Torre Mil 500",
+              "distancia": "300 m"
+            }
+          ]
+        },
+        {
+          "id": "movilidad",
+          "label": "Movilidad",
+          "puntos": [
+            {
+              "lat": 20.6957944,
+              "lng": -103.3732278,
+              "nombre": "Glorieta Colón",
+              "distancia": "200 m"
+            }
+          ]
+        },
+        {
+          "id": "esparcimiento",
+          "label": "Esparcimiento",
+          "puntos": [
+            {
+              "lat": 20.7055997,
+              "lng": -103.3722792,
+              "nombre": "Guadalajara Country Club",
+              "distancia": "1.2 km"
+            },
+            {
+              "lat": 20.6959955,
+              "lng": -103.3786067,
+              "nombre": "Parque Dr. Atl",
+              "distancia": "400 m"
+            },
+            {
+              "lat": 20.6999717,
+              "lng": -103.382308,
+              "nombre": "Parque Silvano Barba",
+              "distancia": "900 m"
+            }
+          ]
+        }
+      ],
+      "presentacion": {
+        "puntos": [
+          {
+            "nombre": "The American School"
+          },
+          {
+            "nombre": "Hospital México Americano"
+          },
+          {
+            "nombre": "Midtown Jalisco"
+          },
+          {
+            "nombre": "Glorieta Colón"
+          },
+          {
+            "nombre": "Guadalajara Country Club"
+          },
+          {
+            "nombre": "Hospital Américas"
+          }
+        ],
+        "enabled": true,
+        "autoStart": true,
+        "msPorPunto": 1000
       }
     },
     "ownership": {

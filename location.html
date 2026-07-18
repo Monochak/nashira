@@ -374,6 +374,55 @@
     }
     #loc-replay:hover { color: var(--text); }
     #loc-replay:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+    /* ── Índice de POIs: etiquetas a la izquierda + líneas guía ────────── */
+    #poi-indice {
+      position: fixed;
+      left: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      max-width: 210px;
+      pointer-events: none;
+    }
+    .pindex-item {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      line-height: 1.35;
+      color: var(--text);
+      text-shadow:
+        0 0 3px var(--bg), 0 0 3px var(--bg),
+        0 0 6px var(--bg), 0 0 6px var(--bg);
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .pindex-item.in { opacity: 0.92; transform: translateX(0); }
+    .pindex-item.oculto { display: none; }
+    .pindex-dist { color: var(--accent); font-weight: 700; margin-left: 6px; }
+    #poi-lineas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 24;
+      pointer-events: none;
+    }
+    #poi-lineas line {
+      stroke: var(--accent);
+      stroke-width: 1;
+      stroke-opacity: 0;
+      transition: stroke-opacity 0.6s ease;
+    }
+    #poi-lineas line.in { stroke-opacity: 0.4; }
+    @media (max-width: 767px) {
+      #poi-indice, #poi-lineas { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -485,7 +534,7 @@
           const m = L.marker([pt.lat, pt.lng], { icon: poiIcon });
           const dist = pt.distancia ? `<span class="tt-dist">${pt.distancia}</span>` : '';
           m.bindTooltip(`${pt.nombre}${dist}`, { direction: 'top', offset: [0, -8], className: 'tt' });
-          poiMarkers.push({ m, d: distM(pt.lat, pt.lng), nombre: pt.nombre });
+          poiMarkers.push({ m, d: distM(pt.lat, pt.lng), nombre: pt.nombre, dist: pt.distancia });
         });
       });
 
@@ -551,6 +600,7 @@
         if (sv) sv.textContent = r + ' m';
         updateRoads(r);
         fitToRadius();
+        idxSync();
       }
 
       const radioSlider = document.getElementById('radio-slider');
@@ -580,6 +630,82 @@
         });
         return { via, marker: L.marker([via.lat, via.lng], { icon, interactive: false, zIndexOffset: -200 }).addTo(map) };
       });
+
+      // ── ÍNDICE DE POIs — etiquetas a la izquierda con líneas guía ──────
+      // Lámina de atlas: cada punto visible se lista en una columna fija y
+      // una línea fina lo liga a su ubicación exacta. Durante la película los
+      // protagonistas se acumulan en orden de aparición; al final el índice
+      // queda como leyenda permanente (respeta el radio del slider).
+      // En móvil no hay columna: se conservan los globitos.
+      var idxListo = false;
+      var idxModoFilm = false;             // durante la película solo se listan los revelados
+      const usaIndice = window.matchMedia('(min-width: 768px)').matches;
+      const idxItems = new Map();          // nombre → { el, line, o }
+
+      const idxWrap = document.createElement('div');
+      idxWrap.id = 'poi-indice';
+      const idxSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      idxSvg.id = 'poi-lineas';
+      if (usaIndice) {
+        document.body.appendChild(idxWrap);
+        document.body.appendChild(idxSvg);
+      }
+
+      function idxCrear(o) {               // crea (si falta) la etiqueta + línea de un POI
+        if (idxItems.has(o.nombre)) return idxItems.get(o.nombre);
+        const el = document.createElement('div');
+        el.className = 'pindex-item';
+        el.innerHTML = `${o.nombre}${o.dist ? `<span class="pindex-dist">${o.dist}</span>` : ''}`;
+        idxWrap.appendChild(el);           // el orden del índice = orden de aparición
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        idxSvg.appendChild(line);
+        const item = { el, line, o };
+        idxItems.set(o.nombre, item);
+        return item;
+      }
+      function idxMostrar(item) {
+        item.el.classList.remove('oculto');
+        void item.el.offsetWidth;          // reflow: la transición corre sin depender de rAF
+        item.el.classList.add('in');
+        item.line.classList.add('in');
+      }
+      function idxEsconder(item) {
+        item.el.classList.add('oculto');
+        item.el.classList.remove('in');
+        item.line.classList.remove('in');
+      }
+      function idxRedibujar() {            // recalcula las líneas etiqueta → punto
+        if (!idxListo) return;
+        idxItems.forEach(item => {
+          if (item.el.classList.contains('oculto')) return;
+          const r = item.el.getBoundingClientRect();
+          const p = map.latLngToContainerPoint(item.o.m.getLatLng());
+          item.line.setAttribute('x1', r.right + 8);
+          item.line.setAttribute('y1', r.top + r.height / 2);
+          item.line.setAttribute('x2', p.x);
+          item.line.setAttribute('y2', p.y);
+        });
+      }
+      function idxSync() {                 // leyenda permanente: lo visible según el radio
+        if (!idxListo || idxModoFilm) return;
+        poiMarkers.forEach(o => {
+          const item = idxCrear(o);
+          if (map.hasLayer(o.m)) idxMostrar(item); else idxEsconder(item);
+        });
+        idxRedibujar();
+      }
+
+      if (usaIndice) {
+        idxListo = true;
+        let _idxRaf = null;
+        const idxOnMove = () => {
+          if (_idxRaf) return;
+          _idxRaf = requestAnimationFrame(() => { _idxRaf = null; idxRedibujar(); });
+        };
+        map.on('move zoom viewreset resize', idxOnMove);
+        window.addEventListener('resize', idxOnMove);
+        idxSync();                         // estado inicial (sin película: todo visible)
+      }
 
       // ── Encuadre inicial: lo determina el radio (fitToRadius dentro de
       //    applyRadius, ya llamado arriba), para que el anillo llene la pantalla
@@ -630,6 +756,8 @@
         el.style.opacity = visible ? '' : '0';
       }
       function filmOcultarTodo() {
+        idxModoFilm = true;
+        idxItems.forEach(idxEsconder);
         poiMarkers.forEach(o => { if (map.hasLayer(o.m)) map.removeLayer(o.m); });
         viaMarkers.forEach(v => filmSet(v.marker.getElement(), false, true));
         filmSet(ring.getElement(), false, true);
@@ -645,7 +773,8 @@
         filmSet(ring.getElement(), true);
         filmSet(ringLabelMk.getElement(), true);
         roadLines.forEach(pl => filmSet(pl.getElement(), true));
-        applyRadius(ringRadius);           // repone los POIs según el radio
+        idxModoFilm = false;
+        applyRadius(ringRadius);           // repone POIs e índice según el radio
         document.getElementById('radio-control')?.classList.remove('film-oculto');
       }
       const filmEspera = ms => new Promise(res => { filmTimer = setTimeout(res, ms); });
@@ -679,7 +808,8 @@
         filmSet(ringLabelMk.getElement(), true);
         await filmEspera(1100);
 
-        // 3) protagonistas, uno a la vez, con su etiqueta
+        // 3) protagonistas, uno a la vez — su etiqueta se ACUMULA en el
+        //    índice de la izquierda (en móvil, globito que abre y cierra)
         const msPunto = PREZ.msPorPunto || 2000;
         for (const p of (PREZ.puntos || [])) {
           if (!filmActiva) return;
@@ -688,11 +818,17 @@
           o.m.addTo(map);
           const el = o.m.getElement();
           if (el) el.classList.add('film-pop');
-          o.m.openTooltip();
-          filmTooltipM = o.m;
-          await filmEspera(msPunto);
-          o.m.closeTooltip();
-          filmTooltipM = null;
+          if (usaIndice) {
+            idxMostrar(idxCrear(o));
+            idxRedibujar();
+            await filmEspera(msPunto);
+          } else {
+            o.m.openTooltip();
+            filmTooltipM = o.m;
+            await filmEspera(msPunto);
+            o.m.closeTooltip();
+            filmTooltipM = null;
+          }
         }
         if (filmActiva) filmFinal();
       }
