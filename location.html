@@ -953,11 +953,18 @@
             <button class="ruta-perfil" data-perfil="pie" type="button">A pie</button>
             <button id="ruta-cerrar" type="button" aria-label="Cerrar">&#215;</button>
           </div>
-          <div id="ruta-msg">…o haz clic en el mapa en tu punto de partida.</div>`;
+          <div id="ruta-msg"></div>`;
         document.body.appendChild(panel);
 
         const rutaInput = panel.querySelector('#ruta-input');
         const rutaMsg   = panel.querySelector('#ruta-msg');
+
+        // Google Maps: siempre disponible y siempre a la UBICACIÓN del
+        // proyecto (el pin) — la navegación la elige el visitante allá.
+        const GMAPS_LINK = `<a href="https://www.google.com/maps/search/?api=1&query=${P.lat},${P.lng}"` +
+          ` target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+        const MSG_BASE = `…o haz clic en el mapa en tu punto de partida. &nbsp;·&nbsp; ${GMAPS_LINK}`;
+        rutaMsg.innerHTML = MSG_BASE;
 
         const mkOrigen = L.divIcon({
           className: '', html: '<div class="mk mk-origen"></div>',
@@ -980,7 +987,7 @@
           panel.classList.remove('abierto');
           rutaEsperandoClic = false;
           rutaLimpiar();
-          rutaMsg.textContent = '…o haz clic en el mapa en tu punto de partida.';
+          rutaMsg.innerHTML = MSG_BASE;
           fitToRadius();
         }
         rutaBtn.addEventListener('click', () =>
@@ -998,12 +1005,6 @@
           rutaPerfil = b.dataset.perfil;
           if (rutaOrigen) rutaTrazar(rutaOrigen.getLatLng());   // recalcular con el nuevo perfil
         }));
-
-        function gmapsLink(o) {
-          const destino = `${P.lat},${P.lng}`;
-          const origen  = o ? `&origin=${o.lat},${o.lng}` : '';
-          return `https://www.google.com/maps/dir/?api=1&destination=${destino}${origen}`;
-        }
 
         async function rutaTrazar(origenLL) {
           rutaMsg.textContent = 'Calculando ruta…';
@@ -1029,11 +1030,9 @@
             const min = Math.max(1, Math.round(ruta.duration / 60));
             rutaMsg.innerHTML =
               `<span class="ruta-dato">${km} km · ${min} min</span> ` +
-              `${rutaPerfil === 'pie' ? 'a pie' : 'en auto'} hasta ${P.nombre} &nbsp;·&nbsp; ` +
-              `<a href="${gmapsLink(origenLL)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+              `${rutaPerfil === 'pie' ? 'a pie' : 'en auto'} hasta ${P.nombre} &nbsp;·&nbsp; ${GMAPS_LINK}`;
           } catch (e) {
-            rutaMsg.innerHTML = 'No se pudo calcular la ruta en este momento. ' +
-              `<a href="${gmapsLink(origenLL)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+            rutaMsg.innerHTML = `No se pudo calcular la ruta en este momento. &nbsp;·&nbsp; ${GMAPS_LINK}`;
           }
         }
 
