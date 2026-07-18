@@ -1049,34 +1049,45 @@
         // lo cierra con la ✕ y lo recupera con "¿Cómo llegar?".
         rutaAbrir(false);
 
-        // Clic en una etiqueta del índice → ruta de ese lugar al proyecto
+        // Clic en una etiqueta del índice → ruta DEL PROYECTO a ese lugar
         rutaDesdePunto = (nombre, latlng) => {
           rutaAbrir(false);
-          rutaInput.value = nombre;
-          rutaTrazar(latlng);
+          rutaInput.value = '';
+          rutaTrazar(L.latLng(P.lat, P.lng), latlng, nombre, false);
         };
 
         panel.querySelectorAll('.ruta-perfil').forEach(b => b.addEventListener('click', () => {
           panel.querySelectorAll('.ruta-perfil').forEach(x => x.classList.remove('activo'));
           b.classList.add('activo');
           rutaPerfil = b.dataset.perfil;
-          if (rutaOrigen) rutaTrazar(rutaOrigen.getLatLng());   // recalcular con el nuevo perfil
+          if (rutaOrigenLL) rutaTrazar(rutaOrigenLL, rutaDestLL, rutaDestNombre, rutaMarcarOrigen);   // recalcular con el nuevo perfil
         }));
 
-        async function rutaTrazar(origenLL) {
+        // Estado de la ruta actual (para recalcular al cambiar de perfil).
+        // Por defecto: dirección escrita → llega AL proyecto (origen = dirección,
+        // destino = proyecto). Clic en un lugar → sale DEL proyecto (origen =
+        // proyecto, destino = el lugar).
+        let rutaOrigenLL = null, rutaDestLL = null, rutaDestNombre = null, rutaMarcarOrigen = true;
+
+        async function rutaTrazar(origenLL, destinoLL, destinoNombre, marcarOrigen) {
+          rutaOrigenLL = origenLL;
+          rutaDestLL = destinoLL || L.latLng(P.lat, P.lng);
+          rutaDestNombre = destinoNombre || P.nombre;
+          rutaMarcarOrigen = marcarOrigen !== false;
           rutaMsg.textContent = 'Calculando ruta…';
           try {
             const srv = rutaPerfil === 'pie' ? 'routed-foot' : 'routed-car';
             const prof = rutaPerfil === 'pie' ? 'foot' : 'driving';
             const url = `https://routing.openstreetmap.de/${srv}/route/v1/${prof}/` +
-              `${origenLL.lng},${origenLL.lat};${P.lng},${P.lat}?overview=full&geometries=geojson`;
+              `${rutaOrigenLL.lng},${rutaOrigenLL.lat};${rutaDestLL.lng},${rutaDestLL.lat}?overview=full&geometries=geojson`;
             const res = await fetch(url);
             const json = await res.json();
             if (!json.routes || !json.routes.length) throw new Error('sin ruta');
             const ruta = json.routes[0];
 
             rutaLimpiar();
-            rutaOrigen = L.marker(origenLL, { icon: mkOrigen, zIndexOffset: 900 }).addTo(map);
+            if (rutaMarcarOrigen)
+              rutaOrigen = L.marker(rutaOrigenLL, { icon: mkOrigen, zIndexOffset: 900 }).addTo(map);
             rutaLinea = L.polyline(
               ruta.geometry.coordinates.map(c => [c[1], c[0]]),
               { className: 'ruta-linea', weight: 3.5, interactive: false }
@@ -1087,7 +1098,7 @@
             const min = Math.max(1, Math.round(ruta.duration / 60));
             rutaMsg.innerHTML =
               `<span class="ruta-dato">${km} km · ${min} min</span> ` +
-              `${rutaPerfil === 'pie' ? 'a pie' : 'en auto'} hasta ${P.nombre} &nbsp;·&nbsp; ${GMAPS_LINK}`;
+              `${rutaPerfil === 'pie' ? 'a pie' : 'en auto'} hasta ${rutaDestNombre} &nbsp;·&nbsp; ${GMAPS_LINK}`;
           } catch (e) {
             rutaMsg.innerHTML = `No se pudo calcular la ruta en este momento. &nbsp;·&nbsp; ${GMAPS_LINK}`;
           }
