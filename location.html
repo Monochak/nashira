@@ -686,13 +686,21 @@
           item.line.setAttribute('y2', p.y);
         });
       }
+      function idxOrdenar() {              // columna en orden vertical de los puntos:
+        if (!idxListo) return;             // las líneas se abren en abanico, sin cruces
+        [...idxItems.values()]
+          .sort((a, b) => map.latLngToContainerPoint(a.o.m.getLatLng()).y
+                        - map.latLngToContainerPoint(b.o.m.getLatLng()).y)
+          .forEach(item => idxWrap.appendChild(item.el));
+        idxRedibujar();
+      }
       function idxSync() {                 // leyenda permanente: lo visible según el radio
         if (!idxListo || idxModoFilm) return;
         poiMarkers.forEach(o => {
           const item = idxCrear(o);
           if (map.hasLayer(o.m)) idxMostrar(item); else idxEsconder(item);
         });
-        idxRedibujar();
+        idxOrdenar();
       }
 
       if (usaIndice) {
@@ -703,6 +711,7 @@
           _idxRaf = requestAnimationFrame(() => { _idxRaf = null; idxRedibujar(); });
         };
         map.on('move zoom viewreset resize', idxOnMove);
+        map.on('moveend zoomend', idxOrdenar);   // reordenar al asentarse el mapa
         window.addEventListener('resize', idxOnMove);
         idxSync();                         // estado inicial (sin película: todo visible)
       }
@@ -820,7 +829,7 @@
           if (el) el.classList.add('film-pop');
           if (usaIndice) {
             idxMostrar(idxCrear(o));
-            idxRedibujar();
+            idxOrdenar();                  // cada etiqueta entra en su lugar vertical
             await filmEspera(msPunto);
           } else {
             o.m.openTooltip();
