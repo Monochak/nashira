@@ -747,6 +747,7 @@
       // protagonistas se acumulan en orden de aparición; al final el índice
       // queda como leyenda permanente (respeta el radio del slider).
       // En móvil no hay columna: se conservan los globitos.
+      let rutaDesdePunto = null;           // lo define el bloque de rutas; el índice lo usa al clic
       var idxListo = false;
       var idxModoFilm = false;             // durante la película solo se listan los revelados
       const usaIndice = window.matchMedia('(min-width: 768px)').matches;
@@ -774,7 +775,7 @@
         // hover / clic: resalta etiqueta + línea + punto en el mapa
         el.addEventListener('mouseenter', () => idxResaltar(item, true));
         el.addEventListener('mouseleave', () => idxResaltar(item, false));
-        el.addEventListener('click', () => { if (map.hasLayer(o.m)) map.panTo(o.m.getLatLng()); });
+        el.addEventListener('click', () => { if (rutaDesdePunto) rutaDesdePunto(o.nombre, o.m.getLatLng()); });
         return item;
       }
       function idxResaltar(item, on) {
@@ -996,7 +997,7 @@
         panel.innerHTML = `
           <div class="ruta-fila">
             <input id="ruta-input" type="text" autocomplete="off"
-                   placeholder="Escribe tu dirección o punto de partida…"
+                   placeholder="Escribe tu dirección de partida…"
                    aria-label="Punto de partida">
             <button class="ruta-perfil activo" data-perfil="auto" type="button">En auto</button>
             <button class="ruta-perfil" data-perfil="pie" type="button">A pie</button>
@@ -1012,7 +1013,7 @@
         // proyecto (el pin) — la navegación la elige el visitante allá.
         const GMAPS_LINK = `<a href="https://www.google.com/maps/search/?api=1&query=${P.lat},${P.lng}"` +
           ` target="_blank" rel="noopener">Abrir en Google Maps</a>`;
-        const MSG_BASE = `…o haz clic en el mapa en tu punto de partida. &nbsp;·&nbsp; ${GMAPS_LINK}`;
+        const MSG_BASE = `Escribe tu dirección, o haz clic en un lugar de la lista para ver su ruta. &nbsp;·&nbsp; ${GMAPS_LINK}`;
         rutaMsg.innerHTML = MSG_BASE;
 
         const mkOrigen = L.divIcon({
@@ -1047,6 +1048,13 @@
         // foco — en móvil abriría el teclado). Quien quiera pantalla limpia
         // lo cierra con la ✕ y lo recupera con "¿Cómo llegar?".
         rutaAbrir(false);
+
+        // Clic en una etiqueta del índice → ruta de ese lugar al proyecto
+        rutaDesdePunto = (nombre, latlng) => {
+          rutaAbrir(false);
+          rutaInput.value = nombre;
+          rutaTrazar(latlng);
+        };
 
         panel.querySelectorAll('.ruta-perfil').forEach(b => b.addEventListener('click', () => {
           panel.querySelectorAll('.ruta-perfil').forEach(x => x.classList.remove('activo'));
@@ -1097,17 +1105,11 @@
             const res = await fetch(url);
             const json = await res.json();
             const f = json.features && json.features[0];
-            if (!f) { rutaMsg.textContent = 'No encontré esa dirección — intenta con más detalle o haz clic en el mapa.'; return; }
+            if (!f) { rutaMsg.textContent = 'No encontré esa dirección — intenta con más detalle.'; return; }
             rutaTrazar(L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]));
           } catch (err) {
-            rutaMsg.textContent = 'No se pudo buscar la dirección — haz clic en el mapa en tu punto de partida.';
+            rutaMsg.textContent = 'No se pudo buscar la dirección — inténtalo de nuevo.';
           }
-        });
-
-        map.on('click', e => {
-          if (!rutaEsperandoClic) return;
-          rutaInput.value = '';
-          rutaTrazar(e.latlng);
         });
       }
     })();
