@@ -619,6 +619,12 @@
         });
       });
 
+      // En el mapa solo se muestran los lugares ELEGIDOS en el panel
+      // (los protagonistas de la presentación). Las categorías completas son
+      // el catálogo del que se eligen. Sin elegidos → se muestran todos.
+      const _elegidos = new Set(((LOC.presentacion && LOC.presentacion.puntos) || []).map(p => p.nombre));
+      const esMostrable = o => _elegidos.size === 0 || _elegidos.has(o.nombre);
+
       // ── Vialidades principales (OSM trunk/primary/secondary/tertiary),
       //    recortadas al radio: solo se resalta la parte dentro del círculo
       //    (marcador). updateRoads(r) recalcula al cambiar el radio.
@@ -674,7 +680,7 @@
         ring.setRadius(r);
         ringLabelMk.setLatLng([P.lat + (r / 111320), P.lng]).setIcon(mkRingLabel(r));
         poiMarkers.forEach(o => {
-          if (o.d <= r) { if (!map.hasLayer(o.m)) o.m.addTo(map); }
+          if (esMostrable(o) && o.d <= r) { if (!map.hasLayer(o.m)) o.m.addTo(map); }
           else if (map.hasLayer(o.m)) map.removeLayer(o.m);
         });
         const sv = document.getElementById('radio-val');
@@ -775,9 +781,10 @@
           .forEach(item => idxWrap.appendChild(item.el));
         idxRedibujar();
       }
-      function idxSync() {                 // leyenda permanente: lo visible según el radio
+      function idxSync() {                 // leyenda permanente: solo los elegidos, según el radio
         if (!idxListo || idxModoFilm) return;
         poiMarkers.forEach(o => {
+          if (!esMostrable(o)) return;
           const item = idxCrear(o);
           if (map.hasLayer(o.m)) idxMostrar(item); else idxEsconder(item);
         });
