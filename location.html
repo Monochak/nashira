@@ -576,9 +576,18 @@
         html: '<div class="mk mk-proyecto"><span class="pulse"></span><span class="core"></span></div>',
         iconSize: [22, 22], iconAnchor: [11, 11],
       });
-      L.marker([P.lat, P.lng], { icon: proyectoIcon, zIndexOffset: 1000 })
+      const projMarker = L.marker([P.lat, P.lng], { icon: proyectoIcon, zIndexOffset: 1000 })
         .addTo(map)
         .bindTooltip(P.nombre, { permanent: true, direction: 'top', offset: [0, -12], className: 'tt tt-proyecto' });
+      // Muestra/oculta el marcador del proyecto + su etiqueta (para la película)
+      function projSet(visible, instante) {
+        [projMarker.getElement(), projMarker.getTooltip() && projMarker.getTooltip().getElement()]
+          .forEach(el => {
+            if (!el) return;
+            el.style.transition = instante ? 'none' : 'opacity 0.8s ease';
+            el.style.opacity = visible ? '' : '0';
+          });
+      }
 
       // ── Radio dinámico + anillo (controlado por el slider) ─────────────
       const R_MIN  = P.radioMin  || 250;
@@ -864,6 +873,7 @@
       function filmOcultarTodo() {
         idxModoFilm = true;
         idxItems.forEach(idxEsconder);
+        projSet(false, true);              // el proyecto aparece hasta el final
         poiMarkers.forEach(o => { if (map.hasLayer(o.m)) map.removeLayer(o.m); });
         viaMarkers.forEach(v => filmSet(v.marker.getElement(), false, true));
         filmSet(ring.getElement(), false, true);
@@ -879,6 +889,7 @@
         filmSet(ring.getElement(), true);
         filmSet(ringLabelMk.getElement(), true);
         roadLines.forEach(pl => filmSet(pl.getElement(), true));
+        projSet(true);                     // el proyecto queda visible (también al interrumpir)
         idxModoFilm = false;
         applyRadius(ringRadius);           // repone POIs e índice según el radio
         document.getElementById('radio-control')?.classList.remove('film-oculto');
@@ -936,6 +947,13 @@
             filmTooltipM = null;
           }
         }
+        if (!filmActiva) return;
+
+        // 4) cierre: aparece la ubicación del proyecto (lo último)
+        await filmEspera(500);
+        if (!filmActiva) return;
+        projSet(true);
+        await filmEspera(1000);
         if (filmActiva) filmFinal();
       }
 

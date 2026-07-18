@@ -309,16 +309,30 @@
       "presentacion": {
         "puntos": [
           {
+            "lat": 20.695562404207593,
+            "lng": -103.37547630071641,
             "nombre": "The American School"
           },
           {
+            "lat": 20.691628037598505,
+            "lng": -103.37009042501451,
             "nombre": "Hospital México Americano"
           },
           {
+            "lat": 20.694585643863626,
+            "lng": -103.37580621242525,
             "nombre": "Midtown Jalisco"
           },
           {
+            "lat": 20.69586349948895,
+            "lng": -103.37319642305376,
             "nombre": "Glorieta Colón"
+          },
+          {
+            "lat": 20.696184667130197,
+            "lng": -103.37904900312425,
+            "nombre": "Gaston Wine Bar",
+            "categoria": ""
           }
         ],
         "enabled": true,
