@@ -375,6 +375,87 @@
     #loc-replay:hover { color: var(--text); }
     #loc-replay:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 
+    /* ── ¿Cómo llegar?: ruta al proyecto ───────────────────────────────── */
+    #ruta-abrir {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted);
+      font-family: var(--font-body); font-size: 0.5625rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 0 2px; transition: color 0.2s; white-space: nowrap;
+    }
+    #ruta-abrir:hover { color: var(--text); }
+    #ruta-abrir:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+    #ruta-panel {
+      position: fixed;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      z-index: 35;
+      width: min(400px, calc(100vw - 32px));
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-radius: 14px;
+      padding: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #ruta-panel.abierto { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    #ruta-panel .ruta-fila { display: flex; gap: 8px; align-items: center; }
+    #ruta-input {
+      flex: 1;
+      background: oklch(from var(--bg) l c h / 0.55);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-body); font-size: 0.8125rem;
+      padding: 8px 11px;
+      min-width: 0;
+    }
+    #ruta-input:focus { outline: none; border-color: var(--accent); }
+    #ruta-input::placeholder { color: var(--muted); }
+    .ruta-perfil {
+      background: none; border: 1px solid var(--glass-border); border-radius: 8px;
+      color: var(--muted); cursor: pointer;
+      font-family: var(--font-body); font-size: 0.5625rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 8px 10px; transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .ruta-perfil.activo { color: var(--accent); border-color: var(--accent); }
+    #ruta-cerrar {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1rem; line-height: 1; padding: 4px;
+      flex-shrink: 0; transition: color 0.15s;
+    }
+    #ruta-cerrar:hover { color: var(--text); }
+    #ruta-msg {
+      font-size: 0.6875rem; color: var(--muted);
+      margin-top: 9px; line-height: 1.5;
+    }
+    #ruta-msg .ruta-dato { color: var(--accent); font-weight: 700; }
+    #ruta-msg a {
+      color: var(--muted); font-weight: 600; text-decoration: underline;
+      text-underline-offset: 2px; transition: color 0.15s;
+    }
+    #ruta-msg a:hover { color: var(--text); }
+    .ruta-linea {
+      stroke: var(--accent);
+      stroke-opacity: 0.85;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .mk-origen {
+      width: 13px; height: 13px; border-radius: 50%;
+      background: var(--bg); border: 3px solid var(--accent);
+    }
+    @media (max-width: 767px) {
+      #ruta-panel { bottom: calc(126px + env(safe-area-inset-bottom)); }
+    }
+
     /* ── Índice de POIs: etiquetas a la izquierda + líneas guía ────────── */
     #poi-indice {
       position: fixed;
@@ -843,6 +924,137 @@
       }
 
       if (hayPrez) filmCorrer();
+
+      // ── ¿CÓMO LLEGAR? — ruta de un punto al proyecto ────────────────────
+      // Dirección escrita (geocoding Photon/OSM) o clic en el mapa; la ruta
+      // la calcula el OSRM público de FOSSGIS (el mismo que usa osm.org) y
+      // se dibuja con el estilo de la ficha. Complemento: abrir Google Maps
+      // con el destino puesto (navegación real). Apagable por ficha:
+      // pages.location.rutas.enabled = false.
+      const hayRutas = !(LOC.rutas && LOC.rutas.enabled === false);
+      if (hayRutas) {
+        let rutaPerfil = 'auto';           // 'auto' | 'pie'
+        let rutaLinea = null, rutaOrigen = null, rutaEsperandoClic = false;
+
+        const rutaBtn = document.createElement('button');
+        rutaBtn.id = 'ruta-abrir';
+        rutaBtn.textContent = '¿Cómo llegar?';
+        const rc = document.getElementById('radio-control');
+        if (rc) rc.insertBefore(rutaBtn, document.getElementById('loc-replay'));
+
+        const panel = document.createElement('div');
+        panel.id = 'ruta-panel';
+        panel.innerHTML = `
+          <div class="ruta-fila">
+            <input id="ruta-input" type="text" autocomplete="off"
+                   placeholder="Escribe tu dirección o punto de partida…"
+                   aria-label="Punto de partida">
+            <button class="ruta-perfil activo" data-perfil="auto" type="button">En auto</button>
+            <button class="ruta-perfil" data-perfil="pie" type="button">A pie</button>
+            <button id="ruta-cerrar" type="button" aria-label="Cerrar">&#215;</button>
+          </div>
+          <div id="ruta-msg">…o haz clic en el mapa en tu punto de partida.</div>`;
+        document.body.appendChild(panel);
+
+        const rutaInput = panel.querySelector('#ruta-input');
+        const rutaMsg   = panel.querySelector('#ruta-msg');
+
+        const mkOrigen = L.divIcon({
+          className: '', html: '<div class="mk mk-origen"></div>',
+          iconSize: [13, 13], iconAnchor: [6.5, 6.5],
+        });
+
+        function rutaLimpiar() {
+          if (rutaLinea)  { map.removeLayer(rutaLinea);  rutaLinea = null; }
+          if (rutaOrigen) { map.removeLayer(rutaOrigen); rutaOrigen = null; }
+        }
+        function rutaAbrir() {
+          if (typeof filmFinal === 'function') filmFinal();
+          panel.classList.add('abierto');
+          rutaEsperandoClic = true;
+          rutaInput.focus();
+        }
+        function rutaCerrar() {
+          panel.classList.remove('abierto');
+          rutaEsperandoClic = false;
+          rutaLimpiar();
+          rutaMsg.textContent = '…o haz clic en el mapa en tu punto de partida.';
+          fitToRadius();
+        }
+        rutaBtn.addEventListener('click', () =>
+          panel.classList.contains('abierto') ? rutaCerrar() : rutaAbrir());
+        panel.querySelector('#ruta-cerrar').addEventListener('click', rutaCerrar);
+
+        panel.querySelectorAll('.ruta-perfil').forEach(b => b.addEventListener('click', () => {
+          panel.querySelectorAll('.ruta-perfil').forEach(x => x.classList.remove('activo'));
+          b.classList.add('activo');
+          rutaPerfil = b.dataset.perfil;
+          if (rutaOrigen) rutaTrazar(rutaOrigen.getLatLng());   // recalcular con el nuevo perfil
+        }));
+
+        function gmapsLink(o) {
+          const destino = `${P.lat},${P.lng}`;
+          const origen  = o ? `&origin=${o.lat},${o.lng}` : '';
+          return `https://www.google.com/maps/dir/?api=1&destination=${destino}${origen}`;
+        }
+
+        async function rutaTrazar(origenLL) {
+          rutaMsg.textContent = 'Calculando ruta…';
+          try {
+            const srv = rutaPerfil === 'pie' ? 'routed-foot' : 'routed-car';
+            const prof = rutaPerfil === 'pie' ? 'foot' : 'driving';
+            const url = `https://routing.openstreetmap.de/${srv}/route/v1/${prof}/` +
+              `${origenLL.lng},${origenLL.lat};${P.lng},${P.lat}?overview=full&geometries=geojson`;
+            const res = await fetch(url);
+            const json = await res.json();
+            if (!json.routes || !json.routes.length) throw new Error('sin ruta');
+            const ruta = json.routes[0];
+
+            rutaLimpiar();
+            rutaOrigen = L.marker(origenLL, { icon: mkOrigen, zIndexOffset: 900 }).addTo(map);
+            rutaLinea = L.polyline(
+              ruta.geometry.coordinates.map(c => [c[1], c[0]]),
+              { className: 'ruta-linea', weight: 3.5, interactive: false }
+            ).addTo(map);
+            map.fitBounds(rutaLinea.getBounds(), { padding: [70, 70] });
+
+            const km  = (ruta.distance / 1000).toFixed(ruta.distance < 10000 ? 1 : 0);
+            const min = Math.max(1, Math.round(ruta.duration / 60));
+            rutaMsg.innerHTML =
+              `<span class="ruta-dato">${km} km · ${min} min</span> ` +
+              `${rutaPerfil === 'pie' ? 'a pie' : 'en auto'} hasta ${P.nombre} &nbsp;·&nbsp; ` +
+              `<a href="${gmapsLink(origenLL)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+          } catch (e) {
+            rutaMsg.innerHTML = 'No se pudo calcular la ruta en este momento. ' +
+              `<a href="${gmapsLink(origenLL)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+          }
+        }
+
+        rutaInput.addEventListener('keydown', async e => {
+          if (e.key !== 'Enter') return;
+          const q = rutaInput.value.trim();
+          if (!q) return;
+          rutaMsg.textContent = 'Buscando dirección…';
+          try {
+            // sin lang: el índice multilenguaje encuentra más lugares locales
+            const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}` +
+              `&limit=1&lat=${P.lat}&lon=${P.lng}`;
+            const res = await fetch(url);
+            const json = await res.json();
+            const f = json.features && json.features[0];
+            if (!f) { rutaMsg.textContent = 'No encontré esa dirección — intenta con más detalle o haz clic en el mapa.'; return; }
+            rutaTrazar(L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]));
+          } catch (err) {
+            rutaMsg.textContent = 'No se pudo buscar la dirección — haz clic en el mapa en tu punto de partida.';
+          }
+        });
+
+        map.on('click', e => {
+          if (!rutaEsperandoClic) return;
+          rutaInput.value = '';
+          rutaTrazar(e.latlng);
+        });
+      }
     })();
   </script>
 
