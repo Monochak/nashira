@@ -19,6 +19,17 @@
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
   <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
   <script src="site.js?v=0ffc7494"></script>
+  <script>
+    /* Tipo de portada decidido ANTES del primer paint (site.js ya resolvió
+       window.SITE): marca el <html> para que el CSS oculte la constelación sin
+       flash cuando la portada no es la animación custom. */
+    (function () {
+      try {
+        var m = (window.SITE && window.SITE.pages.index.mode) || 'splash';
+        if (m !== 'splash') document.documentElement.className += ' portada-' + m;
+      } catch (e) {}
+    })();
+  </script>
   <link rel="prefetch" href="emotion.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -126,6 +137,21 @@
   #exit-veil{position:fixed;inset:0;background:#0d0c1a;opacity:0;
     pointer-events:none;z-index:9;transition:opacity .9s ease}
   @media (max-width:767px){#loading-pct{right:18px}}
+
+  /* ---------- portada de marca (alterna, activada por la ficha en runtime) ---------- */
+  /* portada de marca / entrar directo: la constelación no se pinta (sin flash) */
+  html.portada-splash-brand #logo, html.portada-redirect #logo{display:none}
+  #brand-splash{display:none;flex-direction:column;align-items:center;gap:20px;
+    text-align:center;padding:24px;position:relative;z-index:1;
+    opacity:0;animation:bs-in .9s var(--ease-out) .2s forwards}
+  .bs-logo{display:block;width:min(58vw,320px);height:auto}
+  .bs-name{font-family:"Outfit",system-ui,sans-serif;font-weight:200;
+    font-size:clamp(2.6rem,9vw,5rem);letter-spacing:.06em;text-transform:uppercase;
+    color:var(--cielo)}
+  .bs-addr{font-family:"Outfit",system-ui,sans-serif;font-weight:300;
+    font-size:clamp(9px,1.7vw,11px);letter-spacing:.32em;text-indent:.32em;
+    text-transform:uppercase;color:rgba(237,248,254,.8)}
+  @keyframes bs-in{to{opacity:1}}
 </style>
 </head>
 <body>
@@ -179,6 +205,9 @@
     </svg>
   </div>
 
+  <!-- Portada de marca (alterna; se llena y se muestra según pages.index.mode) -->
+  <div id="brand-splash"></div>
+
   <div id="loading-track"><div id="loading-fill"></div></div>
   <span id="loading-pct">0%</span>
   <div id="exit-veil"></div>
@@ -196,10 +225,29 @@
       get:function(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},
       set:function(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
     };
-    // portada apagada desde el panel (pages.index.enabled === false) → directo a Emotion
-    if (window.SITE.pages.index.enabled === false) { window.location.replace(REDIRECT); return; }
+    var IDX = window.SITE.pages.index;
+    // tipo de portada desde el panel: 'redirect' (o enabled:false) salta directo
+    if (IDX.mode === 'redirect' || IDX.enabled === false) { window.location.replace(REDIRECT); return; }
     // si el intro ya se vio en esta sesion, ir directo a Emotion
     if (safeStorage.get(INTRO_KEY)) { window.location.replace(REDIRECT); return; }
+
+    // Portada de marca: oculta el reveal animado y muestra logo/nombre + dirección.
+    // El resto (barra de carga, precarga, redirect) es idéntico para ambos tipos.
+    if (IDX.mode === 'splash-brand') {
+      var BR = window.SITE.brand || {};
+      document.getElementById('logo').style.display = 'none';
+      document.body.style.background = BR.themeColor || '#121127';
+      var bs = document.getElementById('brand-splash');
+      bs.style.display = 'flex';
+      function bsName(){ var h = document.createElement('h1'); h.className = 'bs-name'; h.textContent = BR.name || ''; return h; }
+      if (BR.wordmark) {
+        var img = document.createElement('img');
+        img.className = 'bs-logo'; img.src = BR.wordmark; img.alt = BR.fullName || BR.name || '';
+        img.onerror = function(){ img.replaceWith(bsName()); };
+        bs.appendChild(img);
+      } else { bs.appendChild(bsName()); }
+      if (BR.address) { var a = document.createElement('p'); a.className = 'bs-addr'; a.textContent = BR.address; bs.appendChild(a); }
+    }
 
     var loadingFill = document.getElementById('loading-fill');
     var loadingPct  = document.getElementById('loading-pct');
