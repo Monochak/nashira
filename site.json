@@ -373,6 +373,18 @@
             "lng": -103.37273240089418,
             "nombre": "Soriana Híper",
             "categoria": "Comercio"
+          },
+          {
+            "lat": 20.69698256504513,
+            "lng": -103.37148517370225,
+            "nombre": "Station 24 Fitness Country",
+            "categoria": ""
+          },
+          {
+            "lat": 20.697845695169626,
+            "lng": -103.37338954210283,
+            "nombre": "Pancarana",
+            "categoria": ""
           }
         ],
         "enabled": true,
@@ -469,9 +481,9 @@
             "kpi": "",
             "num": "04",
             "body": "(texto pendiente — captúralo en el panel)",
-            "label": "La azotea",
+            "label": "Roor Terrace",
             "caption": "amenidades bajo el cielo",
-            "highlight": "Azotea"
+            "highlight": "N07"
           },
           {
             "kpi": "",

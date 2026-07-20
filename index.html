@@ -196,6 +196,8 @@
       get:function(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},
       set:function(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
     };
+    // portada apagada desde el panel (pages.index.enabled === false) → directo a Emotion
+    if (window.SITE.pages.index.enabled === false) { window.location.replace(REDIRECT); return; }
     // si el intro ya se vio en esta sesion, ir directo a Emotion
     if (safeStorage.get(INTRO_KEY)) { window.location.replace(REDIRECT); return; }
 
