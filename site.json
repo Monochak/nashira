@@ -435,7 +435,7 @@
       },
       "model": {
         "src": "content/models/Nashira_Modelo_Web.glb",
-        "version": 11
+        "version": 12
       },
       "camera": {
         "fov": 15,
