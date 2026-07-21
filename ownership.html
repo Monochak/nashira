@@ -1186,6 +1186,7 @@
     let modelCenter     = new THREE.Vector3();
     let modelMaxDim     = 1;
     let azoteaItems     = [];
+    let terrazaItems    = [];  // meshes de la Terraza — se mantiene visible al aislar un piso
     let plantaBajaItems = [];  // N01: locales comerciales — visible, fuera de navegación y venta
     const ghostMeshes   = [];
 
@@ -1430,6 +1431,14 @@
 
       // Planta baja siempre visible: es la base del edificio
       plantaBajaItems.forEach(mesh => {
+        mesh.visible  = true;
+        mesh.material = MAT_BASE;
+        mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
+      });
+
+      // Terraza siempre visible: es un amenity, no un piso de venta — se mantiene
+      // como contexto al aislar cualquier nivel.
+      terrazaItems.forEach(mesh => {
         mesh.visible  = true;
         mesh.material = MAT_BASE;
         mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
@@ -2336,6 +2345,16 @@
         mesh.material = MAT_BASE;
         mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 15), MAT_EDGE));
         azoteaItems.push(mesh);
+      });
+
+      // 6c. Terraza: meshes cuyo nodo (o algún ancestro) se llama "Terraza".
+      //     Se aíslan en su propio grupo para mantenerla visible al entrar a un
+      //     piso (no se corta con la azotea).
+      model.traverse(obj => {
+        if (!obj.isMesh) return;
+        for (let p = obj; p; p = p.parent) {
+          if (p.name && /terraza/i.test(p.name)) { terrazaItems.push(obj); break; }
+        }
       });
 
       // 7. Camera auto-fit
