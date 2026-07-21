@@ -2317,6 +2317,18 @@
         }));
       });
 
+      // 6b. Meshes sueltos (Terraza, remates de azotea…) que no cayeron en un piso
+      //     ni unidad: sin esto conservan el material oscuro del GLB y se ven negros.
+      //     Se les da MAT_BASE y se agrupan con la azotea (visibles en órbita,
+      //     ocultos al entrar a un piso inferior).
+      const strayMeshes = [];
+      model.traverse(obj => { if (obj.isMesh && obj.material !== MAT_BASE) strayMeshes.push(obj); });
+      strayMeshes.forEach(mesh => {
+        mesh.material = MAT_BASE;
+        mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 15), MAT_EDGE));
+        azoteaItems.push(mesh);
+      });
+
       // 7. Camera auto-fit
       const box = new THREE.Box3().setFromObject(model);
       modelCenter = box.getCenter(new THREE.Vector3());
