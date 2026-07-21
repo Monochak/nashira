@@ -73,7 +73,7 @@
     "index": {
       "mode": "splash",
       "splash": {
-        "loaderMs": 4500,
+        "loaderMs": 5000,
         "preloadVideo": "content/videos/video-01.mp4",
         "preloadFrames": [
           0,
@@ -83,7 +83,6 @@
           240
         ]
       },
-      "enabled": true,
       "redirectTo": "emotion.html"
     },
     "action": {
@@ -316,76 +315,64 @@
             "categoria": "Educación"
           },
           {
+            "lat": 20.693951534298808,
+            "lng": -103.37537437677385,
+            "nombre": "Midtown",
+            "categoria": "Comercio"
+          },
+          {
             "lat": 20.691628037598505,
             "lng": -103.37009042501451,
             "nombre": "Hospital México Americano",
             "categoria": "Salud"
           },
           {
-            "lat": 20.694585643863626,
-            "lng": -103.37580621242525,
-            "nombre": "Midtown Jalisco",
-            "categoria": "Comercio"
-          },
-          {
-            "lat": 20.69586349948895,
-            "lng": -103.37319642305376,
-            "nombre": "Glorieta Colón",
-            "categoria": "Transporte"
-          },
-          {
-            "lat": 20.696184667130197,
-            "lng": -103.37904900312425,
-            "nombre": "Gaston Wine Bar",
+            "lat": 20.697845695169626,
+            "lng": -103.37338954210283,
+            "nombre": "Panarama",
             "categoria": "Gastronomía"
           },
           {
-            "lat": 20.703216664438308,
-            "lng": -103.37079718708993,
-            "nombre": "Country Club",
+            "lat": 20.7030879,
+            "lng": -103.3768511,
+            "nombre": "Action Black Punto Sao Paulo",
             "categoria": "Esparcimiento"
           },
           {
-            "lat": 20.69593414701917,
-            "lng": -103.3784830570221,
-            "nombre": "Parque Mirador Dr. Atl",
-            "categoria": "Esparcimiento"
-          },
-          {
-            "lat": 20.6999717,
-            "lng": -103.382308,
-            "nombre": "Parque Silvano Barba",
-            "categoria": "Esparcimiento"
-          },
-          {
-            "lat": 20.692461480083885,
-            "lng": -103.38358998298646,
-            "nombre": "Parque Rubén Darío",
-            "categoria": "Esparcimiento"
-          },
-          {
-            "lat": 20.689942,
-            "lng": -103.3843601,
-            "nombre": "Centro Deportivo Enrique Ladrón de Guevara",
-            "categoria": "Esparcimiento"
-          },
-          {
-            "lat": 20.69222059850385,
-            "lng": -103.37273240089418,
-            "nombre": "Soriana Híper",
+            "lat": 20.6909974,
+            "lng": -103.3730511,
+            "nombre": "Soriana Hiper Americas",
             "categoria": "Comercio"
           },
           {
-            "lat": 20.69698256504513,
-            "lng": -103.37148517370225,
-            "nombre": "Station 24 Fitness Country",
-            "categoria": ""
+            "lat": 20.7021094,
+            "lng": -103.3764555,
+            "nombre": "Plaza Punto São Paulo",
+            "categoria": "Comercio"
           },
           {
-            "lat": 20.697845695169626,
-            "lng": -103.37338954210283,
-            "nombre": "Pancarana",
-            "categoria": ""
+            "lat": 20.7036359,
+            "lng": -103.364473,
+            "nombre": "Hospital Country 2000",
+            "categoria": "Salud"
+          },
+          {
+            "lat": 20.6879497,
+            "lng": -103.3894569,
+            "nombre": "Hospital San Javier",
+            "categoria": "Salud"
+          },
+          {
+            "lat": 20.7060107,
+            "lng": -103.3906421,
+            "nombre": "Colomos Forest",
+            "categoria": "Esparcimiento"
+          },
+          {
+            "lat": 20.7123814,
+            "lng": -103.3751792,
+            "nombre": "Plaza Patria",
+            "categoria": "Comercio"
           }
         ],
         "enabled": true,
@@ -455,44 +442,68 @@
       "presentacion": {
         "pasos": [
           {
-            "kpi": "10",
+            "kpi": "10 niveles",
             "num": "01",
-            "body": "(texto pendiente — captúralo en el panel)",
+            "body": "- ACCESO INTELIGENTE\n- 2 ELEVADORES DE ALTA VELOCIDAD\n- DELIVERY LOCKERS\n- VIGILANCIA LAS 24 HORAS\n- CARGADORES PARA VEHICULOS ELECTRICOS\n- PUNTO DE RECICLAJE\n- TOOL ROOM\n- JARDIN Y PATIO INTERIOR CON ESPEJO DE AGUA\n- OPEN GYM\n- FIREPIT Y AREA ASADORES\n- TERRAZA ROOFTOP\n- CERTIFICACIÓN EDGE",
             "label": "La torre",
-            "caption": "niveles",
-            "highlight": "todo"
+            "caption": "VIVE PROVIDENCIA COMO SIEMPRE SOÑASTE",
+            "highlight": "N01, N02, N03, N04, N05, N06, N07, N09, N10, N08, Azotea, Planta-Baja, Terraza, Unit-*-1002, Unit-*-1001, Unit-*-201, Unit-*-202, Unit-*-203, Unit-*-402, Unit-*-301, Unit-*-403, Unit-*-602, Unit-*-801, Unit-*-LOCAL 2, Unit-*-LOCAL 3, Unit-*-802, Unit-*-603, Unit-*-501, Unit-*-302, Unit-*-303, Unit-*-502, Unit-*-701, Unit-*-901, Unit-*-902, Unit-*-503, Unit-*-401, Unit-*-702, Unit-*-LOCAL 1, Unit-*-703, Unit-*-601"
           },
           {
             "kpi": "",
             "num": "02",
-            "body": "(texto pendiente — captúralo en el panel)",
+            "body": "La vida te espera en la planta baja: un café, un encuentro, tu rutina al pie de casa.\n",
             "label": "La planta baja",
             "caption": "comercio a pie de calle",
-            "highlight": "Planta-Baja"
+            "highlight": "Unit-*-LOCAL 1, Unit-*-LOCAL 2, Unit-*-LOCAL 3, N01"
           },
           {
-            "kpi": "02B",
+            "kpi": "4",
             "num": "03",
-            "body": "(texto pendiente — captúralo en el panel)",
+            "body": "Solo 25 Departamentos\nCuatro tipologías bien resueltas, pensadas para\nquienes valoran el diseño funcional y la estética\nnatural, donde cada detalle suma calidad de vida.\nYa sea que vivas solo, en pareja o en familia, aquí\nencuentras una distribución que se adapta a ti.",
             "label": "Las tipologías",
-            "caption": "la tipología esquinera",
-            "highlight": "Unit-*-02B"
+            "caption": "Departamentos tipo",
+            "highlight": "Unit-*-02B, N02, N03, N04, N05, N06, N07, N08, N09, N10"
           },
           {
-            "kpi": "",
+            "kpi": "129",
             "num": "04",
-            "body": "(texto pendiente — captúralo en el panel)",
-            "label": "Roor Terrace",
-            "caption": "amenidades bajo el cielo",
-            "highlight": "N07"
+            "body": "3 RECAMARAS\nWALKING CLOSET EN RECAMARA PRINCIPAL Y SECUNDARIA\nSALA COMEDOR\n2 CAJONES DE ESTACIONAMIENTO\n1 Y MEDIO BAÑOS\nVISTA A COLOMOS\nBODEGA",
+            "label": "TIPO A",
+            "caption": "m2",
+            "highlight": "Unit-*-1001, Unit-*-201, Unit-*-301, Unit-*-401, Unit-*-501, Unit-*-601, Unit-*-701, Unit-*-801, Unit-*-901, Unit-*-A"
           },
           {
-            "kpi": "",
+            "kpi": "109",
             "num": "05",
-            "body": "(texto pendiente — captúralo aquí)",
-            "label": "(paso 5 pendiente)",
-            "caption": "",
-            "highlight": "none"
+            "body": "2 RECAMARAS\nWALKING CLOSET EN RECAMARA PRINCIPAL\nSALA COMEDOR\n2 CAJONES DE ESTACIONAMIENTO\n1 Y MEDIO BAÑOS\nCUARTO DE LABAVO\nBODEGA\nVISTA A COLOMOS Y MANAGUA",
+            "label": "TIPO B",
+            "caption": "M2",
+            "highlight": "Unit-*-B"
+          },
+          {
+            "kpi": "93",
+            "num": "06",
+            "body": "2 RECAMARAS CON BAÑO COMPLETO\n2 CAJONES DE ESTACIONAMIENTO\nSALA COMEDOR\nCUARTO DE LABAVO\nMEDIO BAÑOS\nBODEGA\nVISTA A MANAGUA",
+            "label": "TIPO C",
+            "caption": "M2",
+            "highlight": "Unit-*-C"
+          },
+          {
+            "kpi": "60",
+            "num": "07",
+            "body": "1 RECAMARA1 CON BAÑO COMPLETO\n2 CAJONES DE ESTACIONAMIENTO\nSALA COMEDOR\nCUARTO DE LABAVO\nBODEGA\nVISTA A MANAGUA",
+            "label": "TIPO D",
+            "caption": "M2",
+            "highlight": "Unit-*-1002, Unit-*-902, Unit-*-802, Unit-*-D"
+          },
+          {
+            "kpi": "amenidades bajo el cielo ",
+            "num": "08",
+            "body": "El atardecer, a la altura de tu terraza. Siete niveles arriba, el cielo se vuelve tuyo.",
+            "label": "Roor Terrace",
+            "caption": "PORQUE TU HOGAR TAMBIÉN SE VIVE  MÁS ALLÁ DE TU PUERTA",
+            "highlight": "Terraza"
           }
         ],
         "enabled": true,

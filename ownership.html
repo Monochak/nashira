@@ -16,7 +16,7 @@
   <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
   <script src="site.js?v=0ffc7494"></script>
   <script src="theme.js?v=a45adf14"></script>
-  <script src="backend.js?v=07970af9"></script>
+  <script src="backend.js?v=105737ee"></script>
   <!-- OG: reemplazar og:image con URL absoluta al definir el dominio de producción -->
   <meta property="og:title" content="Nashira · Ownership">
   <meta property="og:description" content="Nashira. Explora la torre en 3D y descubre las unidades disponibles.">
@@ -2474,11 +2474,21 @@
           const pb = floorGroups.find(fg => fg.label.toLowerCase() === 'n01');
           if (pb) { push(pb.items); (pb.units || []).forEach(u => push(u.items)); hit = true; }
         }
-        // unidades por patrón: unit-*-02b
+        // unidades por patrón: unit-*-02b — por nombre de nodo (Unit-{nivel}-{tipo})
+        // O por la tipología del dato (disponibilidad), porque en proyectos como
+        // Nashira los nodos se llaman por etiqueta de cliente ("201", "LOCAL 1")
+        // y la tipología solo vive en Supabase (tipo / tipologia).
         if (t.startsWith('unit-')) {
-          const re = new RegExp('^' + escapa(t).replace(/\*/g, '[^-]*') + '$', 'i');
+          const re      = new RegExp('^' + escapa(t).replace(/\*/g, '[^-]*') + '$', 'i');
+          const tipoSel = t.split('-').pop();   // '02b' — la tipología pedida
           floorGroups.forEach(fg => (fg.units || []).forEach(u => {
-            if (re.test(u.id)) { push(u.items); hit = true; }
+            const d = disponibilidad[normId(u.id)];
+            const porNombre = re.test(u.id);
+            const porDato   = d && (
+              String(d.tipo || '').toLowerCase()      === tipoSel ||
+              String(d.tipologia || '').toLowerCase() === tipoSel
+            );
+            if (porNombre || porDato) { push(u.items); hit = true; }
           }));
         }
         // cualquier nodo del GLB con ese nombre (capas futuras: Terraza, Alberca…)
@@ -2610,7 +2620,7 @@
   <script src="rail.js?v=3e7d40c3"></script>
   <script src="fullscreen.js?v=8f3fe4bb"></script>
   <script src="sparkles.js?v=07f3a614"></script>
-  <script src="pwa.js?v=681b3376"></script>
+  <script src="pwa.js?v=d3f89997"></script>
 
 </body>
 </html>
