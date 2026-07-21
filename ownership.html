@@ -2395,10 +2395,12 @@
         const prezCfg    = OWN.presentacion;
         const prezActiva = !!(prezCfg && prezCfg.enabled !== false && (prezCfg.pasos || []).length);
         if (prezActiva) {
-          // La presentación ES la intro: la lista de pisos se revela junta, sin cascada
+          // La presentación ES la intro: la lista de pisos se revela junta, sin cascada.
+          // Arranca JUNTO con el giro (no al final): corre durante toda la rotación
+          // mientras la escena aclara con el dimmer. Coexiste con la órbita sin conflicto.
           document.querySelectorAll('#floor-list .floor-item')
             .forEach(it => it.classList.add('revealed'));
-          setTimeout(() => initPrez(prezCfg), reducedMotion ? 0 : DIMMER_MS + 100);
+          setTimeout(() => initPrez(prezCfg), reducedMotion ? 0 : 300);
         } else {
           setTimeout(runFloorCascade, reducedMotion ? 0 : DIMMER_MS + 100);
         }

@@ -458,8 +458,16 @@
             "highlight": "Unit-*-LOCAL 1, Unit-*-LOCAL 2, Unit-*-LOCAL 3, N01"
           },
           {
-            "kpi": "4",
+            "kpi": "amenidades bajo el cielo ",
             "num": "03",
+            "body": "El atardecer, a la altura de tu terraza. Siete niveles arriba, el cielo se vuelve tuyo.",
+            "label": "Roor Terrace",
+            "caption": "PORQUE TU HOGAR TAMBIÉN SE VIVE  MÁS ALLÁ DE TU PUERTA",
+            "highlight": "Terraza"
+          },
+          {
+            "kpi": "4",
+            "num": "04",
             "body": "Solo 25 Departamentos\nCuatro tipologías bien resueltas, pensadas para\nquienes valoran el diseño funcional y la estética\nnatural, donde cada detalle suma calidad de vida.\nYa sea que vivas solo, en pareja o en familia, aquí\nencuentras una distribución que se adapta a ti.",
             "label": "Las tipologías",
             "caption": "Departamentos tipo",
@@ -467,7 +475,7 @@
           },
           {
             "kpi": "129",
-            "num": "04",
+            "num": "05",
             "body": "3 RECAMARAS\nWALKING CLOSET EN RECAMARA PRINCIPAL Y SECUNDARIA\nSALA COMEDOR\n2 CAJONES DE ESTACIONAMIENTO\n1 Y MEDIO BAÑOS\nVISTA A COLOMOS\nBODEGA",
             "label": "TIPO A",
             "caption": "m2",
@@ -475,7 +483,7 @@
           },
           {
             "kpi": "109",
-            "num": "05",
+            "num": "06",
             "body": "2 RECAMARAS\nWALKING CLOSET EN RECAMARA PRINCIPAL\nSALA COMEDOR\n2 CAJONES DE ESTACIONAMIENTO\n1 Y MEDIO BAÑOS\nCUARTO DE LABAVO\nBODEGA\nVISTA A COLOMOS Y MANAGUA",
             "label": "TIPO B",
             "caption": "M2",
@@ -483,7 +491,7 @@
           },
           {
             "kpi": "93",
-            "num": "06",
+            "num": "07",
             "body": "2 RECAMARAS CON BAÑO COMPLETO\n2 CAJONES DE ESTACIONAMIENTO\nSALA COMEDOR\nCUARTO DE LABAVO\nMEDIO BAÑOS\nBODEGA\nVISTA A MANAGUA",
             "label": "TIPO C",
             "caption": "M2",
@@ -491,19 +499,19 @@
           },
           {
             "kpi": "60",
-            "num": "07",
+            "num": "08",
             "body": "1 RECAMARA1 CON BAÑO COMPLETO\n2 CAJONES DE ESTACIONAMIENTO\nSALA COMEDOR\nCUARTO DE LABAVO\nBODEGA\nVISTA A MANAGUA",
             "label": "TIPO D",
             "caption": "M2",
             "highlight": "Unit-*-1002, Unit-*-902, Unit-*-802, Unit-*-D"
           },
           {
-            "kpi": "amenidades bajo el cielo ",
-            "num": "08",
-            "body": "El atardecer, a la altura de tu terraza. Siete niveles arriba, el cielo se vuelve tuyo.",
-            "label": "Roor Terrace",
-            "caption": "PORQUE TU HOGAR TAMBIÉN SE VIVE  MÁS ALLÁ DE TU PUERTA",
-            "highlight": "Terraza"
+            "kpi": "",
+            "num": "09",
+            "body": "",
+            "label": "NASHIRA ES COMUNIDAD. ES EQUILIBRIO. ES HOGAR.",
+            "caption": "",
+            "highlight": "none"
           }
         ],
         "enabled": true,
