@@ -1304,33 +1304,43 @@
     const mouse = new THREE.Vector2(-999, -999);
 
     // ── AVAILABILITY ─────────────────────────────────────────────────────────
-    // Fuente: Supabase (ver backend.js / BACKEND.md). Clave: "{nivel}-{tipo}" en
-    // minúsculas, derivada del nombre del nodo GLB (Unit-{nivel}-{tipo}).
+    // Fuente: Supabase (ver backend.js / BACKEND.md). Clave: la ETIQUETA del cliente
+    // ("201", "LOCAL 1"), que es también el nombre del nodo GLB. normId la normaliza.
+    // Normaliza espacios y guiones bajos (three.js sanea "LOCAL 1" → "LOCAL_1")
+    const normId = s => String(s ?? '').trim().toLowerCase().replace(/[\s_]+/g, ' ');
+
     async function loadDisponibilidad() {
+      const store = u => {
+        const key = normId(u.etiqueta ?? u.label);
+        if (!key) return;   // fila sin etiqueta aún — se ignora hasta cargar datos
+        disponibilidad[key] = {
+          estado: u.estado,
+          tipo: u.tipo ? String(u.tipo).toUpperCase() : null,
+          tipologia: u.tipologia ?? null,   // A/B/C/D/L (nomenclatura cliente)
+          etiqueta: u.etiqueta ?? u.label ?? null,
+          m2: u.m2,
+          m2_int: u.m2_int ?? null,
+          m2_terraza: u.m2_terraza ?? null,
+          m2_balcon: u.m2_balcon ?? null,
+          precio: u.precio ?? null,
+        };
+      };
       try {
         const unidades = await window.MonolitoBackend.fetchDisponibilidad();
-        unidades.forEach(u => {
-          disponibilidad[`${u.nivel}-${u.tipo.toLowerCase()}`] =
-            { estado: u.estado, tipo: u.tipo.toUpperCase(), m2: u.m2, precio: u.precio ?? null };
-        });
+        unidades.forEach(store);
       } catch {
         // Sin conexión al backend — fallback al snapshot local si existe
         try {
           const res  = await fetch('content/data/disponibilidad.json');
           const data = await res.json();
-          data.unidades.forEach(u => {
-            disponibilidad[`${u.piso}-${String(u.tipo).toLowerCase()}`] =
-              { estado: u.estado, tipo: u.tipo, m2: u.m2 };
-          });
+          data.unidades.forEach(store);
         } catch { /* las unidades se muestran igual, sin datos de disponibilidad */ }
       }
     }
 
     function unitDispo(unit) {
-      // unit.id = nombre del nodo GLB: Unit-{nivel}-{tipo}
-      const parts = unit.id.split('-');
-      if (parts.length < 3) return null;
-      return disponibilidad[`${parseInt(parts[1], 10)}-${parts[2].toLowerCase()}`] ?? null;
+      // unit.id = nombre del nodo GLB = etiqueta del cliente ("201", "LOCAL 1")
+      return disponibilidad[normId(unit.id)] ?? null;
     }
 
     const ESTADO_LABELS = OWN.copy.estados;
@@ -1874,26 +1884,53 @@
       const fg = floorGroups[selectedFloor];
       const d  = unitDispo(unit);
       const floorLabel = fg ? fg.label : '—';
-      const unitLabel  = unit.label;
+      // Etiqueta del cliente (Supabase) tiene prioridad; fallback al label del GLB
+      const unitLabel  = d?.etiqueta ?? unit.label;
+      const tipologia  = d?.tipologia ?? d?.tipo ?? '—';
 
-      currentUnitData = { floorLabel, unitLabel, tipo: d?.tipo ?? '—', m2: d?.m2 ?? '—' };
+      // Superficie: si hay desglose granular, mostrar interior / terrazas+balcones / total;
+      // si no, caer al m2 único (compat con datos previos).
+      const fM2  = v => (v == null) ? '—' : (Math.round(v * 10) / 10).toFixed(1) + ' m²';
+      const mInt = d?.m2_int ?? null;
+      const mExt = (d?.m2_terraza != null || d?.m2_balcon != null)
+        ? ((d.m2_terraza ?? 0) + (d.m2_balcon ?? 0)) : null;
+      const mTot = (mInt != null) ? +(mInt + (mExt ?? 0)).toFixed(1) : (d?.m2 ?? null);
+
+      currentUnitData = { floorLabel, unitLabel, tipo: tipologia, m2: mTot ?? '—' };
 
       const precioStr = d?.precio
         ? '$' + Number(d.precio).toLocaleString('es-MX')
         : null;
+
+      const superficieRows = (mInt != null)
+        ? `
+        <div class="panel-stat">
+          <span class="stat-label">Interior</span>
+          <span class="stat-value">${fM2(mInt)}</span>
+        </div>
+        <div class="panel-stat">
+          <span class="stat-label">Terrazas y balcones</span>
+          <span class="stat-value">${fM2(mExt)}</span>
+        </div>
+        <div class="panel-stat">
+          <span class="stat-label">Total</span>
+          <span class="stat-value">${fM2(mTot)}</span>
+        </div>`
+        : `
+        <div class="panel-stat">
+          <span class="stat-label">${OWN.copy.stats.superficie}</span>
+          <span class="stat-value">${fM2(mTot)}</span>
+        </div>`;
 
       document.getElementById('panel-floor-label').textContent = floorLabel;
       document.getElementById('panel-unit-name').textContent   = unitLabel;
       document.getElementById('panel-stats').innerHTML = `
         <div class="panel-stat">
           <span class="stat-label">${OWN.copy.stats.tipologia}</span>
-          <span class="stat-value">${d?.tipo ?? '—'}</span>
+          <span class="stat-value">${tipologia}</span>
         </div>
-        <div class="panel-stat">
-          <span class="stat-label">${OWN.copy.stats.superficie}</span>
-          <span class="stat-value">${d?.m2 ? d.m2 + ' m²' : '—'}</span>
-        </div>
-        ${precioStr && d?.estado !== 'vendida' ? `
+        ${superficieRows}
+        ${precioStr && d?.estado === 'disponible' ? `
         <div class="panel-stat">
           <span class="stat-label">${OWN.copy.stats.precio}</span>
           <span class="stat-value accent">${precioStr}</span>
@@ -2237,28 +2274,35 @@
         });
         const label = labelMap.get(nodeName) || nodeName.replace('Floor-', 'N');
         if (label === 'Azotea') { azoteaItems = items; return null; }
-        if (label === 'N01')    { plantaBajaItems = items; return null; }
+        // N01 (planta baja) ahora es un piso navegable: aloja los LOCALES vendibles.
+        // Como es el índice 0, la lógica "≤ activeIdx" lo mantiene visible como base.
         return { label, nodeName, items, y_center: 0 };
       }).filter(Boolean);
 
-      // 6. Discover units (Unit-NN-ID) and associate to floors by name
+      // 6. Discover units by client nomenclature and associate to floors.
+      //    El nombre del nodo GLB ES la etiqueta del cliente: "201".."1002" y "LOCAL 1..3".
+      //    El nivel se deriva del label (201→2, 1001→10, LOCAL→1).
       const unitsByFloor = new Map();
+      const seenUnits = new Set();
       model.traverse(obj => {
-        if (obj.isMesh || !obj.name) return;
-        const name = obj.name.trim();
-        if (!/^Unit-/.test(name)) return;
-        const parts    = name.split('-');
-        const floorNum = parts[1];
-        const unitNum  = parts[2] || '01';
-        const floorLbl = 'N' + floorNum.padStart(2, '0');
-        const unitLbl  = OWN.copy.unitLabel.replace('{n}', parseInt(unitNum, 10));
+        const name = (obj.name || '').trim();
+        const isNumUnit = /^\d{3,4}$/.test(name);
+        // Solo el nodo padre del local ("LOCAL 1"/"LOCAL_1"), no sus mesh-hijos ("LOCAL_1_2")
+        const isLocal   = /^local[\s_]*\d+$/i.test(name);
+        if ((!isNumUnit && !isLocal) || seenUnits.has(name)) return;
+        seenUnits.add(name);
+        const nivel    = isLocal ? 1 : Math.floor(parseInt(name, 10) / 100);
+        const floorLbl = 'N' + String(nivel).padStart(2, '0');
         const items = [];
-        obj.traverse(child => {
+        obj.traverse(child => {          // incluye obj si es Mesh, o sus mesh-hijos si es Group
           if (!child.isMesh) return;
           child.material = MAT_BASE;
           child.add(new THREE.LineSegments(new THREE.EdgesGeometry(child.geometry, 15), MAT_EDGE));
           items.push(child);
         });
+        if (!items.length) return;
+        // Etiqueta del cliente (Supabase) tiene prioridad; si no, limpia el nombre saneado
+        const unitLbl = disponibilidad[normId(name)]?.etiqueta || name.replace(/_/g, ' ');
         if (!unitsByFloor.has(floorLbl)) unitsByFloor.set(floorLbl, []);
         unitsByFloor.get(floorLbl).push({ id: name, label: unitLbl, items });
       });
@@ -2414,8 +2458,9 @@
           }
         });
         if (t === 'azotea' || t === 'floor-azotea') { push(azoteaItems); hit = true; }
-        if (t === 'n01' || t === 'floor-01' || t === 'planta-baja' || t === 'plantabaja') {
-          push(plantaBajaItems); hit = true;
+        if (t === 'planta-baja' || t === 'plantabaja') {
+          const pb = floorGroups.find(fg => fg.label.toLowerCase() === 'n01');
+          if (pb) { push(pb.items); (pb.units || []).forEach(u => push(u.items)); hit = true; }
         }
         // unidades por patrón: unit-*-02b
         if (t.startsWith('unit-')) {

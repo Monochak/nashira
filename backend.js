@@ -16,10 +16,12 @@ async function supabaseGet(path) {
   return res.json();
 }
 
-// Disponibilidad del proyecto: [{ nivel, tipo, m2, estado }]
+// Disponibilidad del proyecto: [{ nivel, tipo, etiqueta, tipologia, m2, m2_int, m2_terraza, m2_balcon, estado, precio }]
+// select=* es a prueba de futuro: trae las columnas nuevas (etiqueta, tipologia, m2_*)
+// una vez que corra disponibilidad-schema.sql, sin romper antes de la migración.
 async function fetchDisponibilidad() {
   return supabaseGet(
-    `unidades?select=nivel,tipo,m2,estado,precio,torres!inner(proyectos!inner(slug))` +
+    `unidades?select=*,torres!inner(proyectos!inner(slug))` +
     `&torres.proyectos.slug=eq.${PROYECTO_SLUG}`
   );
 }
