@@ -704,6 +704,13 @@
       gap: 24px;
     }
     .panel-section[hidden] { display: none; }
+    .panel-proyecto-body {
+      font-size: 0.95rem; line-height: 1.7; color: var(--text);
+      letter-spacing: 0.01em; text-wrap: pretty; margin: 0 0 22px;
+      white-space: pre-line;   /* respeta saltos de párrafo del texto de la ficha */
+    }
+    .panel-proyecto-body strong { font-weight: 700; }
+    .panel-proyecto-body em { font-style: italic; }
 
     #panel-detail { justify-content: space-between; }
 
@@ -1088,6 +1095,12 @@
         <button class="panel-cta" id="panel-cta-contact" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
       </div>
 
+      <!-- Estado: información del proyecto (sin unidad seleccionada) -->
+      <div id="panel-proyecto" class="panel-section" hidden>
+        <p class="panel-proyecto-body" id="panel-proyecto-body"></p>
+        <button class="panel-cta" id="panel-cta-proyecto" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
+      </div>
+
       <!-- Estado: formulario de contacto -->
       <div id="panel-form" class="panel-section" hidden>
         <button class="panel-back" id="panel-back">&#8592; <span data-site="pages.ownership.copy.formBack">Volver</span></button>
@@ -1177,7 +1190,8 @@
     let prezHighlightOn = false;   // presentación guiada: bloquea hover mientras ilumina
     let prezExitHook    = null;    // la presentación se retira al seleccionar piso/unidad
     let glbModel        = null;   // referencia al modelo completo para hide-all
-    let panelState      = 'detail'; // 'detail' | 'form' | 'success'
+    let panelState      = 'detail'; // 'detail' | 'proyecto' | 'form' | 'success'
+    let formReturnState = 'detail'; // a dónde vuelve el form: 'detail' (unidad) | 'proyecto'
     let currentUnitData = null;
     let disponibilidad  = {};
     let floorGroups     = [];      // [{label, nodeName, items, y_center, units, meshToUnit}]
@@ -1494,7 +1508,7 @@
       selectedUnit  = null;
       hoveredUnit   = null;
       unitLabelEl.classList.remove('visible');
-      infoBtn.classList.remove('shown', 'visible', 'selected');
+      refreshInfoBtn();
 
       // Si venimos de modo unit, regresar el FOV de 8° a 15° en paralelo al tween
       if (Math.abs(camera.fov - 15) > 0.01) {
@@ -1608,7 +1622,7 @@
       if (panelOpen) closePanel();
       selectedUnit = null; hoveredUnit = null;
       unitLabelEl.classList.remove('visible');
-      infoBtn.classList.remove('shown', 'visible', 'selected');
+      refreshInfoBtn();
 
       // Restaurar visibilidad completa del piso activo
       applyFloorVisibility(selectedFloor);
@@ -1873,11 +1887,7 @@
         if (t < 1) requestAnimationFrame(tick);
         else {
           isTransitioning = false; mode = 'unit'; controls.enabled = true;
-          infoBtn.classList.add('visible');
-          requestAnimationFrame(() => {
-            infoBtn.classList.add('shown');
-            infoBtn.classList.add('selected');
-          });
+          refreshInfoBtn();
         }
       })(performance.now());
     }
@@ -1888,8 +1898,47 @@
     const panelClose = document.getElementById('panel-close');
     const infoBtn    = document.getElementById('info-btn');
 
+    // Información del proyecto (mostrada cuando NO hay unidad seleccionada).
+    const PROJECT_INFO = (typeof OWN.copy.infoProyecto === 'string') ? OWN.copy.infoProyecto.trim() : '';
+    // Formato ligero: escapa HTML y traduce **negrita** / *cursiva* (los saltos
+    // de línea los respeta el CSS con pre-line).
+    function escFmt(raw) {
+      return String(raw)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+    }
+
+    // Estado del botón info: visible siempre que haya unidad seleccionada O info de
+    // proyecto capturada; en acento (.selected) solo cuando hay unidad. Si no hay
+    // ninguna de las dos (proyecto sin info y sin unidad), queda oculto.
+    function refreshInfoBtn() {
+      const hasUnit = mode === 'unit' && !!selectedUnit;
+      const show    = hasUnit || !!PROJECT_INFO;
+      infoBtn.classList.toggle('visible', show);
+      infoBtn.classList.toggle('selected', hasUnit);
+      if (show && !panelOpen) requestAnimationFrame(() => infoBtn.classList.add('shown'));
+      else infoBtn.classList.remove('shown');
+    }
+
+    // Panel de información del proyecto (reusa el panel deslizante + el mismo CTA).
+    function openProjectPanel() {
+      if (!PROJECT_INFO) return;
+      document.getElementById('panel-floor-label').textContent = '';
+      document.getElementById('panel-unit-name').textContent   = window.SITE.brand.name || '';
+      document.getElementById('panel-proyecto-body').innerHTML = escFmt(PROJECT_INFO);
+      setPanelState('proyecto');
+      unitPanel.classList.add('open');
+      canvasDim.classList.add('active');
+      unitLabelEl.classList.remove('visible');
+      panelOpen = true;
+      syncFloorList();
+      infoBtn.classList.remove('shown');
+    }
+
     infoBtn.addEventListener('click', () => {
       if (selectedUnit) openPanel(selectedUnit);
+      else openProjectPanel();
     });
 
     function setPanelState(state) {
@@ -1973,10 +2022,7 @@
       canvasDim.classList.remove('active');
       panelOpen = false;
       syncFloorList();
-      if (mode === 'unit') requestAnimationFrame(() => {
-        infoBtn.classList.add('shown');
-        if (selectedUnit) infoBtn.classList.add('selected');
-      });
+      refreshInfoBtn();
       // Reset form and state after close animation (0.42s)
       setTimeout(() => {
         document.getElementById('contact-form').reset();
@@ -2003,14 +2049,21 @@
       });
     });
 
-    // CTA: detalle → formulario
+    // CTA: detalle de unidad → formulario
     document.getElementById('panel-cta-contact').addEventListener('click', () => {
+      formReturnState = 'detail';
       setPanelState('form');
     });
 
-    // Volver: formulario → detalle
+    // CTA: info de proyecto → formulario
+    document.getElementById('panel-cta-proyecto').addEventListener('click', () => {
+      formReturnState = 'proyecto';
+      setPanelState('form');
+    });
+
+    // Volver: formulario → de donde vino (unidad o proyecto)
     document.getElementById('panel-back').addEventListener('click', () => {
-      setPanelState('detail');
+      setPanelState(formReturnState);
     });
 
     // Submit del formulario
@@ -2431,6 +2484,7 @@
           controls.autoRotateSpeed = OWN.camera.autoRotateSpeed;
           setTimeout(() => { controls.autoRotate = false; }, OWN.camera.autoRotateDelayMs);
         }
+        refreshInfoBtn();   // botón info visible desde la vista general (si hay info de proyecto)
       }, delay);
     }
 
