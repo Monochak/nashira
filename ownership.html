@@ -967,7 +967,10 @@
     .prez-body {
       font-size: 1.17rem; line-height: 1.7; color: var(--text);
       letter-spacing: 0.01em; text-wrap: pretty; margin: 0;
+      white-space: pre-line;   /* respeta los saltos de párrafo del texto de la ficha */
     }
+    .prez-body strong { font-weight: 700; }
+    .prez-body em { font-style: italic; }
     #prez-pill {
       position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
       z-index: 30; display: flex; align-items: center; gap: 4px;
@@ -2541,6 +2544,15 @@
         meshes.forEach(m => { m.material = MAT_UNIT_SEL; });
       }
 
+      // Formato ligero para el texto de la ficha: escapa HTML (seguro) y traduce
+      // **negrita**, *cursiva*. Los saltos de línea los respeta el CSS (pre-line).
+      function fmtTexto(raw) {
+        return String(raw)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+      }
+
       function renderStep(i) {
         cur = i;
         const s = steps[i];
@@ -2550,7 +2562,7 @@
           `<div class="prez-num">${num} · ${s.label || ''}</div>` +
           (s.kpi ? `<div class="prez-kpi">${s.kpi}</div>` : '') +
           (s.caption ? `<div class="prez-caption">${s.caption}</div>` : '') +
-          (s.body ? `<p class="prez-body">${s.body}</p>` : '') +
+          (s.body ? `<p class="prez-body">${fmtTexto(s.body)}</p>` : '') +
           '</div>';
         requestAnimationFrame(() => requestAnimationFrame(() => {
           const t = overlay.firstElementChild;
