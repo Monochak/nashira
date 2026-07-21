@@ -1588,7 +1588,7 @@
       controls.update();
     }
 
-    function returnToOrbital() {
+    function returnToOrbital(onDone) {
       if (isTransitioning) return;
       if (panelOpen) closePanel();
       resetVisibility();
@@ -1614,6 +1614,7 @@
         ghostMeshes.forEach(g => { if (g) g.visible = true; });
         syncFloorList();
         document.getElementById('back-btn').classList.remove('visible');
+        if (onDone) onDone();
       });
     }
 
@@ -2666,7 +2667,12 @@
 
       btnPrev.addEventListener('click', () => { if (cur > 0) renderStep(cur - 1); });
       btnNext.addEventListener('click', () => { if (cur < steps.length - 1) renderStep(cur + 1); });
-      resume.addEventListener('click', enter);
+      // Retomar la presentación: si estás dentro de un piso o unidad, la vista
+      // vuelve primero a la general del proyecto (orbital) y ahí arranca.
+      resume.addEventListener('click', () => {
+        if (mode === 'orbital') enter();
+        else returnToOrbital(enter);
+      });
 
       // Convive con la órbita y el zoom; se retira al seleccionar piso/unidad
       prezExitHook = exit;
