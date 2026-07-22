@@ -274,11 +274,20 @@
     }
     loaderRaf = requestAnimationFrame(animateLoader);
 
-    // navegar cuando: reveal+barra terminaron Y los assets estan listos
-    var minWait = new Promise(function(r){setTimeout(r, LOADER_MS+400);});
-    Promise.all(CRITICAL_FRAMES.map(preloadImage).concat([
-      preloadVideo(SPLASH.preloadVideo), minWait
-    ])).then(function(){
+    // navegar cuando: reveal+barra terminaron Y los assets estan listos.
+    // Watchdog: en hosting lento una imagen puede quedarse colgada sin
+    // disparar onload NI onerror — sin tope, el splash no avanza jamas.
+    // Pasados LOADER_MS+12s se navega igual (Emotion re-pide sus frames).
+    var minWait  = new Promise(function(r){setTimeout(r, LOADER_MS+400);});
+    var watchdog = minWait.then(function(){
+      return new Promise(function(r){setTimeout(r, 12000);});
+    });
+    Promise.race([
+      Promise.all(CRITICAL_FRAMES.map(preloadImage).concat([
+        preloadVideo(SPLASH.preloadVideo), minWait
+      ])),
+      watchdog
+    ]).then(function(){
       cancelAnimationFrame(loaderRaf);
       loadingFill.style.transition = 'width .4s ease';
       loadingFill.style.width = '100%';

@@ -258,6 +258,16 @@
       opacity: 0;
     }
 
+    /* Separador con el favicon entre título y texto (sin fondo) */
+    .stop-sep {
+      display: block;
+      width: 24px; height: 24px;
+      margin: 4px auto 20px;
+      opacity: 0;
+      transform: translateY(10px);
+      filter: drop-shadow(0 2px 10px oklch(0% 0 0 / 0.5));
+    }
+
     /* =====================================================
        CHAPTER INDICATORS (bottom center)
     ===================================================== */
@@ -868,6 +878,7 @@
     const textEls = [];
 
     const TEXT_COLORS = (window.SITE && window.SITE.textColors) || {};
+    const FAVICON = (window.SITE && window.SITE.brand && window.SITE.brand.favicon) || '';
     C.stops.forEach((stop, i) => {
       const div = document.createElement('div');
       div.className = 'stop-text';
@@ -876,9 +887,12 @@
       const wordSpans = stop.body
         ? stop.body.split(' ').map(w => `<span class="word">${w}</span>`).join(' ')
         : '';
+      // Separador con el favicon (sin fondo) entre título y texto
+      const sep = (FAVICON && wordSpans) ? `<img class="stop-sep" src="${FAVICON}" alt="" aria-hidden="true">` : '';
       div.innerHTML = stop.label
         ? `<p class="stop-num">${stop.num}</p>
            <h2 class="stop-heading"${cH ? ` style="color:${cH}"` : ''}>${stop.label}</h2>
+           ${sep}
            ${wordSpans ? `<p class="stop-body"${cB ? ` style="color:${cB}"` : ''}>${wordSpans}</p>` : ''}`
         : `<p class="stop-num">${stop.num}</p>`;
       textOverlay.appendChild(div);
@@ -941,6 +955,7 @@
       const words  = Array.from(el.querySelectorAll('.word'));
       const numEl  = el.querySelector('.stop-num');
       const headEl = el.querySelector('.stop-heading');
+      const sepEl  = el.querySelector('.stop-sep');
 
       // Distribute words across the available window.
       // num=0, heading=160, words start at 420ms.
@@ -955,6 +970,7 @@
       const queue = [];
       if (numEl)  queue.push({ node: numEl,  delay: 0   });
       if (headEl) queue.push({ node: headEl, delay: 160 });
+      if (sepEl)  queue.push({ node: sepEl,  delay: 290 });
       words.forEach((w, wi) => {
         queue.push({ node: w, delay: wordsStart + wi * wordStagger });
       });
@@ -972,7 +988,7 @@
     // Shared child-element reset — used by hideText, hideTextFade, and showStopText.
     // Adding a new animated child to .stop-text only needs updating here.
     function resetTextChildren(el) {
-      el.querySelectorAll('.stop-num, .stop-heading, .word').forEach(c => {
+      el.querySelectorAll('.stop-num, .stop-heading, .stop-sep, .word').forEach(c => {
         c.style.transition = 'none';
         c.style.opacity    = '0';
         c.style.transform  = 'translateY(10px)';
