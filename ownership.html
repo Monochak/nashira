@@ -848,10 +848,10 @@
        Se oculta al seleccionar unidad; bajo un panel el dim la atenúa. */
     #amenidades {
       position: fixed;
-      right: 56px; bottom: 96px;         /* despejado del rail (right:20px) y del botón INFO */
+      right: 48px; bottom: 74px;         /* despejado del rail (right:20px) y de los controles de abajo */
       z-index: 6;
-      width: 250px; max-width: 28vw;
-      padding: 20px 20px 18px;
+      width: 316px; max-width: 40vw;
+      padding: 18px 18px 16px;
       background: oklch(from var(--bg) l c h / 0.72);
       backdrop-filter: blur(10px);
       border: 1px solid var(--panel-border);
@@ -861,9 +861,10 @@
       transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #amenidades.on { opacity: 1; transform: translateX(0); pointer-events: auto; }
-    #amenidades .amenidades-grid { grid-template-columns: 1fr 1fr; gap: 18px 14px; margin: 0; }
-    #amenidades .amenidad-ic { width: 26px; height: 26px; }
-    #amenidades .amenidad-tx { font-size: 0.7rem; line-height: 1.2; }
+    #amenidades .amenidades-grid { grid-template-columns: 1fr 1fr 1fr; gap: 15px 10px; margin: 0; }
+    #amenidades .amenidad { gap: 7px; }
+    #amenidades .amenidad-ic { width: 24px; height: 24px; }
+    #amenidades .amenidad-tx { font-size: 0.66rem; line-height: 1.2; }
 
     #panel-detail { justify-content: space-between; }
 
@@ -1089,10 +1090,10 @@
     #prez-overlay {
       position: fixed;
       right: 110px;   /* deja libre el rail (right: 20px) */
-      top: 50%;
-      transform: translateY(-50%);
+      top: 92px;      /* arriba-derecha: el texto va ARRIBA de las amenidades, sin encimarse */
+      transform: none;
       z-index: 30;
-      width: min(500px, 40vw);
+      width: min(440px, 38vw);
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.4s ease;
