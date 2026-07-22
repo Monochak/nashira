@@ -85,6 +85,28 @@
       transition: opacity 0.4s ease-out;
       z-index: 10;
     }
+
+    /* etiquetas de tipología por unidad (vista por nivel) */
+    #unit-tags { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+    .unit-tag {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-body);
+      font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em;
+      padding: 3px 9px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 100px;
+      color: var(--label);
+      opacity: 0;
+      transition: opacity 0.3s ease-out;
+    }
+    .unit-tag.on { opacity: 1; }
+    .unit-tag.disponible { color: var(--accent); border-color: color-mix(in oklch, var(--accent) 45%, transparent); }
+    .unit-tag.vendida { opacity: 0; }
+    .unit-tag.vendida.on { opacity: 0.55; }
     #canvas-dim.active {
       opacity: 0.55;
       pointer-events: auto;
@@ -1079,6 +1101,9 @@
   <!-- ── CANVAS DIM ──────────────────────────────────────────────────────── -->
   <div id="canvas-dim"></div>
 
+  <!-- ── ETIQUETAS DE TIPOLOGÍA (vista por nivel) ────────────────────────── -->
+  <div id="unit-tags"></div>
+
   <!-- ── FLOOR LIST ──────────────────────────────────────────────────────── -->
   <div id="floor-list" role="navigation" aria-label="Navegación por pisos"></div>
 
@@ -1420,6 +1445,32 @@
       return (unitDispo(u)?.estado ?? 'disponible') === 'disponible' ? MAT_UNIT_DISPO_TENUE : MAT_BASE;
     }
 
+    // ── Etiquetas de tipología por unidad (vista por nivel) ──────────────────
+    // Una pastilla (A/B/C/D/L) anclada al centro 3D de cada unidad del nivel
+    // activo; se proyecta a pantalla en el render loop (patrón de los íconos CAT).
+    const unitTagsWrap = document.getElementById('unit-tags');
+    let unitTagEntries = [];
+    function clearUnitTags() { unitTagsWrap.innerHTML = ''; unitTagEntries = []; }
+    function buildUnitTags(fi) {
+      clearUnitTags();
+      const fg = floorGroups[fi];
+      if (!fg) return;
+      const box = new THREE.Box3();
+      (fg.units || []).forEach(u => {
+        const d = unitDispo(u);
+        const tipo = d?.tipologia || null;
+        if (!tipo) return;                       // sin dato de tipología: sin etiqueta
+        box.makeEmpty();
+        u.items.forEach(m => box.expandByObject(m));
+        if (box.isEmpty()) return;
+        const el = document.createElement('span');
+        el.className = 'unit-tag ' + (d?.estado ?? 'disponible');
+        el.textContent = tipo;
+        unitTagsWrap.appendChild(el);
+        unitTagEntries.push({ el, centro: box.getCenter(new THREE.Vector3()) });
+      });
+    }
+
     const ESTADO_LABELS = OWN.copy.estados;
     function estadoLabel(d) {
       return ESTADO_LABELS[d?.estado] ?? 'Disponible';
@@ -1609,6 +1660,7 @@
         controls.enabled = true;
         document.getElementById('back-btn').classList.add('visible');
         refreshInfoBtn();
+        buildUnitTags(fi);
       });
     }
 
@@ -1674,6 +1726,7 @@
         syncFloorList();
         document.getElementById('back-btn').classList.remove('visible');
         refreshInfoBtn();
+        clearUnitTags();
         if (onDone) onDone();
       });
     }
@@ -1706,7 +1759,7 @@
         camera.updateProjectionMatrix();
         controls.update();
         if (t < 1) requestAnimationFrame(tick);
-        else { isTransitioning = false; mode = 'floor'; controls.enabled = true; floorViewPos = null; floorViewTgt = null; refreshInfoBtn(); }
+        else { isTransitioning = false; mode = 'floor'; controls.enabled = true; floorViewPos = null; floorViewTgt = null; refreshInfoBtn(); buildUnitTags(selectedFloor); }
       })(performance.now());
     }
 
@@ -2376,6 +2429,17 @@
         cat.el.style.left = x + 'px';
         cat.el.style.top  = y + 'px';
         cat.el.classList.add('visible');
+      });
+
+      // Proyectar etiquetas de tipología (solo en vista por nivel, tras el tween)
+      const showTags = mode === 'floor' && !isTransitioning;
+      unitTagEntries.forEach(t => {
+        if (!showTags) { t.el.classList.remove('on'); return; }
+        _catVec.copy(t.centro).project(camera);
+        if (_catVec.z > 1) { t.el.classList.remove('on'); return; }
+        t.el.style.left = (( _catVec.x * 0.5 + 0.5) * W()) + 'px';
+        t.el.style.top  = ((-_catVec.y * 0.5 + 0.5) * H()) + 'px';
+        t.el.classList.add('on');
       });
     })();
 
