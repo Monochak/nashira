@@ -150,6 +150,20 @@
       text-shadow: 0 3px 6px oklch(24% 0.006 85 / 0.18), 0 12px 32px oklch(24% 0.006 85 / 0.14);
     }
 
+    .lo-logo {
+      display: block;
+      max-width: min(70vw, 380px);
+      height: auto;
+      margin-bottom: 20px;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .lo-logo {
+        opacity: 0;
+        filter: blur(16px);
+        animation: lo-emerge 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+      }
+    }
+
     .lo-quote {
       font-size: 0.875rem;
       font-weight: 400;
@@ -1040,6 +1054,7 @@
   <div id="loading-overlay">
     <div class="lo-content">
       <span class="lo-label" data-site="pages.ownership.copy.loadingEyebrow">Torre Nashira · Nivel 10</span>
+      <img class="lo-logo" alt="" hidden>
       <span class="lo-heading" data-site="pages.ownership.copy.loadingHeading">Ownership</span>
       <p class="lo-quote" lang="en" data-site="pages.ownership.copy.loadingQuote">The door handle is the handshake of the building.</p>
     </div>
@@ -1174,6 +1189,20 @@
     // ── FICHA DEL PROYECTO (site.json → window.SITE) ─────────────────────────
     const OWN   = window.SITE.pages.ownership;
     const AVAIL = window.SITE.tokens.availability;
+
+    // Pantalla de carga: si la ficha trae logotipo (brand.wordmark) y carga bien,
+    // sustituye el TÍTULO de carga por el logo. Si no hay archivo (aún sin subir
+    // en el panel Marca), se queda el texto — sin flash de vacío.
+    (function () {
+      const wm = window.SITE.brand && window.SITE.brand.wordmark;
+      if (!wm) return;
+      const logo = document.querySelector('.lo-logo');
+      const heading = document.querySelector('.lo-heading');
+      if (!logo || !heading) return;
+      logo.alt = window.SITE.brand.fullName || window.SITE.brand.name || '';
+      logo.onload = () => { logo.hidden = false; heading.hidden = true; };
+      logo.src = wm;
+    })();
 
     // ── STATE ────────────────────────────────────────────────────────────────
     let mode            = 'orbital';
