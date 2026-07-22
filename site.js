@@ -109,11 +109,16 @@
 
   // Copy declarativo: <span data-site="pages.action.copy.heading"></span>
   // Placeholders:     <input data-site-placeholder="pages.ownership.copy.formPlaceholders.nombre">
+  // Color por texto elegido en el panel (paleta de marca). Se aplica a la ruta
+  // del data-site; ausente = color por defecto (consciente del tema).
+  var TEXT_COLORS = (SITE && SITE.textColors) || {};
   document.addEventListener('DOMContentLoaded', function () {
     var nodes = document.querySelectorAll('[data-site]');
     for (var i = 0; i < nodes.length; i++) {
-      var v = get(nodes[i].getAttribute('data-site'));
+      var path = nodes[i].getAttribute('data-site');
+      var v = get(path);
       if (typeof v === 'string') nodes[i].textContent = v;
+      if (TEXT_COLORS[path]) nodes[i].style.color = TEXT_COLORS[path];
     }
     var ph = document.querySelectorAll('[data-site-placeholder]');
     for (var j = 0; j < ph.length; j++) {
