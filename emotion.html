@@ -258,17 +258,32 @@
       opacity: 0;
     }
 
-    /* Separador con la marca del favicon (solo la estrella, sin fondo) */
+    /* Separador: líneas a los costados + la marca del favicon (solo la estrella),
+       todo en el color del rail (o el acento en Automático). */
     .stop-sep {
-      display: block;
-      width: 24px; height: 24px;
-      margin: 4px auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: min(340px, 68vw);
+      margin: 6px auto 22px;
       opacity: 0;
       transform: translateY(10px);
+    }
+    .stop-sep::before, .stop-sep::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--rail, var(--accent));
+      opacity: 0.55;
+    }
+    .stop-sep svg, .stop-sep img {
+      display: block;
+      width: 24px; height: 24px;
+      flex-shrink: 0;
+      fill: var(--rail, var(--accent));
       filter: drop-shadow(0 2px 10px oklch(0% 0 0 / 0.5));
     }
-    span.stop-sep { line-height: 0; }
-    .stop-sep svg { display: block; width: 100%; height: 100%; fill: var(--rail, var(--accent)); }
 
     /* =====================================================
        CHAPTER INDICATORS (bottom center)
