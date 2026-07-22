@@ -63,6 +63,9 @@
     "address": "Managua No. 907",
     "favicon": "content/brand/favicon.svg",
     "tagline": "Managua No. 907 — bajo la constelación de Capricornio.",
+    "uploads": {
+      "favicon": "nashira/favicon.svg"
+    },
     "fullName": "Nashira Residencial",
     "ornament": "sparkles.js",
     "wordmark": "content/brand/wordmark.svg",

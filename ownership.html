@@ -1450,13 +1450,16 @@
         mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
       });
 
-      // Terraza siempre visible: es un amenity, no un piso de venta — se mantiene
-      // como contexto al aislar cualquier nivel.
-      terrazaItems.forEach(mesh => {
-        mesh.visible  = true;
-        mesh.material = MAT_BASE;
-        mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
-      });
+      // Terraza: solo visible en los niveles altos (8, 9, 10). Al aislar los
+      // niveles 1–7 se oculta (queda sobre el corte del edificio, no aplica).
+      const nivelActivo = parseInt(String(floorGroups[activeIdx]?.label || '').replace(/\D/g, ''), 10);
+      if (nivelActivo >= 8) {
+        terrazaItems.forEach(mesh => {
+          mesh.visible  = true;
+          mesh.material = MAT_BASE;
+          mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
+        });
+      }
 
       // Mostrar solo los pisos ≤ activeIdx
       floorGroups.forEach((fg, i) => {
