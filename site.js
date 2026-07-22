@@ -117,6 +117,8 @@
   // Color por texto elegido en el panel (paleta de marca). Se aplica a la ruta
   // del data-site; ausente = color por defecto (consciente del tema).
   var TEXT_COLORS = (SITE && SITE.textColors) || {};
+  // Estilo por texto (negrita + espaciado entre letras) elegido en el panel.
+  var TEXT_STYLES = (SITE && SITE.textStyles) || {};
   document.addEventListener('DOMContentLoaded', function () {
     var nodes = document.querySelectorAll('[data-site]');
     for (var i = 0; i < nodes.length; i++) {
@@ -124,6 +126,11 @@
       var v = get(path);
       if (typeof v === 'string') nodes[i].textContent = v;
       if (TEXT_COLORS[path]) nodes[i].style.color = TEXT_COLORS[path];
+      var st = TEXT_STYLES[path];
+      if (st) {
+        if (st.negrita) nodes[i].style.fontWeight = '700';
+        if (st.espaciado != null) nodes[i].style.letterSpacing = st.espaciado + 'em';
+      }
     }
     var ph = document.querySelectorAll('[data-site-placeholder]');
     for (var j = 0; j < ph.length; j++) {
