@@ -843,6 +843,27 @@
       font-size: 0.75rem; line-height: 1.3; color: var(--text);
       letter-spacing: 0.01em; text-wrap: pretty;
     }
+    /* Amenidades como TARJETA siempre visible en torre y nivel (fuera del panel):
+       retícula 2 columnas icono-arriba/texto-debajo, anclada abajo-derecha.
+       Se oculta al seleccionar unidad; bajo un panel el dim la atenúa. */
+    #amenidades {
+      position: fixed;
+      right: 56px; bottom: 96px;         /* despejado del rail (right:20px) y del botón INFO */
+      z-index: 6;
+      width: 250px; max-width: 28vw;
+      padding: 20px 20px 18px;
+      background: oklch(from var(--bg) l c h / 0.72);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      opacity: 0; pointer-events: none;
+      transform: translateX(14px);
+      transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #amenidades.on { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    #amenidades .amenidades-grid { grid-template-columns: 1fr 1fr; gap: 18px 14px; margin: 0; }
+    #amenidades .amenidad-ic { width: 26px; height: 26px; }
+    #amenidades .amenidad-tx { font-size: 0.7rem; line-height: 1.2; }
 
     #panel-detail { justify-content: space-between; }
 
@@ -1191,6 +1212,9 @@
 
   <!-- ── ETIQUETAS DE TIPOLOGÍA (vista por nivel) ────────────────────────── -->
   <div id="unit-tags"></div>
+
+  <!-- ── AMENIDADES (capa siempre visible en torre y nivel; oculta en unidad) ── -->
+  <div id="amenidades" aria-label="Amenidades del proyecto"></div>
 
   <!-- ── FLOOR LIST ──────────────────────────────────────────────────────── -->
   <div id="floor-list" role="navigation" aria-label="Navegación por pisos"></div>
@@ -2134,7 +2158,8 @@
     function refreshInfoBtn() {
       const hasUnit  = mode === 'unit' && !!selectedUnit;
       const hasFloor = mode === 'floor' && selectedFloor !== null;   // info del nivel (auto, de Supabase)
-      const show     = hasUnit || hasFloor || !!PROJECT_INFO || !!AMENIDADES_HTML;
+      const show     = hasUnit || hasFloor || !!PROJECT_INFO;
+      refreshAmenidades();
       infoBtn.classList.toggle('visible', show);
       infoBtn.classList.toggle('cta', hasUnit);        // en unidad: CTA "Hablar con un asesor"
       infoBtn.classList.remove('selected');
@@ -2182,7 +2207,7 @@
 
     // Panel de información del proyecto (reusa el panel deslizante + el mismo CTA).
     function openProjectPanel() {
-      if (!PROJECT_INFO && !AMENIDADES_HTML) return;
+      if (!PROJECT_INFO) return;
       const BR = window.SITE.brand || {};
       document.getElementById('panel-floor-label').textContent = '';
       // Header: por defecto el nombre en texto; si hay logotipo que cargue, domina.
@@ -2195,9 +2220,10 @@
         logo.onload = () => { nameEl.textContent = ''; nameEl.appendChild(logo); };
         logo.src = BR.wordmark;
       }
-      const intro = PROJECT_INFO ? `<div class="panel-proyecto-intro">${escFmt(PROJECT_INFO)}</div>` : '';
-      const grid  = AMENIDADES_HTML ? `<div class="amenidades-grid">${AMENIDADES_HTML}</div>` : '';
-      document.getElementById('panel-proyecto-body').innerHTML = intro + grid;
+      // Las amenidades ya NO viven aquí: son una capa siempre visible en pantalla
+      // (#amenidades). El panel de proyecto solo muestra la descripción opcional.
+      document.getElementById('panel-proyecto-body').innerHTML =
+        PROJECT_INFO ? `<div class="panel-proyecto-intro">${escFmt(PROJECT_INFO)}</div>` : '';
       setPanelState('proyecto');
       unitPanel.classList.add('open');
       canvasDim.classList.add('active');
@@ -2286,6 +2312,20 @@
         .join('');
     }
     const AMENIDADES_HTML = amenidadesProyecto();
+
+    // Capa de amenidades SIEMPRE VISIBLE: se puebla una vez y se muestra en modo
+    // torre (orbital) y nivel (floor); se oculta al seleccionar una unidad o abrir
+    // un panel. La llama refreshInfoBtn (mismos momentos) + las aperturas de panel.
+    function refreshAmenidades() {
+      const el = document.getElementById('amenidades');
+      if (!el) return;
+      if (AMENIDADES_HTML && !el.innerHTML) el.innerHTML = `<div class="amenidades-grid">${AMENIDADES_HTML}</div>`;
+      // Visible en torre y nivel; oculta SOLO al seleccionar unidad. Al abrir un
+      // panel no se oculta: el dim (z10) la atenúa junto al modelo, como la info de unidad.
+      const show = !!AMENIDADES_HTML && !selectedUnit
+                && (mode === 'orbital' || mode === 'floor');
+      el.classList.toggle('on', show);
+    }
 
     // Lista de características de la tipología de una unidad (icono + texto).
     function caracteristicasUnidad(tipologia) {
