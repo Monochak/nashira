@@ -657,6 +657,29 @@
       margin-bottom: 10px;
     }
 
+    .panel-features {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin: 22px 0 26px;
+      padding-top: 22px;
+      border-top: 1px solid var(--panel-border);
+    }
+    .unit-feat { display: flex; align-items: center; gap: 12px; }
+    .unit-feat-ic {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .unit-feat-ic svg { width: 100%; height: 100%; }
+    .unit-feat-tx {
+      font-size: 0.8125rem;
+      line-height: 1.35;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+
     .panel-unit-name {
       font-family: var(--font-display);
       font-size: 2.25rem;
@@ -1140,6 +1163,7 @@
       <!-- Estado: detalle de unidad -->
       <div id="panel-detail" class="panel-section">
         <div class="panel-stats" id="panel-stats"></div>
+        <div class="panel-features" id="panel-features" hidden></div>
         <button class="panel-cta" id="panel-cta-contact" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
       </div>
 
@@ -2007,6 +2031,7 @@
         else {
           isTransitioning = false; mode = 'unit'; controls.enabled = true;
           refreshInfoBtn();
+          openPanel(unit);   // al seleccionar, se despliega la info de la unidad
         }
       })(performance.now());
     }
@@ -2112,6 +2137,33 @@
       panelState = state;
     }
 
+    // Catálogo curado de características (icono de línea + etiqueta por defecto).
+    // Se prenden/apagan y su texto se edita por tipología desde el panel.
+    const CARACTERISTICAS_CAT = [
+      { key: 'recamaras',       label: 'Recámaras',        ic: '<path d="M3 18v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5"/><path d="M3 18h18"/><path d="M7 11V9a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2"/>' },
+      { key: 'banoCompleto',    label: 'Baño completo',    ic: '<path d="M4 13V6.5a2 2 0 0 1 3.9-.6"/><path d="M3 13h18v2a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-2z"/><path d="M7 19l-1 2M18 19l1 2"/>' },
+      { key: 'medioBano',       label: 'Medio baño',       ic: '<path d="M7 3v7"/><path d="M5 10h11a1 1 0 0 1 1 1c0 3.3-2.7 6-6 6a5 5 0 0 1-5-5v-3z"/><path d="M9 17l-1 4M13 17l1 4"/>' },
+      { key: 'sala',            label: 'Sala / Comedor',   ic: '<path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M4 11a2 2 0 0 0-2 2v4h20v-4a2 2 0 0 0-2-2"/><path d="M6 17v2M18 17v2"/>' },
+      { key: 'cocina',          label: 'Cocina',           ic: '<rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="9" r="1.3"/><circle cx="15" cy="9" r="1.3"/><path d="M4 13h16"/>' },
+      { key: 'closet',          label: 'Walk In Closet',   ic: '<path d="M12 5a1.5 1.5 0 1 0-1.4 2L12 8"/><path d="M12 8l7.5 5.2a1 1 0 0 1-.6 1.8H5.1a1 1 0 0 1-.6-1.8L12 8z"/>' },
+      { key: 'estacionamiento', label: 'Estacionamiento',  ic: '<path d="M6 13l1.2-3.6A2 2 0 0 1 9.1 8h5.8a2 2 0 0 1 1.9 1.4L18 13"/><path d="M5 13h14v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H8v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-4z"/><path d="M7.5 15.5h.01M16.5 15.5h.01"/>' },
+      { key: 'lavado',          label: 'Cuarto de lavado', ic: '<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6h.01M11 6h.01"/>' },
+      { key: 'bodega',          label: 'Bodega',           ic: '<path d="M12 3 4 7v10l8 4 8-4V7l-8-4z"/><path d="M4 7l8 4 8-4"/><path d="M12 11v10"/>' },
+      { key: 'terraza',         label: 'Terraza / Balcón', ic: '<path d="M4 8h16"/><path d="M4 8v12M20 8v12M4 20h16"/><path d="M8 8v12M12 8v12M16 8v12"/>' },
+      { key: 'vista',           label: 'Vista',            ic: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="M4 17l5-5 3 3 3-4 5 6"/>' },
+    ];
+    const CARAC_ICON = ic => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>`;
+
+    // Lista de características de la tipología de una unidad (icono + texto).
+    function caracteristicasUnidad(tipologia) {
+      const mapa = (OWN.caracteristicas && OWN.caracteristicas[String(tipologia).toUpperCase()]) || {};
+      const esc  = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      return CARACTERISTICAS_CAT
+        .filter(c => mapa[c.key] !== undefined)
+        .map(c => `<div class="unit-feat"><span class="unit-feat-ic">${CARAC_ICON(c.ic)}</span><span class="unit-feat-tx">${esc(mapa[c.key] || c.label)}</span></div>`)
+        .join('');
+    }
+
     function openPanel(unit) {
       const fg = floorGroups[selectedFloor];
       const d  = unitDispo(unit);
@@ -2172,6 +2224,10 @@
           <span class="stat-value${d?.estado === 'disponible' || !d ? ' accent' : ''}">${estadoLabel(d)}</span>
         </div>
       `;
+
+      const feats = caracteristicasUnidad(tipologia);
+      document.getElementById('panel-features').innerHTML = feats;
+      document.getElementById('panel-features').hidden = !feats;
 
       setPanelState('detail');
       unitPanel.classList.add('open');
