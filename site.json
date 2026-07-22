@@ -440,7 +440,7 @@
         "infoButton": "Info",
         "successBody": "Tu solicitud fue enviada.\nUn asesor te contactará en breve.",
         "infoProyecto": "- ACCESO INTELIGENTE\n- 2 ELEVADORES DE ALTA VELOCIDAD\n- DELIVERY LOCKERS\n- VIGILANCIA LAS 24 HORAS\n- CARGADORES PARA VEHICULOS ELECTRICOS\n- PUNTO DE RECICLAJE\n- TOOL ROOM\n- JARDIN Y PATIO INTERIOR CON ESPEJO DE AGUA\n- OPEN GYM\n- FIREPIT Y AREA ASADORES\n- TERRAZA ROOFTOP\n- CERTIFICACIÓN EDGE",
-        "loadingQuote": "CONOCE NASHIRA POR DENTRO!",
+        "loadingQuote": "CONOCE NASHIRA POR DENTRO",
         "successTitle": "Enviado",
         "panoramaLabel": "Tipo {t} · Vista 360°",
         "loadingEyebrow": "Managua No. 907",
@@ -548,6 +548,20 @@
         "enabled": true,
         "autoStart": true
       },
+      "caracteristicas": {
+        "A": {
+          "sala": "Sala /Comedor",
+          "bodega": "Bodega",
+          "closet": "",
+          "lavado": "Cuarto de lavado",
+          "terraza": "Balcón de 5m2",
+          "recamaras": "3 Recamaras",
+          "banoCompleto": "2.5 Baños"
+        },
+        "B": {
+          "recamaras": "2 recamaras"
+        }
+      },
       "etiquetasUnidad": {
         "LOCAL 1": "Local 1",
         "LOCAL 2": "Local 2",
@@ -627,8 +641,7 @@
   },
   "textStyles": {
     "pages.ownership.copy.loadingQuote": {
-      "negrita": true,
-      "espaciado": 1
+      "espaciado": 0.5
     }
   },
   "cacheVersion": 1,
