@@ -19,7 +19,7 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
   <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
-  <script src="site.js?v=0ffc7494"></script>
+  <script src="site.js?v=368a884f"></script>
   <!-- Fonts: Big Shoulders Display (display headings) + Barlow (body + UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +33,7 @@
       --text-secondary: oklch(88% 0.006 250);   /* body text, slightly dimmer     */
       --muted:          oklch(52% 0.01  250);   /* inactive UI elements           */
       --dim:            oklch(34% 0.009 250);   /* loading label                  */
-      --accent:         #b74d31;   /* terracota señal (acento Nashira) */
+      --accent:         #3a4a85;   /* terracota señal (acento Nashira) */
       --border:         oklch(26% 0.01  250);   /* borders, inactive dots         */
       --glass-bg:       oklch(22% 0.01  250 / 0.80); /* glass surfaces (stop-pill, chevrons) */
       --glass-border:   oklch(34% 0.012 250 / 0.55); /* glass surface border      */
@@ -867,16 +867,19 @@
     ===================================================== */
     const textEls = [];
 
+    const TEXT_COLORS = (window.SITE && window.SITE.textColors) || {};
     C.stops.forEach((stop, i) => {
       const div = document.createElement('div');
       div.className = 'stop-text';
+      const cH = TEXT_COLORS[`pages.emotion.stops.${i}.label`];
+      const cB = TEXT_COLORS[`pages.emotion.stops.${i}.body`];
       const wordSpans = stop.body
         ? stop.body.split(' ').map(w => `<span class="word">${w}</span>`).join(' ')
         : '';
       div.innerHTML = stop.label
         ? `<p class="stop-num">${stop.num}</p>
-           <h2 class="stop-heading">${stop.label}</h2>
-           ${wordSpans ? `<p class="stop-body">${wordSpans}</p>` : ''}`
+           <h2 class="stop-heading"${cH ? ` style="color:${cH}"` : ''}>${stop.label}</h2>
+           ${wordSpans ? `<p class="stop-body"${cB ? ` style="color:${cB}"` : ''}>${wordSpans}</p>` : ''}`
         : `<p class="stop-num">${stop.num}</p>`;
       textOverlay.appendChild(div);
       textEls.push(div);

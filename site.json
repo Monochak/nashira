@@ -414,6 +414,7 @@
         "formSubmit": "Enviar solicitud",
         "infoButton": "Info",
         "successBody": "Tu solicitud fue enviada.\nUn asesor te contactará en breve.",
+        "infoProyecto": "- ACCESO INTELIGENTE\n- 2 ELEVADORES DE ALTA VELOCIDAD\n- DELIVERY LOCKERS\n- VIGILANCIA LAS 24 HORAS\n- CARGADORES PARA VEHICULOS ELECTRICOS\n- PUNTO DE RECICLAJE\n- TOOL ROOM\n- JARDIN Y PATIO INTERIOR CON ESPEJO DE AGUA\n- OPEN GYM\n- FIREPIT Y AREA ASADORES\n- TERRAZA ROOFTOP\n- CERTIFICACIÓN EDGE",
         "loadingQuote": "CONOCE NASHIRA POR DENTRO ",
         "successTitle": "Enviado",
         "panoramaLabel": "Tipo {t} · Vista 360°",
@@ -449,7 +450,7 @@
           {
             "kpi": "10 niveles",
             "num": "01",
-            "body": "- ACCESO INTELIGENTE\n- 2 ELEVADORES DE ALTA VELOCIDAD\n- DELIVERY LOCKERS\n- VIGILANCIA LAS 24 HORAS\n- CARGADORES PARA VEHICULOS ELECTRICOS\n- PUNTO DE RECICLAJE\n- TOOL ROOM\n- JARDIN Y PATIO INTERIOR CON ESPEJO DE AGUA\n- OPEN GYM\n- FIREPIT Y AREA ASADORES\n- TERRAZA ROOFTOP\n- CERTIFICACIÓN EDGE",
+            "body": "Entérate: una nueva estrella se enciende en Providencia.\nDiez niveles pensados para vivir el barrio que siempre soñaste, a tu altura.",
             "label": "La torre",
             "caption": "VIVE PROVIDENCIA COMO SIEMPRE SOÑASTE",
             "highlight": "N01, N02, N03, N04, N05, N06, N07, N09, N10, N08, Azotea, Planta-Baja, Terraza, Unit-*-1002, Unit-*-1001, Unit-*-201, Unit-*-202, Unit-*-203, Unit-*-402, Unit-*-301, Unit-*-403, Unit-*-602, Unit-*-801, Unit-*-LOCAL 2, Unit-*-LOCAL 3, Unit-*-802, Unit-*-603, Unit-*-501, Unit-*-302, Unit-*-303, Unit-*-502, Unit-*-701, Unit-*-901, Unit-*-902, Unit-*-503, Unit-*-401, Unit-*-702, Unit-*-LOCAL 1, Unit-*-703, Unit-*-601"
@@ -463,10 +464,10 @@
             "highlight": "Unit-*-LOCAL 1, Unit-*-LOCAL 2, Unit-*-LOCAL 3, N01"
           },
           {
-            "kpi": "amenidades bajo el cielo ",
+            "kpi": "Nivel 8",
             "num": "03",
             "body": "El atardecer, a la altura de tu terraza. Siete niveles arriba, el cielo se vuelve tuyo.",
-            "label": "Roor Terrace",
+            "label": "Roor Terrace - amenidades bajo el cielo ",
             "caption": "PORQUE TU HOGAR TAMBIÉN SE VIVE  MÁS ALLÁ DE TU PUERTA",
             "highlight": "Terraza"
           },
@@ -538,7 +539,7 @@
       "glassBg": "oklch(97% 0.006 85 / 0.78)",
       "glassBorder": "oklch(78% 0.010 85 / 0.55)"
     },
-    "accent": "#b74d31",
+    "accent": "#3a4a85",
     "splash": {
       "azul": "#3b4a84",
       "cafe": "#6b5340",
@@ -565,8 +566,8 @@
         "hex3d": "0xf2beb1"
       },
       "disponible": {
-        "css": "#b74d31",
-        "hex3d": "0xb74d31"
+        "css": "#973920",
+        "hex3d": "0x973920"
       }
     }
   },
