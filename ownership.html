@@ -506,6 +506,16 @@
       transform: scale(1.04);
     }
     #info-btn.selected:hover { color: var(--accent); filter: brightness(1.1); }
+    /* Modo unidad: el botón se vuelve el CTA "Hablar con un asesor" (relleno acento, sin ícono). */
+    #info-btn.cta {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: oklch(97% 0.01 85);
+      padding: 0 20px;
+    }
+    #info-btn.cta svg { display: none; }
+    #info-btn.cta:hover { background: var(--accent); color: oklch(97% 0.01 85); filter: brightness(1.08); transform: scale(1.04); }
+    #info-btn.cta::after { border-color: oklch(from var(--accent) l c h / 0.5); }
     #info-btn::after {
       content: '';
       position: absolute;
@@ -660,7 +670,7 @@
     /* Info de la unidad sobre la pantalla (fuera del panel) */
     #unit-info {
       position: fixed;
-      right: 48px; top: 50%;
+      right: 92px; top: 50%;            /* despejado del rail de navegación (right:20px) */
       transform: translateY(-50%) translateX(14px);
       z-index: 6;                       /* debajo del dim (10): se atenúa con el modelo al abrir el form */
       width: 264px; max-width: 34vw;
@@ -682,19 +692,9 @@
     .ui-stat-v.accent { color: var(--accent); }
     .ui-feats {
       display: flex; flex-direction: column; gap: 13px;
-      margin: 22px 0; padding-top: 20px;
+      margin-top: 22px; padding-top: 20px;
       border-top: 1px solid var(--panel-border);
     }
-    .ui-cta {
-      margin-top: 4px;
-      background: var(--accent); color: oklch(97% 0.01 85);
-      border: none; border-radius: 100px;
-      font-family: var(--font-body); font-size: 0.6875rem; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      padding: 14px 20px; cursor: pointer;
-      transition: filter 0.2s;
-    }
-    .ui-cta:hover { filter: brightness(1.08); }
 
     .panel-features {
       display: flex;
@@ -1196,7 +1196,6 @@
     <h2 class="ui-name" id="ui-name"></h2>
     <div class="ui-stats" id="ui-stats"></div>
     <div class="ui-feats" id="ui-feats" hidden></div>
-    <button class="ui-cta" id="ui-cta" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
   </div>
 
   <!-- ── UNIT PANEL (solo formulario de contacto) ────────────────────────── -->
@@ -2111,7 +2110,12 @@
       const hasFloor = mode === 'floor' && selectedFloor !== null;   // info del nivel (auto, de Supabase)
       const show     = hasUnit || hasFloor || !!PROJECT_INFO;
       infoBtn.classList.toggle('visible', show);
-      infoBtn.classList.toggle('selected', hasUnit);
+      infoBtn.classList.toggle('cta', hasUnit);        // en unidad: CTA "Hablar con un asesor"
+      infoBtn.classList.remove('selected');
+      const lbl = infoBtn.querySelector('.info-label');
+      if (lbl) lbl.textContent = hasUnit
+        ? (SITE_GET('pages.ownership.copy.cta') || 'Hablar con un asesor')
+        : (SITE_GET('pages.ownership.copy.infoButton') || 'Info');
       if (show && !panelOpen) requestAnimationFrame(() => infoBtn.classList.add('shown'));
       else infoBtn.classList.remove('shown');
     }
@@ -2175,14 +2179,8 @@
       infoBtn.classList.remove('shown');
     }
 
-    infoBtn.addEventListener('click', () => {
-      if (selectedUnit) showUnitInfo(selectedUnit);       // re-mostrar la info sobre la pantalla
-      else if (mode === 'floor') openFloorPanel();        // dentro de un nivel
-      else openProjectPanel();                            // vista general
-    });
-
-    // "Hablar con un asesor" (desde la info de unidad) → panel con el formulario.
-    document.getElementById('ui-cta').addEventListener('click', () => {
+    // "Hablar con un asesor" (unidad seleccionada) → panel con el formulario.
+    function openContactForm() {
       if (!selectedUnit) return;
       document.getElementById('panel-floor-label').textContent = currentUnitData.floorLabel || '';
       document.getElementById('panel-unit-name').textContent   = currentUnitData.unitLabel || '';
@@ -2192,6 +2190,13 @@
       canvasDim.classList.add('active');
       panelOpen = true;
       infoBtn.classList.remove('shown');
+    }
+
+    // Botón abajo-derecha: en unidad = "Hablar con un asesor"; si no, INFO del nivel/proyecto.
+    infoBtn.addEventListener('click', () => {
+      if (selectedUnit) openContactForm();
+      else if (mode === 'floor') openFloorPanel();
+      else openProjectPanel();
     });
 
     function setPanelState(state) {

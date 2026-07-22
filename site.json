@@ -551,15 +551,36 @@
       "caracteristicas": {
         "A": {
           "sala": "Sala /Comedor",
+          "vista": "Colomos",
           "bodega": "Bodega",
-          "closet": "",
+          "closet": "Walk in closet",
           "lavado": "Cuarto de lavado",
           "terraza": "Balcón de 5m2",
           "recamaras": "3 Recamaras",
-          "banoCompleto": "2.5 Baños"
+          "banoCompleto": "2.5 Baños",
+          "estacionamiento": "2 Estacionamientos"
         },
         "B": {
-          "recamaras": "2 recamaras"
+          "sala": "Sala /Comedor",
+          "vista": "Colomos y Managua",
+          "bodega": "",
+          "closet": "",
+          "lavado": "",
+          "terraza": "Balcón de 5m2",
+          "recamaras": "2 recamaras",
+          "banoCompleto": "2.5 Baños",
+          "estacionamiento": "2 Estacionamientos"
+        },
+        "C": {
+          "sala": "",
+          "vista": "Managua",
+          "bodega": "",
+          "closet": "",
+          "lavado": "",
+          "terraza": "3m2",
+          "recamaras": "2 Recamaras",
+          "banoCompleto": "2.5 Baños",
+          "estacionamiento": "2 Estacionamientos"
         }
       },
       "etiquetasUnidad": {
