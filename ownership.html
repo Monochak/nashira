@@ -1124,6 +1124,12 @@
         <button class="panel-cta" id="panel-cta-proyecto" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
       </div>
 
+      <!-- Estado: información del nivel (modo piso, sin unidad) -->
+      <div id="panel-nivel" class="panel-section" hidden>
+        <div class="panel-stats" id="panel-nivel-stats"></div>
+        <button class="panel-cta" id="panel-cta-nivel" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
+      </div>
+
       <!-- Estado: formulario de contacto -->
       <div id="panel-form" class="panel-section" hidden>
         <button class="panel-back" id="panel-back">&#8592; <span data-site="pages.ownership.copy.formBack">Volver</span></button>
@@ -1299,6 +1305,7 @@
     // Hook para el toggle de tema: papel <-> grafito
     window.__applyTheme3D = (grafito) => {
       MAT_BASE.color.setHex(grafito ? 0xd8d5cf : 0xd2cec6);
+      MAT_UNIT_DISPO_TENUE.color.copy(mezclaTenue(grafito ? 0xd8d5cf : 0xd2cec6));
       MAT_EDGE.opacity = grafito ? 0.22 : 0.3;
       syncSceneBgToCSS();
     };
@@ -1355,6 +1362,9 @@
       ? parseInt('0x' + window.SITE.tokens.accent.slice(1), 16)
       : parseInt(AVAIL.apartada.hex3d, 16);
     const MAT_UNIT_SEL   = new THREE.MeshLambertMaterial({ color: ACCENT_3D, side: THREE.DoubleSide });
+    // Disponibles en reposo (dentro de un nivel): 25% del acento sobre el color base — sutil
+    const mezclaTenue = (baseHex) => new THREE.Color(baseHex).lerp(new THREE.Color(ACCENT_3D), 0.25);
+    const MAT_UNIT_DISPO_TENUE = new THREE.MeshLambertMaterial({ color: mezclaTenue(IS_GRAFITO_AT_LOAD ? 0xd8d5cf : 0xd2cec6), side: THREE.DoubleSide });
     const MAT_EDGE = new THREE.LineBasicMaterial({ color: 0x1a1820, transparent: true, opacity: IS_GRAFITO_AT_LOAD ? 0.22 : 0.3, depthWrite: false });
 
     // ── RAYCASTERS ───────────────────────────────────────────────────────────
@@ -1402,6 +1412,12 @@
     function unitDispo(unit) {
       // unit.id = nombre del nodo GLB = etiqueta del cliente ("201", "LOCAL 1")
       return disponibilidad[normId(unit.id)] ?? null;
+    }
+
+    // Material en reposo de una unidad dentro de un nivel: las disponibles llevan
+    // el tinte sutil de acento (25%); apartadas y vendidas, el color base.
+    function matReposo(u) {
+      return (unitDispo(u)?.estado ?? 'disponible') === 'disponible' ? MAT_UNIT_DISPO_TENUE : MAT_BASE;
     }
 
     const ESTADO_LABELS = OWN.copy.estados;
@@ -1498,7 +1514,8 @@
         });
       }
 
-      // Mostrar solo los pisos ≤ activeIdx
+      // Mostrar solo los pisos ≤ activeIdx. En el nivel ACTIVO, las unidades
+      // disponibles llevan el tinte sutil de acento; los pisos de abajo, base.
       floorGroups.forEach((fg, i) => {
         if (i > activeIdx) return;
         fg.items.forEach(mesh => {
@@ -1506,9 +1523,10 @@
           mesh.material = MAT_BASE;
           mesh.children.forEach(c => { if (c.isLineSegments) c.visible = true; });
         });
-        (fg.units || []).forEach(u =>
-          u.items.forEach(m => { m.visible = true; m.material = MAT_BASE; })
-        );
+        (fg.units || []).forEach(u => {
+          const mat = (i === activeIdx) ? matReposo(u) : MAT_BASE;
+          u.items.forEach(m => { m.visible = true; m.material = mat; });
+        });
       });
     }
 
@@ -1590,6 +1608,7 @@
         mode             = 'floor';
         controls.enabled = true;
         document.getElementById('back-btn').classList.add('visible');
+        refreshInfoBtn();
       });
     }
 
@@ -1654,6 +1673,7 @@
         ghostMeshes.forEach(g => { if (g) g.visible = true; });
         syncFloorList();
         document.getElementById('back-btn').classList.remove('visible');
+        refreshInfoBtn();
         if (onDone) onDone();
       });
     }
@@ -1686,7 +1706,7 @@
         camera.updateProjectionMatrix();
         controls.update();
         if (t < 1) requestAnimationFrame(tick);
-        else { isTransitioning = false; mode = 'floor'; controls.enabled = true; floorViewPos = null; floorViewTgt = null; }
+        else { isTransitioning = false; mode = 'floor'; controls.enabled = true; floorViewPos = null; floorViewTgt = null; refreshInfoBtn(); }
       })(performance.now());
     }
 
@@ -1806,7 +1826,7 @@
           uItem.addEventListener('mouseenter', () => {
             if (isTransitioning) return;
             if (hoveredUnit && hoveredUnit !== selectedUnit)
-              hoveredUnit.items.forEach(m => { m.material = MAT_BASE; });
+              hoveredUnit.items.forEach(m => { m.material = matReposo(hoveredUnit); });
             hoveredUnit = u;
             const _e = unitDispo(u)?.estado ?? 'disponible';
             if (_e !== 'vendida') {
@@ -1816,7 +1836,7 @@
           });
           uItem.addEventListener('mouseleave', () => {
             if (hoveredUnit === u && u !== selectedUnit)
-              u.items.forEach(m => { m.material = MAT_BASE; });
+              u.items.forEach(m => { m.material = matReposo(u); });
             if (hoveredUnit === u) hoveredUnit = null;
           });
           uItem.addEventListener('click', () => {
@@ -1954,12 +1974,47 @@
     // proyecto capturada; en acento (.selected) solo cuando hay unidad. Si no hay
     // ninguna de las dos (proyecto sin info y sin unidad), queda oculto.
     function refreshInfoBtn() {
-      const hasUnit = mode === 'unit' && !!selectedUnit;
-      const show    = hasUnit || !!PROJECT_INFO;
+      const hasUnit  = mode === 'unit' && !!selectedUnit;
+      const hasFloor = mode === 'floor' && selectedFloor !== null;   // info del nivel (auto, de Supabase)
+      const show     = hasUnit || hasFloor || !!PROJECT_INFO;
       infoBtn.classList.toggle('visible', show);
       infoBtn.classList.toggle('selected', hasUnit);
       if (show && !panelOpen) requestAnimationFrame(() => infoBtn.classList.add('shown'));
       else infoBtn.classList.remove('shown');
+    }
+
+    // Panel de información del NIVEL (modo piso, sin unidad): resumen armado solo
+    // de los datos de disponibilidad — unidades, disponibles, tipologías, superficies.
+    function openFloorPanel() {
+      if (selectedFloor === null || !floorGroups[selectedFloor]) return;
+      const fg    = floorGroups[selectedFloor];
+      const datos = (fg.units || []).map(u => unitDispo(u)).filter(Boolean);
+      const disp  = datos.filter(d => d.estado === 'disponible');
+      const tips  = [...new Set(datos.map(d => d.tipologia).filter(Boolean))].sort();
+      const m2de  = d => {
+        const ext = (d.m2_terraza ?? 0) + (d.m2_balcon ?? 0);
+        return (d.m2_int != null) ? +(d.m2_int + ext).toFixed(1) : (d.m2 ?? null);
+      };
+      const m2s   = datos.map(m2de).filter(v => v != null);
+      const fila  = (lbl, val, accent) => (val == null || val === '') ? '' : `
+        <div class="panel-stat">
+          <span class="stat-label">${lbl}</span>
+          <span class="stat-value${accent ? ' accent' : ''}">${val}</span>
+        </div>`;
+      document.getElementById('panel-floor-label').textContent = window.SITE.brand.name || '';
+      document.getElementById('panel-unit-name').textContent   = fg.label;
+      document.getElementById('panel-nivel-stats').innerHTML =
+        fila('Unidades', datos.length || (fg.units || []).length) +
+        fila('Disponibles', disp.length, true) +
+        fila('Tipologías', tips.length ? tips.join(' · ') : null) +
+        (m2s.length ? fila('Superficies', Math.min(...m2s).toFixed(0) + '–' + Math.max(...m2s).toFixed(0) + ' m²') : '');
+      setPanelState('nivel');
+      unitPanel.classList.add('open');
+      canvasDim.classList.add('active');
+      unitLabelEl.classList.remove('visible');
+      panelOpen = true;
+      syncFloorList();
+      infoBtn.classList.remove('shown');
     }
 
     // Panel de información del proyecto (reusa el panel deslizante + el mismo CTA).
@@ -1988,8 +2043,9 @@
     }
 
     infoBtn.addEventListener('click', () => {
-      if (selectedUnit) openPanel(selectedUnit);
-      else openProjectPanel();
+      if (selectedUnit) openPanel(selectedUnit);          // unidad seleccionada
+      else if (mode === 'floor') openFloorPanel();        // dentro de un nivel
+      else openProjectPanel();                            // vista general
     });
 
     function setPanelState(state) {
@@ -2112,6 +2168,12 @@
       setPanelState('form');
     });
 
+    // CTA: info de nivel → formulario
+    document.getElementById('panel-cta-nivel').addEventListener('click', () => {
+      formReturnState = 'nivel';
+      setPanelState('form');
+    });
+
     // Volver: formulario → de donde vino (unidad o proyecto)
     document.getElementById('panel-back').addEventListener('click', () => {
       setPanelState(formReturnState);
@@ -2211,7 +2273,7 @@
 
         if (newUnit !== hoveredUnit) {
           if (hoveredUnit && hoveredUnit !== selectedUnit)
-            hoveredUnit.items.forEach(m => { m.material = MAT_BASE; });
+            hoveredUnit.items.forEach(m => { m.material = matReposo(hoveredUnit); });
           hoveredUnit = newUnit;
           if (newUnit && newUnit !== selectedUnit) {
             const _e = unitDispo(newUnit)?.estado ?? 'disponible';
