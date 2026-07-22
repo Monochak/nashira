@@ -545,6 +545,12 @@
         "enabled": true,
         "autoStart": true
       },
+      "etiquetasTipologia": {
+        "A": "Tipo A",
+        "B": "Tipo B",
+        "C": "Tipo C",
+        "D": "Tipo D"
+      },
       "plantaBajaComercial": true
     }
   },

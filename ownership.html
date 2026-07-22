@@ -1455,9 +1455,11 @@
       clearUnitTags();
       const fg = floorGroups[fi];
       if (!fg) return;
-      // Texto editable desde el panel (Ownership → Etiquetas de tipología);
-      // sin entrada para esa letra, la pastilla muestra la letra tal cual.
-      const ETIQ = OWN.etiquetasTipologia || {};
+      // Texto editable desde el panel (Ownership → Etiquetas de tipología).
+      // Cadena: etiqueta por UNIDAD (locales, cada uno distinto) → etiqueta por
+      // TIPOLOGÍA → la letra tal cual.
+      const ETIQ   = OWN.etiquetasTipologia || {};
+      const ETIQ_U = OWN.etiquetasUnidad || {};
       const box = new THREE.Box3();
       (fg.units || []).forEach(u => {
         const d = unitDispo(u);
@@ -1468,7 +1470,7 @@
         if (box.isEmpty()) return;
         const el = document.createElement('span');
         el.className = 'unit-tag ' + (d?.estado ?? 'disponible');
-        el.textContent = ETIQ[String(tipo).toUpperCase()] || tipo;
+        el.textContent = ETIQ_U[d?.etiqueta] || ETIQ[String(tipo).toUpperCase()] || tipo;
         unitTagsWrap.appendChild(el);
         unitTagEntries.push({ el, centro: box.getCenter(new THREE.Vector3()) });
       });
