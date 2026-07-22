@@ -1089,11 +1089,11 @@
     /* ── Presentación guiada (pasos desde la ficha) ─────────────────────── */
     #prez-overlay {
       position: fixed;
-      right: 110px;   /* deja libre el rail (right: 20px) */
+      right: 74px;    /* su backdrop (-26px) remata en 48px = borde de la tarjeta de amenidades */
       top: 92px;      /* arriba-derecha: el texto va ARRIBA de las amenidades, sin encimarse */
       transform: none;
       z-index: 30;
-      width: min(440px, 38vw);
+      width: min(400px, 34vw);
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.4s ease;
@@ -1112,21 +1112,21 @@
       border-radius: 16px;
     }
     .prez-num {
-      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.22em;
-      text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
     }
     .prez-kpi {
       font-family: var(--font-display);
-      font-size: clamp(3rem, 5vw, 4.5rem);
+      font-size: clamp(2.2rem, 3.4vw, 3.2rem);
       font-weight: 700; line-height: 1;
       color: var(--text); letter-spacing: -0.01em;
     }
     .prez-caption {
-      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.16em;
-      text-transform: uppercase; color: var(--muted); margin: 7px 0 16px;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--muted); margin: 6px 0 12px;
     }
     .prez-body {
-      font-size: 1.17rem; line-height: 1.7; color: var(--text);
+      font-size: 0.95rem; line-height: 1.6; color: var(--text);
       letter-spacing: 0.01em; text-wrap: pretty; margin: 0;
       white-space: pre-line;   /* respeta los saltos de párrafo del texto de la ficha */
     }
@@ -1185,6 +1185,8 @@
       .prez-kpi { font-size: 2.5rem; }
       .prez-body { font-size: 1.05rem; }
       #prez-pill, #prez-resume { bottom: calc(76px + env(safe-area-inset-bottom)); }
+      /* En móvil no hay espacio para la tarjeta de amenidades sin tapar el modelo */
+      #amenidades { display: none; }
     }
   </style>
 </head>
