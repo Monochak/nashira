@@ -72,6 +72,28 @@
     "ornament": "sparkles.js",
     "wordmark": "content/brand/wordmark.png",
     "themeColor": "#24262b",
+    "paletaTexto": [
+      {
+        "color": "#5c73c7",
+        "nombre": "Azul Claro"
+      },
+      {
+        "color": "#2e4b83",
+        "nombre": "Azul Oscuro"
+      },
+      {
+        "color": "#6b5340",
+        "nombre": "Cafe"
+      },
+      {
+        "color": "#b74d31",
+        "nombre": "Naranja"
+      },
+      {
+        "color": "#e7e7dd",
+        "nombre": "Beige"
+      }
+    ],
     "constellation": "content/brand/constelacion.svg"
   },
   "pages": {
@@ -539,7 +561,7 @@
       "glassBg": "oklch(97% 0.006 85 / 0.78)",
       "glassBorder": "oklch(78% 0.010 85 / 0.55)"
     },
-    "accent": "#3a4a85",
+    "accent": "#ab4e30",
     "splash": {
       "azul": "#3b4a84",
       "cafe": "#6b5340",
@@ -566,8 +588,8 @@
         "hex3d": "0xf2beb1"
       },
       "disponible": {
-        "css": "#973920",
-        "hex3d": "0x973920"
+        "css": "#ab4e30",
+        "hex3d": "0xab4e30"
       }
     }
   },
@@ -576,6 +598,12 @@
     "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdmRzd3FuaGRxbnBkdG1nc213Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTMwODIsImV4cCI6MjA5Njg2OTA4Mn0.6i-ei2Z875hCce02sjE7g0byz9rD2wdLBq58qJUmtg8"
   },
   "siteUrl": "https://monolitoestudio.com/nashira",
+  "textColors": {
+    "pages.emotion.stops.0.body": "#e7e7dd",
+    "pages.emotion.stops.0.label": "#5c73c7",
+    "pages.ownership.copy.loadingQuote": "#2e4b83",
+    "pages.ownership.copy.loadingEyebrow": "#b74d31"
+  },
   "cacheVersion": 1,
   "schemaVersion": 1
 }
