@@ -2879,6 +2879,7 @@
          "Unit-*-02B"         → una tipología (el * no cruza guiones)
          "Azotea"             → la azotea
          "Planta-Baja" / "N01"→ la planta baja comercial
+         "@disponibles"       → todas las unidades con estado disponible (de la base)
          "Nombre-De-Capa"     → cualquier nodo nombrado del GLB
          "none" | "nada" | "todo" → sin resaltado
        Tocar piso/unidad la retira; el botón ▶ la retoma.
@@ -2919,6 +2920,16 @@
             );
             if (porNombre || porDato) { push(u.items); hit = true; }
           }));
+        }
+        // "@disponibles" → todas las unidades marcadas como disponibles en la base
+        // (sin importar piso ni tipología). Se encienden en el acento del panel, igual
+        // que el resto del resalte. Missing = disponible (convención del resto del app).
+        if (t === '@disponibles' || t === 'disponibles') {
+          floorGroups.forEach(fg => (fg.units || []).forEach(u => {
+            const d = disponibilidad[normId(u.id)];
+            if ((d?.estado ?? 'disponible') === 'disponible') push(u.items);
+          }));
+          hit = true;
         }
         // cualquier nodo del GLB con ese nombre (capas futuras: Terraza, Alberca…)
         if (!hit && glbModel) {
