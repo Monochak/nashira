@@ -167,6 +167,9 @@
         "total": 300,
         "prefix": "frame_"
       },
+      "backdrop": {
+        "color": "#e7e7dd"
+      },
       "scrollPerFrame": 8
     },
     "location": {
