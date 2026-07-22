@@ -504,7 +504,7 @@
           {
             "kpi": "129",
             "num": "05",
-            "body": "3 RECAMARAS\nWALKING CLOSET EN RECAMARA PRINCIPAL Y SECUNDARIA\nSALA COMEDOR\n2 CAJONES DE ESTACIONAMIENTO\n1 Y MEDIO BAÑOS\nVISTA A COLOMOS\nBODEGA",
+            "body": "3 recamaras",
             "label": "TIPO A",
             "caption": "m2",
             "highlight": "Unit-*-1001, Unit-*-201, Unit-*-301, Unit-*-401, Unit-*-501, Unit-*-601, Unit-*-701, Unit-*-801, Unit-*-901, Unit-*-A"
@@ -512,25 +512,25 @@
           {
             "kpi": "109",
             "num": "06",
-            "body": "2 RECAMARAS\nWALKING CLOSET EN RECAMARA PRINCIPAL\nSALA COMEDOR\n2 CAJONES DE ESTACIONAMIENTO\n1 Y MEDIO BAÑOS\nCUARTO DE LABAVO\nBODEGA\nVISTA A COLOMOS Y MANAGUA",
+            "body": "2 recamaras",
             "label": "TIPO B",
-            "caption": "M2",
+            "caption": "m2",
             "highlight": "Unit-*-B"
           },
           {
             "kpi": "93",
             "num": "07",
-            "body": "2 RECAMARAS CON BAÑO COMPLETO\n2 CAJONES DE ESTACIONAMIENTO\nSALA COMEDOR\nCUARTO DE LABAVO\nMEDIO BAÑOS\nBODEGA\nVISTA A MANAGUA",
+            "body": "2 recamaras con baño completo",
             "label": "TIPO C",
-            "caption": "M2",
+            "caption": "m2",
             "highlight": "Unit-*-C"
           },
           {
             "kpi": "60",
             "num": "08",
-            "body": "1 RECAMARA1 CON BAÑO COMPLETO\n2 CAJONES DE ESTACIONAMIENTO\nSALA COMEDOR\nCUARTO DE LABAVO\nBODEGA\nVISTA A MANAGUA",
+            "body": "1 recamara con baño completo",
             "label": "TIPO D",
-            "caption": "M2",
+            "caption": "m2",
             "highlight": "Unit-*-1002, Unit-*-902, Unit-*-802, Unit-*-D"
           },
           {
@@ -600,10 +600,16 @@
   },
   "siteUrl": "https://monolitoestudio.com/nashira",
   "textColors": {
+    "pages.emotion.stops.body": "#e7e7dd",
+    "pages.emotion.stops.label": "#5c73c7",
     "pages.emotion.stops.0.body": "#e7e7dd",
     "pages.emotion.stops.0.label": "#5c73c7",
     "pages.ownership.copy.loadingQuote": "#2e4b83",
-    "pages.ownership.copy.loadingEyebrow": "#b74d31"
+    "pages.ownership.copy.loadingEyebrow": "#b74d31",
+    "pages.ownership.presentacion.pasos.kpi": "#2e4b83",
+    "pages.ownership.presentacion.pasos.body": "#2e4b83",
+    "pages.ownership.presentacion.pasos.label": "#b74d31",
+    "pages.ownership.presentacion.pasos.caption": "#2e4b83"
   },
   "cacheVersion": 1,
   "schemaVersion": 1

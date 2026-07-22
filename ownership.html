@@ -644,6 +644,14 @@
       text-transform: uppercase;
       line-height: 1;
     }
+    /* Logo del proyecto en el header del panel de info (domina sobre el texto) */
+    .panel-proyecto-logo {
+      display: block;
+      max-width: 100%;
+      max-height: 76px;
+      width: auto;
+      height: auto;
+    }
 
     .panel-body {
       padding: 28px 32px 32px;
@@ -1957,8 +1965,18 @@
     // Panel de información del proyecto (reusa el panel deslizante + el mismo CTA).
     function openProjectPanel() {
       if (!PROJECT_INFO) return;
+      const BR = window.SITE.brand || {};
       document.getElementById('panel-floor-label').textContent = '';
-      document.getElementById('panel-unit-name').textContent   = window.SITE.brand.name || '';
+      // Header: por defecto el nombre en texto; si hay logotipo que cargue, domina.
+      const nameEl = document.getElementById('panel-unit-name');
+      nameEl.textContent = BR.name || '';
+      if (BR.wordmark) {
+        const logo = new Image();
+        logo.className = 'panel-proyecto-logo';
+        logo.alt = BR.fullName || BR.name || '';
+        logo.onload = () => { nameEl.textContent = ''; nameEl.appendChild(logo); };
+        logo.src = BR.wordmark;
+      }
       document.getElementById('panel-proyecto-body').innerHTML = escFmt(PROJECT_INFO);
       setPanelState('proyecto');
       unitPanel.classList.add('open');
