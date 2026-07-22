@@ -657,6 +657,45 @@
       margin-bottom: 10px;
     }
 
+    /* Info de la unidad sobre la pantalla (fuera del panel) */
+    #unit-info {
+      position: fixed;
+      right: 48px; top: 50%;
+      transform: translateY(-50%) translateX(14px);
+      z-index: 6;                       /* debajo del dim (10): se atenúa con el modelo al abrir el form */
+      width: 264px; max-width: 34vw;
+      display: flex; flex-direction: column;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #unit-info.on { opacity: 1; transform: translateY(-50%) translateX(0); pointer-events: auto; }
+    .ui-floor { font-size: 0.625rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .ui-name {
+      font-family: var(--font-display); font-size: 2.75rem; font-weight: 700;
+      letter-spacing: 0.04em; color: var(--text); line-height: 1; margin: 6px 0 20px;
+      text-shadow: 0 2px 20px oklch(from var(--bg) l c h / 0.7);
+    }
+    .ui-stats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+    .ui-stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.75rem; }
+    .ui-stat-l { color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.6875rem; }
+    .ui-stat-v { color: var(--text); font-weight: 600; }
+    .ui-stat-v.accent { color: var(--accent); }
+    .ui-feats {
+      display: flex; flex-direction: column; gap: 13px;
+      margin: 22px 0; padding-top: 20px;
+      border-top: 1px solid var(--panel-border);
+    }
+    .ui-cta {
+      margin-top: 4px;
+      background: var(--accent); color: oklch(97% 0.01 85);
+      border: none; border-radius: 100px;
+      font-family: var(--font-body); font-size: 0.6875rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 14px 20px; cursor: pointer;
+      transition: filter 0.2s;
+    }
+    .ui-cta:hover { filter: brightness(1.08); }
+
     .panel-features {
       display: flex;
       flex-direction: column;
@@ -1151,7 +1190,16 @@
     <span class="unit-label-status" id="label-status"></span>
   </div>
 
-  <!-- ── UNIT PANEL ──────────────────────────────────────────────────────── -->
+  <!-- ── INFO DE UNIDAD (sobre la pantalla) ──────────────────────────────── -->
+  <div id="unit-info" hidden>
+    <span class="ui-floor" id="ui-floor"></span>
+    <h2 class="ui-name" id="ui-name"></h2>
+    <div class="ui-stats" id="ui-stats"></div>
+    <div class="ui-feats" id="ui-feats" hidden></div>
+    <button class="ui-cta" id="ui-cta" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
+  </div>
+
+  <!-- ── UNIT PANEL (solo formulario de contacto) ────────────────────────── -->
   <div id="unit-panel" role="complementary" aria-label="Detalle de unidad">
     <div class="panel-header">
       <button id="panel-close" aria-label="Cerrar panel">&#215;</button>
@@ -1735,6 +1783,7 @@
       selectedUnit  = null;
       hoveredUnit   = null;
       unitLabelEl.classList.remove('visible');
+      hideUnitInfo();
 
       const fromPos  = camera.position.clone();
       const fromTgt  = controls.target.clone();
@@ -1765,6 +1814,7 @@
       if (panelOpen) closePanel();
       selectedUnit = null; hoveredUnit = null;
       unitLabelEl.classList.remove('visible');
+      hideUnitInfo();
       refreshInfoBtn();
 
       // Restaurar visibilidad completa del piso activo
@@ -1990,6 +2040,7 @@
       if (isTransitioning || selectedFloor === null || !unit) return;
       if (prezExitHook) prezExitHook();
       selectedUnit = unit;
+      showUnitInfo(unit);   // info + iconos sobre la pantalla, al instante
 
       // Ocultar todo el modelo — mostrar únicamente la unidad seleccionada
       if (glbModel) glbModel.traverse(obj => { if (obj.isMesh) obj.visible = false; });
@@ -2031,7 +2082,6 @@
         else {
           isTransitioning = false; mode = 'unit'; controls.enabled = true;
           refreshInfoBtn();
-          openPanel(unit);   // al seleccionar, se despliega la info de la unidad
         }
       })(performance.now());
     }
@@ -2126,9 +2176,22 @@
     }
 
     infoBtn.addEventListener('click', () => {
-      if (selectedUnit) openPanel(selectedUnit);          // unidad seleccionada
+      if (selectedUnit) showUnitInfo(selectedUnit);       // re-mostrar la info sobre la pantalla
       else if (mode === 'floor') openFloorPanel();        // dentro de un nivel
       else openProjectPanel();                            // vista general
+    });
+
+    // "Hablar con un asesor" (desde la info de unidad) → panel con el formulario.
+    document.getElementById('ui-cta').addEventListener('click', () => {
+      if (!selectedUnit) return;
+      document.getElementById('panel-floor-label').textContent = currentUnitData.floorLabel || '';
+      document.getElementById('panel-unit-name').textContent   = currentUnitData.unitLabel || '';
+      formReturnState = 'cerrar';
+      setPanelState('form');
+      unitPanel.classList.add('open');
+      canvasDim.classList.add('active');
+      panelOpen = true;
+      infoBtn.classList.remove('shown');
     });
 
     function setPanelState(state) {
@@ -2162,6 +2225,44 @@
         .filter(c => mapa[c.key] !== undefined)
         .map(c => `<div class="unit-feat"><span class="unit-feat-ic">${CARAC_ICON(c.ic)}</span><span class="unit-feat-tx">${esc(mapa[c.key] || c.label)}</span></div>`)
         .join('');
+    }
+
+    // Info de la unidad DIRECTAMENTE sobre la pantalla (fuera del panel): nombre,
+    // datos y características con iconos. El panel se reserva para "Hablar con un asesor".
+    function showUnitInfo(unit) {
+      const fg = floorGroups[selectedFloor];
+      const d  = unitDispo(unit);
+      const floorLabel = fg ? fg.label : '—';
+      const unitLabel  = d?.etiqueta ?? unit.label;
+      const tipologia  = d?.tipologia ?? d?.tipo ?? '—';
+      const fM2  = v => (v == null) ? '—' : (Math.round(v * 10) / 10).toFixed(1) + ' m²';
+      const mInt = d?.m2_int ?? null;
+      const mExt = (d?.m2_terraza != null || d?.m2_balcon != null) ? ((d.m2_terraza ?? 0) + (d.m2_balcon ?? 0)) : null;
+      const mTot = (mInt != null) ? +(mInt + (mExt ?? 0)).toFixed(1) : (d?.m2 ?? null);
+      currentUnitData = { floorLabel, unitLabel, tipo: tipologia, m2: mTot ?? '—' };
+      const precioStr = d?.precio ? '$' + Number(d.precio).toLocaleString('es-MX') : null;
+
+      const stat = (l, v, acc) => (v == null || v === '') ? '' :
+        `<div class="ui-stat"><span class="ui-stat-l">${l}</span><span class="ui-stat-v${acc ? ' accent' : ''}">${v}</span></div>`;
+      document.getElementById('ui-floor').textContent = floorLabel;
+      document.getElementById('ui-name').textContent  = unitLabel;
+      document.getElementById('ui-stats').innerHTML =
+        stat(OWN.copy.stats.tipologia, tipologia) +
+        stat(OWN.copy.stats.superficie, fM2(mTot)) +
+        (precioStr && d?.estado === 'disponible' ? stat(OWN.copy.stats.precio, precioStr, true) : '') +
+        stat(OWN.copy.stats.estado, estadoLabel(d), d?.estado === 'disponible' || !d);
+      const feats = caracteristicasUnidad(tipologia);
+      const fEl = document.getElementById('ui-feats');
+      fEl.innerHTML = feats;
+      fEl.hidden = !feats;
+      const ui = document.getElementById('unit-info');
+      ui.hidden = false;
+      requestAnimationFrame(() => ui.classList.add('on'));
+    }
+    function hideUnitInfo() {
+      const ui = document.getElementById('unit-info');
+      ui.classList.remove('on');
+      ui.hidden = true;
     }
 
     function openPanel(unit) {
@@ -2288,9 +2389,10 @@
       setPanelState('form');
     });
 
-    // Volver: formulario → de donde vino (unidad o proyecto)
+    // Volver: formulario → de donde vino (unidad on-screen → cierra; proyecto/nivel → su detalle)
     document.getElementById('panel-back').addEventListener('click', () => {
-      setPanelState(formReturnState);
+      if (formReturnState === 'cerrar') closePanel();
+      else setPanelState(formReturnState);
     });
 
     // Submit del formulario
