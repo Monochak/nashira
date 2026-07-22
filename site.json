@@ -539,10 +539,10 @@
           {
             "kpi": "",
             "num": "09",
-            "body": "Elige la unidad de tu preferencia",
-            "label": "NASHIRA ES COMUNIDAD. ES EQUILIBRIO. ES HOGAR.",
+            "body": "NASHIRA ES COMUNIDAD. ES EQUILIBRIO. ES HOGAR.\nElige la unidad de tu preferencia",
+            "label": "UNIDADES DISPONIBLES",
             "caption": "",
-            "highlight": "none"
+            "highlight": "@disponibles"
           }
         ],
         "enabled": true,
