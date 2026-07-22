@@ -1,0 +1,23 @@
+# Nashira — control de caché en el hosting (Neubox / LiteSpeed).
+#
+# Problema que resuelve: el caché de página de LiteSpeed guardaba una copia de
+# las URLs "peladas" (p.ej. /nashira/ownership.html) y la seguía sirviendo aunque
+# el deploy ya había subido el archivo nuevo → los cambios no se veían hasta que
+# el caché expiraba. Aquí se desactiva ese caché de página para este sitio.
+#
+# Nota: los JS/CSS/imágenes se versionan con ?v=<hash> desde el publicador, así
+# que su cacheo de larga duración es correcto y NO se toca — esto solo evita que
+# el HTML (que se sobreescribe en cada deploy) se sirva viejo.
+
+# 1) LiteSpeed: no cachear las respuestas de esta carpeta en el caché de página.
+<IfModule LiteSpeed>
+  RewriteEngine On
+  RewriteRule .* - [E=Cache-Control:no-cache]
+</IfModule>
+
+# 2) Navegadores/proxies: el HTML siempre revalida (los assets siguen su ?v=).
+<IfModule mod_headers.c>
+  <FilesMatch "\.html?$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
