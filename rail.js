@@ -54,7 +54,7 @@
       text-decoration: none;
       position: relative; /* ancla para el label absoluto en emotion */
       /* todos los iconos en acento; el inactivo a media intensidad, el activo pleno */
-      color: var(--accent, oklch(54.8% 0.157 35.7));
+      color: var(--rail, var(--accent, oklch(54.8% 0.157 35.7)));
       opacity: 0.55;
       transition: opacity 0.2s ease-out;
     }
@@ -94,7 +94,7 @@
     .rail-item.active { opacity: 1; }
     .rail-item:focus-visible {
       opacity: 1;
-      outline: 2px solid var(--accent, oklch(54.8% 0.157 35.7));
+      outline: 2px solid var(--rail, var(--accent, oklch(54.8% 0.157 35.7)));
       outline-offset: 3px;
       border-radius: 50%;
     }

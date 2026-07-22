@@ -106,6 +106,11 @@
   if (SITE.tokens && typeof SITE.tokens.accent === 'string' && SITE.tokens.accent.charAt(0) === '#') {
     document.documentElement.style.setProperty('--accent', SITE.tokens.accent);
   }
+  // Color del rail de navegación: si la ficha lo trae, pisa --rail (el rail usa
+  // var(--rail, var(--accent))), así se elige independiente del acento. Ausente = acento.
+  if (SITE.tokens && typeof SITE.tokens.railColor === 'string' && SITE.tokens.railColor.charAt(0) === '#') {
+    document.documentElement.style.setProperty('--rail', SITE.tokens.railColor);
+  }
 
   // Copy declarativo: <span data-site="pages.action.copy.heading"></span>
   // Placeholders:     <input data-site-placeholder="pages.ownership.copy.formPlaceholders.nombre">
