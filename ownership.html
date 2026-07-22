@@ -2663,12 +2663,16 @@
         cur = i;
         const s = steps[i];
         const num = s.num || String(i + 1).padStart(2, '0');
+        // Colores homologados (una elección por tipo de campo aplica a todos los pasos)
+        const TC = window.SITE.textColors || {};
+        const P  = 'pages.ownership.presentacion.pasos.';
+        const sty = k => TC[k] ? ` style="color:${TC[k]}"` : '';
         overlay.innerHTML =
           '<div class="prez-text">' +
-          `<div class="prez-num">${num} · ${s.label || ''}</div>` +
-          (s.kpi ? `<div class="prez-kpi">${s.kpi}</div>` : '') +
-          (s.caption ? `<div class="prez-caption">${s.caption}</div>` : '') +
-          (s.body ? `<p class="prez-body">${fmtTexto(s.body)}</p>` : '') +
+          `<div class="prez-num"${sty(P + 'label')}>${num} · ${s.label || ''}</div>` +
+          (s.kpi ? `<div class="prez-kpi"${sty(P + 'kpi')}>${s.kpi}</div>` : '') +
+          (s.caption ? `<div class="prez-caption"${sty(P + 'caption')}>${s.caption}</div>` : '') +
+          (s.body ? `<p class="prez-body"${sty(P + 'body')}>${fmtTexto(s.body)}</p>` : '') +
           '</div>';
         requestAnimationFrame(() => requestAnimationFrame(() => {
           const t = overlay.firstElementChild;

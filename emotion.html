@@ -871,8 +871,8 @@
     C.stops.forEach((stop, i) => {
       const div = document.createElement('div');
       div.className = 'stop-text';
-      const cH = TEXT_COLORS[`pages.emotion.stops.${i}.label`];
-      const cB = TEXT_COLORS[`pages.emotion.stops.${i}.body`];
+      const cH = TEXT_COLORS['pages.emotion.stops.label'];   // homologado: todos los títulos
+      const cB = TEXT_COLORS['pages.emotion.stops.body'];    // homologado: todos los textos
       const wordSpans = stop.body
         ? stop.body.split(' ').map(w => `<span class="word">${w}</span>`).join(' ')
         : '';
