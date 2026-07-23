@@ -858,9 +858,13 @@
       border-radius: 14px;
       opacity: 0; pointer-events: none;
       transform: translateX(14px);
+      /* sin transición en reposo: ocultarse es INSTANTÁNEO (no se cruza con la
+         info de unidad que entra); solo la aparición hace fade */
+    }
+    #amenidades.on {
+      opacity: 1; transform: translateX(0); pointer-events: auto;
       transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    #amenidades.on { opacity: 1; transform: translateX(0); pointer-events: auto; }
     #amenidades .amenidades-grid { grid-template-columns: 1fr 1fr 1fr; gap: 15px 10px; margin: 0; }
     #amenidades .amenidad { gap: 7px; }
     #amenidades .amenidad-ic { width: 24px; height: 24px; }
@@ -1102,9 +1106,10 @@
       max-width: 38vw;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.4s ease;
+      /* ocultarse es instantáneo (al seleccionar unidad no debe cruzarse con la
+         info que entra); solo la aparición hace fade */
     }
-    #prez-overlay.visible { opacity: 1; }
+    #prez-overlay.visible { opacity: 1; transition: opacity 0.4s ease; }
     .prez-text { position: relative; opacity: 0; transition: opacity 0.5s ease; }
     .prez-text.in { opacity: 1; }
     .prez-num {
@@ -2094,6 +2099,7 @@
       if (isTransitioning || selectedFloor === null || !unit) return;
       if (prezExitHook) prezExitHook();
       selectedUnit = unit;
+      refreshAmenidades();  // fuera YA (sin fade): su lugar lo toma la info de unidad
       showUnitInfo(unit);   // info + iconos sobre la pantalla, al instante
 
       // Ocultar todo el modelo — mostrar únicamente la unidad seleccionada
