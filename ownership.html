@@ -1235,7 +1235,7 @@
       <line x1="12" y1="8" x2="12" y2="8"/>
       <line x1="12" y1="12" x2="12" y2="16"/>
     </svg>
-    <span class="info-label" data-site="pages.ownership.copy.infoButton">Info</span>
+    <span class="info-label" data-site="pages.ownership.copy.cta">Hablar con un asesor</span>
   </button>
 
   <!-- ── UNIT HOVER LABEL ────────────────────────────────────────────────── -->
@@ -2163,22 +2163,16 @@
         .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
     }
 
-    // Estado del botón info: visible siempre que haya unidad seleccionada O info de
-    // proyecto capturada; en acento (.selected) solo cuando hay unidad. Si no hay
-    // ninguna de las dos (proyecto sin info y sin unidad), queda oculto.
+    // Botón abajo-derecha: SIEMPRE el CTA "Hablar con un asesor", en todos los
+    // modos (torre, nivel, unidad). El botón INFO se retiró; solo se esconde
+    // mientras un panel está abierto (el panel trae su propio CTA/formulario).
     function refreshInfoBtn() {
-      const hasUnit  = mode === 'unit' && !!selectedUnit;
-      const hasFloor = mode === 'floor' && selectedFloor !== null;   // info del nivel (auto, de Supabase)
-      const show     = hasUnit || hasFloor || !!PROJECT_INFO;
       refreshAmenidades();
-      infoBtn.classList.toggle('visible', show);
-      infoBtn.classList.toggle('cta', hasUnit);        // en unidad: CTA "Hablar con un asesor"
+      infoBtn.classList.add('visible', 'cta');
       infoBtn.classList.remove('selected');
       const lbl = infoBtn.querySelector('.info-label');
-      if (lbl) lbl.textContent = hasUnit
-        ? (SITE_GET('pages.ownership.copy.cta') || 'Hablar con un asesor')
-        : (SITE_GET('pages.ownership.copy.infoButton') || 'Info');
-      if (show && !panelOpen) requestAnimationFrame(() => infoBtn.classList.add('shown'));
+      if (lbl) lbl.textContent = SITE_GET('pages.ownership.copy.cta') || 'Hablar con un asesor';
+      if (!panelOpen) requestAnimationFrame(() => infoBtn.classList.add('shown'));
       else infoBtn.classList.remove('shown');
     }
 
@@ -2244,11 +2238,13 @@
       infoBtn.classList.remove('shown');
     }
 
-    // "Hablar con un asesor" (unidad seleccionada) → panel con el formulario.
+    // "Hablar con un asesor" → panel con el formulario. Con unidad seleccionada
+    // el encabezado la identifica; sin unidad, encabeza el nombre del proyecto.
     function openContactForm() {
-      if (!selectedUnit) return;
-      document.getElementById('panel-floor-label').textContent = currentUnitData.floorLabel || '';
-      document.getElementById('panel-unit-name').textContent   = currentUnitData.unitLabel || '';
+      const conUnidad = !!(selectedUnit && currentUnitData);
+      document.getElementById('panel-floor-label').textContent = conUnidad ? (currentUnitData.floorLabel || '') : '';
+      document.getElementById('panel-unit-name').textContent   = conUnidad ? (currentUnitData.unitLabel || '')
+                                                                           : ((window.SITE.brand || {}).name || '');
       formReturnState = 'cerrar';
       setPanelState('form');
       unitPanel.classList.add('open');
@@ -2257,12 +2253,9 @@
       infoBtn.classList.remove('shown');
     }
 
-    // Botón abajo-derecha: en unidad = "Hablar con un asesor"; si no, INFO del nivel/proyecto.
-    infoBtn.addEventListener('click', () => {
-      if (selectedUnit) openContactForm();
-      else if (mode === 'floor') openFloorPanel();
-      else openProjectPanel();
-    });
+    // Botón abajo-derecha: SIEMPRE "Hablar con un asesor" (el INFO se retiró).
+    // Con unidad seleccionada el formulario va identificado; sin unidad, genérico.
+    infoBtn.addEventListener('click', openContactForm);
 
     function setPanelState(state) {
       document.querySelectorAll('.panel-section').forEach(el => { el.hidden = true; });
@@ -2550,9 +2543,10 @@
         await window.MonolitoBackend.enviarLead({
           nombre, email,
           telefono: telefono || null,
-          mensaje:
-            `Unidad de interés: ${currentUnitData.floorLabel} / ${currentUnitData.unitLabel}` +
-            ` · Tipología: ${currentUnitData.tipo} · Superficie: ${currentUnitData.m2} m²`,
+          mensaje: (selectedUnit && currentUnitData)
+            ? `Unidad de interés: ${currentUnitData.floorLabel} / ${currentUnitData.unitLabel}` +
+              ` · Tipología: ${currentUnitData.tipo} · Superficie: ${currentUnitData.m2} m²`
+            : 'Interés general en el proyecto (sin unidad seleccionada)',
         });
         setPanelState('success');
         setTimeout(() => closePanel(), 3000);
