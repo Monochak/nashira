@@ -138,6 +138,27 @@
       #rail.rail-on-emotion .rail-item:focus-visible .rail-label {
         transform: translateY(-50%) translateX(0);
       }
+
+      /* Labels flotantes (ownership): los labels no ensanchan el rail — salen
+         absolutos con su pastilla de vidrio, legibles aunque caigan sobre la
+         columna de contenido (texto/amenidades). El rail en reposo son solo
+         los iconos, y su canal lo respeta la columna (remate a 84px). */
+      #rail.rail-labels-flotantes .rail-label {
+        position: absolute;
+        right: calc(100% + 8px);
+        top: 50%;
+        transform: translateY(-50%) translateX(6px);
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--glass-bg, oklch(97% 0.006 85 / 0.88));
+        border: 1px solid var(--glass-border, oklch(20% 0.006 85 / 0.18));
+        backdrop-filter: blur(12px) saturate(1.3);
+        -webkit-backdrop-filter: blur(12px) saturate(1.3);
+      }
+      #rail.rail-labels-flotantes .rail-item:hover .rail-label,
+      #rail.rail-labels-flotantes .rail-item:focus-visible .rail-label {
+        transform: translateY(-50%) translateX(0);
+      }
     }
 
     /* ── Móvil: barra inferior con iconos + labels ── */
@@ -193,6 +214,9 @@
   nav.setAttribute('aria-label', 'Navegación principal');
   // Emotion: fondo cambiante (frames/video) → el rail lleva respaldo de vidrio.
   if (PAGE === 'emotion.html') nav.classList.add('rail-on-emotion');
+  // Ownership: labels flotantes con pastilla — no ensanchan el rail ni chocan
+  // con la columna derecha (texto de presentación + amenidades).
+  if (PAGE === 'ownership.html') nav.classList.add('rail-labels-flotantes');
   nav.innerHTML = ITEMS.map(it => {
     const active = PAGE === it.href.toLowerCase();
     return `<a class="rail-item${active ? ' active' : ''}${it.cls ? ' ' + it.cls : ''}"` +
