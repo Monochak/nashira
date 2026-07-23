@@ -1382,11 +1382,11 @@
     const DIMMER_MS     = OWN.camera.dimmerMs;
     let prezHighlightOn = false;   // presentación guiada: bloquea hover mientras ilumina
     let prezExitHook    = null;    // la presentación se retira al seleccionar piso/unidad
-    // Centro de gravedad del encuadre: en vista general y por nivel el modelo
-    // vive corrido a la izquierda (con o sin presentación) para dar aire a la
-    // columna derecha (texto + amenidades). Solo la vista de unidad centra.
-    // Proporcional al viewport (igual en 1366 que en 4K).
-    let prezShiftObjetivo = 0;     // 1 = corrido a la izquierda; lo fija el render loop
+    // Centro de gravedad del encuadre: el modelo vive corrido a la izquierda en
+    // todas las vistas (general, nivel y unidad) para dar aire a la columna
+    // derecha (texto, amenidades o info de unidad). Proporcional al viewport
+    // (igual en 1366 que en 4K). Arranca en 0 para entrar con fade al cargar.
+    let prezShiftObjetivo = 0;     // lo fija el render loop (hoy siempre 1)
     let prezShiftActual   = 0;     // valor animado en el render loop
     const PREZ_SHIFT_FRAC = 0.06;  // fracción del ancho que se desplaza el encuadre
     let glbModel        = null;   // referencia al modelo completo para hide-all
@@ -2682,12 +2682,12 @@
       requestAnimationFrame(render);
       controls.update();
 
-      // Centro de gravedad del encuadre: en vista general Y por nivel el modelo
-      // vive corrido a la izquierda — con o sin presentación — dejando aire a la
-      // columna derecha; solo en unidad vuelve al centro. Se anima aquí (no con
+      // Centro de gravedad del encuadre: el modelo vive corrido a la izquierda en
+      // TODAS las vistas (general, nivel y unidad) — la columna derecha (texto,
+      // amenidades o info de unidad) siempre tiene su aire. Se anima aquí (no con
       // tween) para convivir con la órbita y el resize sin estados colgados.
       // project() hereda el offset: CAT y etiquetas siguen bien ancladas.
-      prezShiftObjetivo = (mode === 'orbital' || mode === 'floor') ? 1 : 0;
+      prezShiftObjetivo = 1;
       prezShiftActual += (prezShiftObjetivo - prezShiftActual) * 0.05;
       if (Math.abs(prezShiftObjetivo - prezShiftActual) < 0.001) prezShiftActual = prezShiftObjetivo;
       if (prezShiftActual > 0) {
