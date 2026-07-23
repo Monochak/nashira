@@ -1382,10 +1382,10 @@
     const DIMMER_MS     = OWN.camera.dimmerMs;
     let prezHighlightOn = false;   // presentación guiada: bloquea hover mientras ilumina
     let prezExitHook    = null;    // la presentación se retira al seleccionar piso/unidad
-    // Reencuadre de presentación: mientras corre, el encuadre se corre para que la
-    // torre ocupe el lado izquierdo y la columna derecha (texto + amenidades) quede
-    // libre. Proporcional al viewport (misma composición en 1366 que en 4K).
-    let prezShiftObjetivo = 0;     // 1 = presentación activa (torre a la izquierda)
+    // Reencuadre de la vista general: en orbital la torre vive corrida a la
+    // izquierda (con o sin presentación) para dar aire a la columna derecha
+    // (texto + amenidades). Proporcional al viewport (igual en 1366 que en 4K).
+    let prezShiftObjetivo = 0;     // 1 = vista general (torre a la izquierda); lo fija el render loop
     let prezShiftActual   = 0;     // valor animado en el render loop
     const PREZ_SHIFT_FRAC = 0.06;  // fracción del ancho que se desplaza el encuadre
     let glbModel        = null;   // referencia al modelo completo para hide-all
@@ -2681,9 +2681,12 @@
       requestAnimationFrame(render);
       controls.update();
 
-      // Reencuadre de presentación: corrimiento del encuadre en pantalla. Se anima
-      // aquí (no con tween) para convivir con la órbita y el resize sin estados
-      // colgados. project() hereda el offset: CAT y etiquetas siguen bien ancladas.
+      // Corrimiento del encuadre en pantalla: en vista GENERAL (orbital) la torre
+      // vive corrida a la izquierda — con o sin presentación — dejando aire a la
+      // columna derecha; en nivel/unidad vuelve al centro. Se anima aquí (no con
+      // tween) para convivir con la órbita y el resize sin estados colgados.
+      // project() hereda el offset: CAT y etiquetas siguen bien ancladas.
+      prezShiftObjetivo = (mode === 'orbital') ? 1 : 0;
       prezShiftActual += (prezShiftObjetivo - prezShiftActual) * 0.05;
       if (Math.abs(prezShiftObjetivo - prezShiftActual) < 0.001) prezShiftActual = prezShiftObjetivo;
       if (prezShiftActual > 0) {
@@ -3130,7 +3133,6 @@
 
       function enter() {
         active = true;
-        prezShiftObjetivo = 1;    // torre a la izquierda: la columna derecha queda libre
         overlay.classList.add('visible');
         pill.classList.add('visible');
         resume.classList.remove('visible');
@@ -3139,7 +3141,6 @@
       function exit() {
         if (!active) return;
         active = false;
-        prezShiftObjetivo = 0;    // la torre vuelve al centro al explorar
         prezHighlightOn = false;
         setMaterialsBase();
         overlay.classList.remove('visible');
