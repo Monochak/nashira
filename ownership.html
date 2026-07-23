@@ -848,9 +848,9 @@
        Se oculta al seleccionar unidad; bajo un panel el dim la atenúa. */
     #amenidades {
       position: fixed;
-      right: 48px; bottom: 74px;         /* despejado del rail (right:20px) y de los controles de abajo */
+      right: 84px; bottom: 74px;         /* misma columna que el texto de presentación; canal del rail libre */
       z-index: 6;
-      width: 316px; max-width: 40vw;
+      width: 340px; max-width: 38vw;
       padding: 18px 18px 16px;
       background: oklch(from var(--bg) l c h / 0.72);
       backdrop-filter: blur(10px);
@@ -1087,13 +1087,19 @@
     }
 
     /* ── Presentación guiada (pasos desde la ficha) ─────────────────────── */
+    /* Columna derecha unificada: el texto (arriba, sin caja) y la tarjeta de
+       amenidades (abajo) comparten ancho y bordes — una sola vertical editorial.
+       La torre se reencuadra a la izquierda mientras corre la presentación, así
+       que el texto va directo sobre el fondo papel, sin backdrop. El remate a
+       84px reserva el canal del rail (iconos hasta ~64px). */
     #prez-overlay {
       position: fixed;
-      right: 74px;    /* su backdrop (-26px) remata en 48px = borde de la tarjeta de amenidades */
-      top: 92px;      /* arriba-derecha: el texto va ARRIBA de las amenidades, sin encimarse */
+      right: 84px;
+      top: 92px;
       transform: none;
       z-index: 30;
-      width: min(400px, 34vw);
+      width: 340px;
+      max-width: 38vw;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.4s ease;
@@ -1101,32 +1107,22 @@
     #prez-overlay.visible { opacity: 1; }
     .prez-text { position: relative; opacity: 0; transition: opacity 0.5s ease; }
     .prez-text.in { opacity: 1; }
-    .prez-text::before {
-      content: '';
-      position: absolute;
-      inset: -20px -26px;
-      z-index: -1;
-      background: oklch(from var(--bg) l c h / 0.55);
-      backdrop-filter: blur(6px) saturate(0.8);
-      -webkit-backdrop-filter: blur(6px) saturate(0.8);
-      border-radius: 16px;
-    }
     .prez-num {
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em;
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.22em;
       text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
     }
     .prez-kpi {
       font-family: var(--font-display);
-      font-size: clamp(2.2rem, 3.4vw, 3.2rem);
+      font-size: clamp(1.9rem, 2.4vw, 2.4rem);
       font-weight: 700; line-height: 1;
       color: var(--text); letter-spacing: -0.01em;
     }
     .prez-caption {
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.16em;
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.16em;
       text-transform: uppercase; color: var(--muted); margin: 6px 0 12px;
     }
     .prez-body {
-      font-size: 0.95rem; line-height: 1.6; color: var(--text);
+      font-size: 0.9rem; line-height: 1.6; color: var(--text);
       letter-spacing: 0.01em; text-wrap: pretty; margin: 0;
       white-space: pre-line;   /* respeta los saltos de párrafo del texto de la ficha */
     }
@@ -1381,6 +1377,12 @@
     const DIMMER_MS     = OWN.camera.dimmerMs;
     let prezHighlightOn = false;   // presentación guiada: bloquea hover mientras ilumina
     let prezExitHook    = null;    // la presentación se retira al seleccionar piso/unidad
+    // Reencuadre de presentación: mientras corre, el encuadre se corre para que la
+    // torre ocupe el lado izquierdo y la columna derecha (texto + amenidades) quede
+    // libre. Proporcional al viewport (misma composición en 1366 que en 4K).
+    let prezShiftObjetivo = 0;     // 1 = presentación activa (torre a la izquierda)
+    let prezShiftActual   = 0;     // valor animado en el render loop
+    const PREZ_SHIFT_FRAC = 0.13;  // fracción del ancho que se desplaza el encuadre
     let glbModel        = null;   // referencia al modelo completo para hide-all
     let panelState      = 'detail'; // 'detail' | 'proyecto' | 'form' | 'success'
     let formReturnState = 'detail'; // a dónde vuelve el form: 'detail' (unidad) | 'proyecto'
@@ -2679,6 +2681,17 @@
       requestAnimationFrame(render);
       controls.update();
 
+      // Reencuadre de presentación: corrimiento del encuadre en pantalla. Se anima
+      // aquí (no con tween) para convivir con la órbita y el resize sin estados
+      // colgados. project() hereda el offset: CAT y etiquetas siguen bien ancladas.
+      prezShiftActual += (prezShiftObjetivo - prezShiftActual) * 0.05;
+      if (Math.abs(prezShiftObjetivo - prezShiftActual) < 0.001) prezShiftActual = prezShiftObjetivo;
+      if (prezShiftActual > 0) {
+        camera.setViewOffset(W(), H(), prezShiftActual * PREZ_SHIFT_FRAC * W(), 0, W(), H());
+      } else if (camera.view && camera.view.enabled) {
+        camera.clearViewOffset();
+      }
+
       // Dimmer — anima toneMappingExposure de dimFrom → 1.0
       // papel (desde 2.5): ease-in, se asienta lento. grafito (desde 0.25): ease-out, enciende rápido.
       if (dimmerStart !== null) {
@@ -3117,6 +3130,7 @@
 
       function enter() {
         active = true;
+        prezShiftObjetivo = 1;    // torre a la izquierda: la columna derecha queda libre
         overlay.classList.add('visible');
         pill.classList.add('visible');
         resume.classList.remove('visible');
@@ -3125,6 +3139,7 @@
       function exit() {
         if (!active) return;
         active = false;
+        prezShiftObjetivo = 0;    // la torre vuelve al centro al explorar
         prezHighlightOn = false;
         setMaterialsBase();
         overlay.classList.remove('visible');
@@ -3183,7 +3198,7 @@
   </div>
 
   <script src="transition.js?v=c0fe1e68"></script>
-  <script src="rail.js?v=d3008269"></script>
+  <script src="rail.js?v=8d78e7c5"></script>
   <script src="fullscreen.js?v=8f3fe4bb"></script>
   <script src="sparkles.js?v=07f3a614"></script>
   <script src="pwa.js?v=d3f89997"></script>
