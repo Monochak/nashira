@@ -47,8 +47,9 @@
       --font-body:      'Barlow', system-ui, -apple-system, sans-serif;
       /* Columna editorial derecha — una sola fuente de verdad para el texto de
          presentación, la tarjeta de amenidades y el CTA: los tres comparten
-         borde izquierdo. Cambiar aquí los mueve juntos, sin desalinearse. */
-      --col-right:      184px;
+         borde DERECHO y el texto va justificado a la derecha. Cambiar este
+         valor los mueve juntos, sin desalinearse. */
+      --col-right:      48px;
       --col-width:      min(340px, 38vw);
     }
 
@@ -486,13 +487,13 @@
       transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.15s ease-out, opacity 0.3s ease-out;
       opacity: 0;
     }
-    /* Escritorio: el CTA cierra la columna editorial — comparte borde izquierdo
+    /* Escritorio: el CTA cierra la columna editorial — comparte borde DERECHO
        con el texto de presentación y la tarjeta de amenidades. En móvil se queda
-       pegado a la derecha (ahí no hay columna). */
+       con su margen propio (ahí no hay columna). */
     @media (min-width: 768px) {
       #info-btn {
-        left: calc(100% - var(--col-right) - var(--col-width));
-        right: auto;
+        right: var(--col-right);
+        left: auto;
       }
     }
     #info-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
@@ -1137,7 +1138,7 @@
          info que entra); solo la aparición hace fade */
     }
     #prez-overlay.visible { opacity: 1; transition: opacity 0.4s ease; }
-    .prez-text { position: relative; opacity: 0; transition: opacity 0.5s ease; }
+    .prez-text { position: relative; opacity: 0; transition: opacity 0.5s ease; text-align: right; }
     .prez-text.in { opacity: 1; }
     .prez-num {
       font-size: 0.65rem; font-weight: 600; letter-spacing: 0.22em;
