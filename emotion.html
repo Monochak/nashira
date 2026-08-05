@@ -182,26 +182,42 @@
        Sits above the stop video (z-index 45 > 40).
        Visible during stop videos and scroll scrubbing.
     ===================================================== */
+    /* El overlay cubre la pantalla; cada escena se coloca dentro de él según la
+       posición elegida en el panel, para no tapar lo importante de la imagen. */
     #text-overlay {
       position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      inset: 0;
       z-index: 45;
       pointer-events: none;
-      width: 560px;
-      text-align: center;
     }
 
+    /* Posición del texto: 9 casillas (3 verticales × 3 horizontales). Las clases
+       son composables — cada eje aporta su corrimiento vía --tx / --ty. Default
+       (sin elección en el panel) = centro, como estaba antes. */
     .stop-text {
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
+      --tx: -50%;
+      --ty: -50%;
+      transform: translate(var(--tx), var(--ty));
+      width: 560px;
+      max-width: calc(100% - 96px);
+      text-align: center;
       opacity: 0;
       isolation: isolate;
     }
+    .stop-text.pos-y-arriba { top: 13vh; bottom: auto; --ty: 0px; }
+    .stop-text.pos-y-medio  { top: 50%;  bottom: auto; --ty: -50%; }
+    .stop-text.pos-y-abajo  { top: auto; bottom: 15vh; --ty: 0px; }
+    .stop-text.pos-x-izq    { left: 48px; right: auto; --tx: 0px; text-align: left; }
+    .stop-text.pos-x-centro { left: 50%;  right: auto; --tx: -50%; }
+    .stop-text.pos-x-der    { left: auto; right: 48px; --tx: 0px; text-align: right; }
+    /* El cuerpo y el separador siguen la alineación elegida */
+    .stop-text.pos-x-izq .stop-body,
+    .stop-text.pos-x-izq .stop-sep { margin-left: 0; margin-right: auto; }
+    .stop-text.pos-x-der .stop-body,
+    .stop-text.pos-x-der .stop-sep { margin-left: auto; margin-right: 0; }
 
     /* Pill backdrop — fade-in + subtle scale desde el centro */
     .stop-text::before {
@@ -508,10 +524,10 @@
        MOBILE  ≤ 767px
     ===================================================== */
     @media (max-width: 767px) {
-      /* Text overlay — centrado */
-      #text-overlay {
-        width: calc(100% - 48px);
-      }
+      /* El texto conserva la posición elegida, pero pegado menos a los bordes */
+      .stop-text { max-width: calc(100% - 40px); }
+      .stop-text.pos-x-izq { left: 20px; }
+      .stop-text.pos-x-der { right: 20px; }
 
       .stop-body {
         max-width: none;
@@ -917,6 +933,9 @@
     C.stops.forEach((stop, i) => {
       const div = document.createElement('div');
       div.className = 'stop-text';
+      // Posición elegida en el panel: "{vertical}-{horizontal}". Ausente = centro.
+      const pos = String(stop.posicion || 'medio-centro').split('-');
+      div.classList.add('pos-y-' + (pos[0] || 'medio'), 'pos-x-' + (pos[1] || 'centro'));
       const cH = TEXT_COLORS['pages.emotion.stops.label'];   // homologado: todos los títulos
       const cB = TEXT_COLORS['pages.emotion.stops.body'];    // homologado: todos los textos
       const wordSpans = stop.body

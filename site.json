@@ -497,8 +497,16 @@
       "presentacion": {
         "pasos": [
           {
-            "kpi": "10 niveles",
+            "kpi": "Haz click",
             "num": "01",
+            "body": "en el menu de navegación en la parte inferior de la pagina para conocer NASHOIR",
+            "label": "Conoce NASHIRA",
+            "caption": "",
+            "highlight": "none"
+          },
+          {
+            "kpi": "10 niveles",
+            "num": "02",
             "body": "Diez niveles pensados para vivir el barrio que siempre soñaste, a tu altura.",
             "label": "La torre",
             "caption": "VIVE PROVIDENCIA COMO SIEMPRE SOÑASTE",
@@ -506,7 +514,7 @@
           },
           {
             "kpi": "",
-            "num": "02",
+            "num": "03",
             "body": "La vida te espera en la planta baja: un café, un encuentro, tu rutina al pie de casa.\n",
             "label": "La planta baja",
             "caption": "comercio a pie de calle",
@@ -514,7 +522,7 @@
           },
           {
             "kpi": "Nivel 8",
-            "num": "03",
+            "num": "04",
             "body": "El atardecer, a la altura de tu terraza. Siete niveles arriba, el cielo se vuelve tuyo.",
             "label": "Roor Terrace - amenidades bajo el cielo ",
             "caption": "PORQUE TU HOGAR TAMBIÉN SE VIVE  MÁS ALLÁ DE TU PUERTA",
@@ -522,7 +530,7 @@
           },
           {
             "kpi": "24 unidades",
-            "num": "04",
+            "num": "05",
             "body": "pensadas para quienes valoran el diseño funcional y la estética natural, donde cada detalle suma calidad de vida.",
             "label": "Las tipologías",
             "caption": "Cuatro tipologías bien resueltas",
@@ -530,7 +538,7 @@
           },
           {
             "kpi": "129",
-            "num": "05",
+            "num": "06",
             "body": "3 recamaras",
             "label": "TIPO A",
             "caption": "m2",
@@ -538,7 +546,7 @@
           },
           {
             "kpi": "109",
-            "num": "06",
+            "num": "07",
             "body": "2 recamaras",
             "label": "TIPO B",
             "caption": "m2",
@@ -546,7 +554,7 @@
           },
           {
             "kpi": "93",
-            "num": "07",
+            "num": "08",
             "body": "2 recamaras con baño completo",
             "label": "TIPO C",
             "caption": "m2",
@@ -554,7 +562,7 @@
           },
           {
             "kpi": "60",
-            "num": "08",
+            "num": "09",
             "body": "1 recamara con baño completo",
             "label": "TIPO D",
             "caption": "m2",
@@ -562,7 +570,7 @@
           },
           {
             "kpi": "",
-            "num": "09",
+            "num": "10",
             "body": "NASHIRA ES COMUNIDAD. ES EQUILIBRIO. ES HOGAR.\nElige la unidad de tu preferencia",
             "label": "UNIDADES DISPONIBLES",
             "caption": "",
@@ -570,9 +578,9 @@
           },
           {
             "kpi": "",
-            "num": "10",
+            "num": "11",
             "body": "(texto pendiente — captúralo aquí)",
-            "label": "(paso 10 pendiente)",
+            "label": "(paso 11 pendiente)",
             "caption": "",
             "highlight": "none"
           }
