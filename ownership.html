@@ -51,6 +51,10 @@
          valor los mueve juntos, sin desalinearse. */
       --col-right:      48px;
       --col-width:      min(340px, 38vw);
+      /* Columna izquierda (niveles y unidades), en espejo: comparte borde
+         IZQUIERDO y su texto va justificado a la izquierda, dejando aire
+         entre la lista y la torre. */
+      --col-left:       48px;
     }
 
     html, body {
@@ -246,7 +250,7 @@
     /* ── FLOOR LIST (left sidebar) ──────────────────────────────────────── */
     #floor-list {
       position: fixed;
-      left: 256px;
+      left: var(--col-left);
       top: 50%;
       transform: translateY(-50%);
       z-index: 20;
@@ -281,7 +285,7 @@
       letter-spacing: 0.10em;
       color: var(--muted);
       min-width: 22px;
-      text-align: right;
+      text-align: left;   /* espejo de la columna derecha: borde izquierdo limpio */
       transition: color 0.2s ease-out;
     }
 
@@ -337,7 +341,7 @@
       letter-spacing: 0.10em;
       color: oklch(66% 0.008 85);
       min-width: 22px;
-      text-align: right;
+      text-align: left;   /* espejo de la columna derecha */
       transition: color 0.2s ease-out;
     }
     .unit-item .unit-dot {
@@ -549,7 +553,7 @@
     #back-btn {
       position: fixed;
       top: 84px;
-      left: 32px;
+      left: var(--col-left);   /* mismo borde que la lista de niveles */
       z-index: 20;
       display: none;
       align-items: center;
