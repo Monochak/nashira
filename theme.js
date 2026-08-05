@@ -28,7 +28,7 @@
       #theme-toggle {
         position: fixed;
         bottom: 36px;
-        left: 32px;
+        left: 48px;   /* margen izquierdo canon (mismo borde que la columna de niveles) */
         z-index: 20;
         background: none;
         border: none;
