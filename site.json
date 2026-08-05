@@ -168,7 +168,8 @@
         "prefix": "frame_"
       },
       "backdrop": {
-        "color": "#e7e7dd"
+        "color": "#e7e7dd",
+        "opacity": 0
       },
       "scrollPerFrame": 8
     },
