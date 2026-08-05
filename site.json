@@ -234,8 +234,8 @@
         "attribution": "&copy; OpenStreetMap &copy; CARTO"
       },
       "coords": {
-        "lat": 20.695766,
-        "lng": -103.374116,
+        "lat": 20.695197,
+        "lng": -103.374971,
         "zoom": 15
       },
       "categorias": [
@@ -403,6 +403,12 @@
             "lng": -103.3751792,
             "nombre": "Plaza Patria",
             "categoria": "Comercio"
+          },
+          {
+            "lat": 20.701320951680255,
+            "lng": -103.37672714563327,
+            "nombre": "Paradisso",
+            "categoria": "Esparcimiento"
           }
         ],
         "enabled": true,
@@ -470,12 +476,29 @@
         "enabled": true,
         "pattern": "content/panoramas/pano_tipo_{tipo}.jpg"
       },
+      "amenidades": {
+        "gym": "",
+        "edge": "",
+        "jardin": "",
+        "firepit": "",
+        "lockers": "",
+        "niveles": "",
+        "rooftop": "",
+        "toolRoom": "",
+        "coworking": "",
+        "petShower": "",
+        "reciclaje": "",
+        "cargadores": "",
+        "elevadores": "",
+        "vigilancia": "",
+        "accesoInteligente": ""
+      },
       "presentacion": {
         "pasos": [
           {
             "kpi": "10 niveles",
             "num": "01",
-            "body": "Entérate: una nueva estrella se enciende en Providencia.\nDiez niveles pensados para vivir el barrio que siempre soñaste, a tu altura.",
+            "body": "Diez niveles pensados para vivir el barrio que siempre soñaste, a tu altura.",
             "label": "La torre",
             "caption": "VIVE PROVIDENCIA COMO SIEMPRE SOÑASTE",
             "highlight": "N01, N02, N03, N04, N05, N06, N07, N09, N10, N08, Azotea, Planta-Baja, Terraza, Unit-*-1002, Unit-*-1001, Unit-*-201, Unit-*-202, Unit-*-203, Unit-*-402, Unit-*-301, Unit-*-403, Unit-*-602, Unit-*-801, Unit-*-LOCAL 2, Unit-*-LOCAL 3, Unit-*-802, Unit-*-603, Unit-*-501, Unit-*-302, Unit-*-303, Unit-*-502, Unit-*-701, Unit-*-901, Unit-*-902, Unit-*-503, Unit-*-401, Unit-*-702, Unit-*-LOCAL 1, Unit-*-703, Unit-*-601"
@@ -543,6 +566,14 @@
             "label": "UNIDADES DISPONIBLES",
             "caption": "",
             "highlight": "@disponibles"
+          },
+          {
+            "kpi": "",
+            "num": "10",
+            "body": "(texto pendiente — captúralo aquí)",
+            "label": "(paso 10 pendiente)",
+            "caption": "",
+            "highlight": "none"
           }
         ],
         "enabled": true,
