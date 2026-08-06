@@ -111,6 +111,11 @@
   if (SITE.tokens && typeof SITE.tokens.railColor === 'string' && SITE.tokens.railColor.charAt(0) === '#') {
     document.documentElement.style.setProperty('--rail', SITE.tokens.railColor);
   }
+  // Color del nombre del proyecto en la pastilla de navegación. Ausente = color
+  // de texto del tema (papel/grafito), que es el comportamiento por defecto.
+  if (SITE.tokens && typeof SITE.tokens.brandColor === 'string' && SITE.tokens.brandColor.charAt(0) === '#') {
+    document.documentElement.style.setProperty('--brand-color', SITE.tokens.brandColor);
+  }
 
   // Copy declarativo: <span data-site="pages.action.copy.heading"></span>
   // Placeholders:     <input data-site-placeholder="pages.ownership.copy.formPlaceholders.nombre">

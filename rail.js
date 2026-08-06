@@ -139,8 +139,10 @@
         font-weight: 700;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: var(--text, oklch(24% 0.006 85));
-        opacity: 0.75;
+        /* Color elegible en el panel; ausente = color de texto del tema, algo
+           atenuado. La atenuación va en el color por defecto (no en opacity),
+           para que un color elegido se vea exacto y no al 75%. */
+        color: var(--brand-color, oklch(from var(--text, oklch(24% 0.006 85)) l c h / 0.75));
       }
 
       /* La nav es TEXTO: el icono cede su lugar al nombre de la sección. */
