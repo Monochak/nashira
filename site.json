@@ -94,7 +94,11 @@
         "nombre": "Beige"
       }
     ],
-    "constellation": "content/brand/constelacion.svg"
+    "constellation": "content/brand/constelacion.svg",
+    "faviconColors": {
+      "fondo": "#22365d",
+      "marca": "#b74d31"
+    }
   },
   "pages": {
     "index": {
@@ -703,7 +707,7 @@
       "glassBg": "oklch(22% 0.01 250 / 0.80)",
       "glassBorder": "oklch(34% 0.012 250 / 0.55)"
     },
-    "railColor": "#5c73c7",
+    "railColor": "#b74d31",
     "brandColor": "#5c73c7",
     "availability": {
       "vendida": {

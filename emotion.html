@@ -19,7 +19,7 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="content/images/sequence/frame_000.jpg">
   <!-- Ficha del proyecto — SIEMPRE el primer script (los motores leen window.SITE) -->
-  <script src="site.js?v=e16cb375"></script>
+  <script src="site.js?v=482b77c7"></script>
   <!-- Fonts: Big Shoulders Display (display headings) + Barlow (body + UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -294,18 +294,20 @@
       opacity: 0;
       transform: translateY(10px);
     }
+    /* El separador ES la estrella del favicon, así que toma su color de marca
+       (elegible en el panel). Sin elegir, conserva el comportamiento anterior. */
     .stop-sep::before, .stop-sep::after {
       content: "";
       flex: 1;
       height: 1px;
-      background: var(--rail, var(--accent));
+      background: var(--favicon-marca, var(--rail, var(--accent)));
       opacity: 0.55;
     }
     .stop-sep svg, .stop-sep img {
       display: block;
       width: 24px; height: 24px;
       flex-shrink: 0;
-      fill: var(--rail, var(--accent));
+      fill: var(--favicon-marca, var(--rail, var(--accent)));
       filter: drop-shadow(0 2px 10px oklch(0% 0 0 / 0.5));
     }
 
