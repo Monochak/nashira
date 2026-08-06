@@ -117,6 +117,31 @@
     document.documentElement.style.setProperty('--brand-color', SITE.tokens.brandColor);
   }
 
+  // Colores del favicon elegidos en el panel (fondo + marca). El SVG se recolorea
+  // y se cambia el icono de la pestaña al vuelo, sin republicar. Si el archivo no
+  // es SVG o no tiene la estructura esperada, se queda como está.
+  (function () {
+    var FC = SITE.brand && SITE.brand.faviconColors;
+    if (!FC || (!FC.fondo && !FC.marca)) return;
+    var link = document.querySelector('link[rel~="icon"][type="image/svg+xml"]') ||
+               document.querySelector('link[rel~="icon"]');
+    if (!link || !/\.svg(\?|$)/i.test(link.getAttribute('href') || '')) return;
+    fetch(link.href).then(function (r) { return r.text(); }).then(function (svg) {
+      var hex = /#[0-9a-fA-F]{3,8}/;
+      if (FC.fondo) {
+        svg = svg.replace(/<rect\b[^>]*\bfill="[^"]*"/i, function (m) {
+          return m.replace(hex, FC.fondo);
+        });
+      }
+      if (FC.marca) {
+        svg = svg.replace(/<path\b[^>]*\bfill="[^"]*"/i, function (m) {
+          return m.replace(hex, FC.marca);
+        });
+      }
+      link.setAttribute('href', 'data:image/svg+xml,' + encodeURIComponent(svg));
+    }).catch(function () {});
+  })();
+
   // Copy declarativo: <span data-site="pages.action.copy.heading"></span>
   // Placeholders:     <input data-site-placeholder="pages.ownership.copy.formPlaceholders.nombre">
   // Color por texto elegido en el panel (paleta de marca). Se aplica a la ruta
