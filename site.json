@@ -703,7 +703,8 @@
       "glassBg": "oklch(22% 0.01 250 / 0.80)",
       "glassBorder": "oklch(34% 0.012 250 / 0.55)"
     },
-    "railColor": "#b74d31",
+    "railColor": "#5c73c7",
+    "brandColor": "#5c73c7",
     "availability": {
       "vendida": {
         "css": "oklch(72% 0.005 85)",
