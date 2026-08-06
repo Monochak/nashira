@@ -143,7 +143,11 @@
            atenuado. La atenuación va en el color por defecto (no en opacity),
            para que un color elegido se vea exacto y no al 75%. */
         color: var(--brand-color, oklch(from var(--text, oklch(24% 0.006 85)) l c h / 0.75));
+        text-decoration: none;
+        transition: opacity 0.2s ease-out;
       }
+      /* El nombre lleva a la portada del sitio */
+      .rail-brand:hover { opacity: 0.65; }
 
       /* La nav es TEXTO: el icono cede su lugar al nombre de la sección. */
       .rail-icon { display: none; }
@@ -235,7 +239,7 @@
   // PROYECTO (canon), nunca el del estudio. Sin ficha, la pastilla va sin marca.
   const MARCA = (window.SITE && window.SITE.brand && window.SITE.brand.name) || '';
   const escapa = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-  nav.innerHTML = (MARCA ? `<span class="rail-brand">${escapa(MARCA)}</span>` : '') +
+  nav.innerHTML = (MARCA ? `<a class="rail-brand" href="index.html">${escapa(MARCA)}</a>` : '') +
     ITEMS.map(it => {
       const active = PAGE === it.href.toLowerCase();
       return `<a class="rail-item${active ? ' active' : ''}${it.cls ? ' ' + it.cls : ''}"` +
