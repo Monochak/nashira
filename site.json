@@ -3,7 +3,7 @@
     {
       "key": "emotion",
       "href": "emotion.html",
-      "label": "Emotion"
+      "label": "proyecto"
     },
     {
       "key": "disponibilidad",
@@ -140,7 +140,7 @@
             "x": 71.4,
             "y": 44.5
           },
-          "body": "Es el pulso de la ciudad, desde Nashira. \nLa zona más vibrante de Guadalajara, latiendo a tu alrededor.",
+          "body": "Es el pulso de la ciudad, desde Nashira. \nLa zona más vibrante de Guadalajara, \nlatiendo a tu alrededor.",
           "frame": 60,
           "label": "SIÉNTELO",
           "video": "content/videos/video-02.mp4",
