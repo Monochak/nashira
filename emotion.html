@@ -269,6 +269,7 @@
       font-weight: 400;
       color: var(--text-secondary);
       line-height: 1.75;
+      white-space: pre-line;   /* respeta los saltos de renglón escritos en el panel */
       max-width: 420px;
       margin: 0 auto;
       letter-spacing: 0.01em;
@@ -968,8 +969,14 @@
       }
       const cH = TEXT_COLORS['pages.emotion.stops.label'];   // homologado: todos los títulos
       const cB = TEXT_COLORS['pages.emotion.stops.body'];    // homologado: todos los textos
+      // Se trocea PRIMERO por renglones y luego por palabras: así el salto
+      // sobrevive (lo pinta white-space: pre-line) y cada palabra conserva su
+      // propio span para entrar escalonada en la animación.
       const wordSpans = stop.body
-        ? stop.body.split(' ').map(w => `<span class="word">${w}</span>`).join(' ')
+        ? stop.body.split('\n').map(linea =>
+            linea.split(' ').filter(Boolean)
+                 .map(w => `<span class="word">${w}</span>`).join(' ')
+          ).join('\n')
         : '';
       // Separador entre título y texto: la MARCA del favicon sin su fondo.
       // SVG → span que se rellena con el favicon limpio (sin rect); otro formato → img.
