@@ -210,14 +210,18 @@
     .stop-text.pos-y-arriba { top: 13vh; bottom: auto; --ty: 0px; }
     .stop-text.pos-y-medio  { top: 50%;  bottom: auto; --ty: -50%; }
     .stop-text.pos-y-abajo  { top: auto; bottom: 15vh; --ty: 0px; }
-    .stop-text.pos-x-izq    { left: 48px; right: auto; --tx: 0px; text-align: left; }
+    .stop-text.pos-x-izq    { left: 48px; right: auto; --tx: 0px; }
     .stop-text.pos-x-centro { left: 50%;  right: auto; --tx: -50%; }
-    .stop-text.pos-x-der    { left: auto; right: 48px; --tx: 0px; text-align: right; }
-    /* El cuerpo y el separador siguen la alineación elegida */
-    .stop-text.pos-x-izq .stop-body,
-    .stop-text.pos-x-izq .stop-sep { margin-left: 0; margin-right: auto; }
-    .stop-text.pos-x-der .stop-body,
-    .stop-text.pos-x-der .stop-sep { margin-left: auto; margin-right: 0; }
+    .stop-text.pos-x-der    { left: auto; right: 48px; --tx: 0px; }
+    /* Alineación, independiente de la colocación: la usan por igual la retícula
+       de 9 casillas y la posición libre arrastrada desde el panel. */
+    .stop-text.al-izq    { text-align: left; }
+    .stop-text.al-centro { text-align: center; }
+    .stop-text.al-der    { text-align: right; }
+    .stop-text.al-izq .stop-body,
+    .stop-text.al-izq .stop-sep { margin-left: 0; margin-right: auto; }
+    .stop-text.al-der .stop-body,
+    .stop-text.al-der .stop-sep { margin-left: auto; margin-right: 0; }
 
     /* Pill backdrop — fade-in + subtle scale desde el centro */
     /* Con la opacidad del panel en 0% el backdrop se APAGA por completo
@@ -939,12 +943,29 @@
       document.documentElement.style.setProperty('--bd-bg', bg);
     })();
 
+    // La alineación de una posición libre sale del tercio de pantalla donde cae.
+    const alineacionPorX = x => (x < 34 ? 'izq' : x < 67 ? 'centro' : 'der');
+
     C.stops.forEach((stop, i) => {
       const div = document.createElement('div');
       div.className = 'stop-text';
-      // Posición elegida en el panel: "{vertical}-{horizontal}". Ausente = centro.
-      const pos = String(stop.posicion || 'medio-centro').split('-');
-      div.classList.add('pos-y-' + (pos[0] || 'medio'), 'pos-x-' + (pos[1] || 'centro'));
+      // Colocación del texto. Prioridad: posición LIBRE (arrastrada sobre la
+      // miniatura en el panel) > retícula de 9 casillas > centro.
+      const libre = stop.pos;
+      if (libre && typeof libre.x === 'number' && typeof libre.y === 'number') {
+        div.classList.add('pos-libre', 'al-' + alineacionPorX(libre.x));
+        div.style.left = libre.x + '%';
+        div.style.top  = libre.y + '%';
+        div.style.right = 'auto';
+        div.style.bottom = 'auto';
+        div.style.setProperty('--tx', '-50%');
+        div.style.setProperty('--ty', '-50%');
+      } else {
+        const pos = String(stop.posicion || 'medio-centro').split('-');
+        const px  = pos[1] || 'centro';
+        div.classList.add('pos-y-' + (pos[0] || 'medio'), 'pos-x-' + px,
+                          'al-' + (px === 'izq' ? 'izq' : px === 'der' ? 'der' : 'centro'));
+      }
       const cH = TEXT_COLORS['pages.emotion.stops.label'];   // homologado: todos los títulos
       const cB = TEXT_COLORS['pages.emotion.stops.body'];    // homologado: todos los textos
       const wordSpans = stop.body
@@ -966,6 +987,23 @@
       textOverlay.appendChild(div);
       textEls.push(div);
     });
+
+    // Las posiciones libres se eligen sobre una miniatura ancha; en ventanas
+    // angostas el bloque podría salirse, así que se acota a los márgenes
+    // seguros conservando la intención de quien lo colocó.
+    function acotarLibres() {
+      const w = window.innerWidth;
+      const margen = (w < 768 ? 20 : 48) / w * 100;
+      textEls.forEach((el, i) => {
+        const P = C.stops[i] && C.stops[i].pos;
+        if (!P || typeof P.x !== 'number') return;
+        const mitad = (el.offsetWidth / 2 / w) * 100;
+        const min = mitad + margen, max = 100 - mitad - margen;
+        el.style.left = (min > max ? 50 : Math.min(max, Math.max(min, P.x))) + '%';
+      });
+    }
+    acotarLibres();
+    window.addEventListener('resize', acotarLibres);
 
     // Rellenar los separadores con el favicon SIN su fondo (solo la marca/estrella).
     if (FAVICON && /\.svg(\?|$)/i.test(FAVICON)) {

@@ -6,9 +6,9 @@
       "label": "Emotion"
     },
     {
-      "key": "ownership",
+      "key": "disponibilidad",
       "href": "ownership.html",
-      "label": "Ownership"
+      "label": "disponibilidad"
     },
     {
       "key": "action",
@@ -17,9 +17,9 @@
       "enabled": false
     },
     {
-      "key": "location",
+      "key": "ubicacion",
       "href": "location.html",
-      "label": "Location",
+      "label": "ubicacion",
       "enabled": true
     },
     {
@@ -124,7 +124,7 @@
       "stops": [
         {
           "num": "01",
-          "body": "Una nueva estrella se levanta sobre Guadalajara. Se llama Nashira, y llegó para quedarse. ",
+          "body": "Una nueva estrella se levanta sobre Guadalajara. \nSe llama Nashira, y llegó para quedarse. ",
           "frame": 0,
           "label": "ENTÉRATE",
           "video": "content/videos/video-01.mp4",
@@ -132,7 +132,7 @@
         },
         {
           "num": "02",
-          "body": "Es el pulso de la ciudad, desde Nashira. La zona más vibrante de Guadalajara, latiendo a tu alrededor.",
+          "body": "Es el pulso de la ciudad, desde Nashira. \nLa zona más vibrante de Guadalajara, latiendo a tu alrededor.",
           "frame": 60,
           "label": "SIÉNTELO",
           "video": "content/videos/video-02.mp4",
@@ -140,7 +140,7 @@
         },
         {
           "num": "03",
-          "body": "El atardecer, a la altura de tu terraza. Siete niveles arriba, el cielo se vuelve tuyo.",
+          "body": "El atardecer, a la altura de tu terraza. \nSiete niveles arriba, el cielo se vuelve tuyo.",
           "frame": 120,
           "label": "IMAGÍNALO",
           "video": "content/videos/video-03.mp4",
@@ -148,7 +148,7 @@
         },
         {
           "num": "04",
-          "body": "Encontraste la señal que buscabas. Cruza el umbral: a Nashira no se llega, se regresa.",
+          "body": "Encontraste la señal que buscabas. \nCruza el umbral: a Nashira no se llega, se regresa.",
           "frame": 180,
           "label": "BUENAS NOTICIAS",
           "video": "content/videos/video-04.mp4",
@@ -156,7 +156,7 @@
         },
         {
           "num": "05",
-          "body": "La vida te espera en la planta baja: un café, un encuentro, tu rutina al pie de casa.",
+          "body": "La vida te espera en la planta baja: \nun café, un encuentro, tu rutina al pie de casa.",
           "frame": 240,
           "label": "NO ESPERES MÁS",
           "video": "content/videos/video-05.mp4",
@@ -504,7 +504,7 @@
           {
             "kpi": "Haz click",
             "num": "01",
-            "body": "en el menu de navegación en la parte inferior de la pagina para conocer NASHOIR",
+            "body": "en el menu de navegación en la parte inferior de la pagina para conocer NASHIRA",
             "label": "Conoce NASHIRA",
             "caption": "",
             "highlight": "none"
