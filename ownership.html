@@ -182,9 +182,10 @@
       text-shadow: 0 3px 6px oklch(24% 0.006 85 / 0.18), 0 12px 32px oklch(24% 0.006 85 / 0.14);
     }
 
+    /* Tamaños gobernados desde el panel (100% = estos valores base). */
     .lo-logo {
       display: block;
-      max-width: min(70vw, 380px);
+      max-width: min(70vw, calc(320px * var(--lo-logo-esc, 1)));
       height: auto;
       margin-bottom: 20px;
     }
@@ -197,12 +198,13 @@
     }
 
     .lo-quote {
-      font-size: 0.875rem;
+      font-size: calc(1.15rem * var(--lo-frase-esc, 1));
       font-weight: 400;
-      line-height: 1.65;
+      line-height: 1.6;
       color: oklch(46% 0.008 85);
       letter-spacing: 0.01em;
-      max-width: 440px;
+      max-width: 520px;
+      text-wrap: pretty;
     }
 
     /* Progress line — full-width at bottom edge */
@@ -1385,6 +1387,17 @@
     // ── FICHA DEL PROYECTO (site.json → window.SITE) ─────────────────────────
     const OWN   = window.SITE.pages.ownership;
     const AVAIL = window.SITE.tokens.availability;
+
+    // Pantalla de carga configurable desde el panel: tamaño de la frase y del
+    // logo (100% = el tamaño base) y cuánto permanece en pantalla como mínimo.
+    const CARGA = OWN.carga || {};
+    (function () {
+      const r = document.documentElement;
+      const esc = v => (v == null || !isFinite(+v)) ? null : Math.max(20, Math.min(300, +v)) / 100;
+      const f = esc(CARGA.fraseEscala), l = esc(CARGA.logoEscala);
+      if (f) r.style.setProperty('--lo-frase-esc', f);
+      if (l) r.style.setProperty('--lo-logo-esc', l);
+    })();
 
     // Pantalla de carga: si la ficha trae logotipo (brand.wordmark) y carga bien,
     // sustituye el TÍTULO de carga por el logo. Si no hay archivo (aún sin subir
@@ -2954,7 +2967,10 @@
       buildFloorList();
       loadingBar.style.width = '100%';
 
-      const minShow = reducedMotion ? 600 : 4200;
+      // Tiempo mínimo en pantalla (evita el parpadeo en conexiones rápidas).
+      // Editable en el panel; 4.2 s por defecto.
+      const minSeg  = isFinite(+CARGA.minSegundos) ? Math.max(0, Math.min(20, +CARGA.minSegundos)) : 4.2;
+      const minShow = reducedMotion ? 600 : minSeg * 1000;
       const elapsed = performance.now() - loStartTime;
       const delay   = Math.max(300, minShow - elapsed);
       setTimeout(() => {
@@ -3232,7 +3248,7 @@
   </div>
 
   <script src="transition.js?v=c0fe1e68"></script>
-  <script src="rail.js?v=fa9fc371"></script>
+  <script src="rail.js?v=d702b414"></script>
   <script src="fullscreen.js?v=8f3fe4bb"></script>
   <script src="sparkles.js?v=07f3a614"></script>
   <script src="pwa.js?v=d3f89997"></script>
