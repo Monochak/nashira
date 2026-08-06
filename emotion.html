@@ -220,8 +220,11 @@
     .stop-text.pos-x-der .stop-sep { margin-left: auto; margin-right: 0; }
 
     /* Pill backdrop — fade-in + subtle scale desde el centro */
+    /* Con la opacidad del panel en 0% el backdrop se APAGA por completo
+       (--bd-display: none): ni color ni efecto glass tocan la imagen. */
     .stop-text::before {
       content: '';
+      display: var(--bd-display, block);
       position: absolute;
       inset: -18px -28px -22px -28px;
       z-index: -1;
@@ -919,6 +922,12 @@
       const BD = (window.SITE && window.SITE.pages.emotion.backdrop) || null;
       if (!BD || (BD.color == null && BD.opacity == null)) return;
       const op = Math.max(0, Math.min(100, BD.opacity != null ? +BD.opacity : 28)) / 100;
+      // 0% = apagado total: se retira el pseudo-elemento, así no queda ni el
+      // color transparente ni el desenfoque glass sobre la imagen.
+      if (op === 0) {
+        document.documentElement.style.setProperty('--bd-display', 'none');
+        return;
+      }
       let bg;
       if (BD.color && /^#[0-9a-fA-F]{6}$/.test(BD.color)) {
         const h = BD.color;
