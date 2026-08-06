@@ -1,0 +1,54 @@
+{
+  "archivo": "content/models/Nashira_Modelo_Web.glb",
+  "totalNodos": 78,
+  "nodosConNombre": 39,
+  "torresDeclaradas": false,
+  "torres": [
+    {
+      "nombre": null,
+      "pisos": [
+        "Floor-01",
+        "Floor-02",
+        "Floor-03",
+        "Floor-04",
+        "Floor-05",
+        "Floor-06",
+        "Floor-07",
+        "Floor-08",
+        "Floor-09",
+        "Floor-10",
+        "Floor-Azotea"
+      ],
+      "objetos": [
+        "201",
+        "202",
+        "203",
+        "301",
+        "302",
+        "303",
+        "401",
+        "402",
+        "403",
+        "501",
+        "502",
+        "503",
+        "601",
+        "602",
+        "603",
+        "701",
+        "702",
+        "703",
+        "801",
+        "802",
+        "901",
+        "902",
+        "1001",
+        "1002",
+        "LOCAL 1",
+        "LOCAL 2",
+        "LOCAL 3",
+        "Terraza"
+      ]
+    }
+  ]
+}

@@ -475,7 +475,7 @@
         "formSubmit": "Enviar solicitud",
         "infoButton": "Info",
         "successBody": "Tu solicitud fue enviada.\nUn asesor te contactará en breve.",
-        "infoProyecto": "",
+        "infoProyecto": "lore ipsum 123456789",
         "loadingQuote": "CONOCE NASHIRA POR DENTRO",
         "successTitle": "Enviado",
         "panoramaLabel": "Tipo {t} · Vista 360°",
@@ -486,6 +486,10 @@
           "nombre": "Tu nombre completo",
           "telefono": "+52 000 000 0000"
         }
+      },
+      "carga": {
+        "logoEscala": 75,
+        "fraseEscala": 125
       },
       "model": {
         "src": "content/models/Nashira_Modelo_Web.glb",
