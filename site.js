@@ -123,6 +123,9 @@
   (function () {
     var FC = SITE.brand && SITE.brand.faviconColors;
     if (!FC || (!FC.fondo && !FC.marca)) return;
+    // La marca del favicon también se usa como grafismo dentro del sitio (el
+    // separador de las escenas de Emotion), así que viaja como variable.
+    if (FC.marca) document.documentElement.style.setProperty('--favicon-marca', FC.marca);
     var link = document.querySelector('link[rel~="icon"][type="image/svg+xml"]') ||
                document.querySelector('link[rel~="icon"]');
     if (!link || !/\.svg(\?|$)/i.test(link.getAttribute('href') || '')) return;
