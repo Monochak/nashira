@@ -21,3 +21,13 @@
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
 </IfModule>
+
+# 3) El panel del estudio (otro dominio) lee dos cosas de aquí: el índice del
+# modelo, para diagnosticar el montaje, y el favicon, para partir de sus colores
+# reales. Sin esta cabecera el navegador le impide leerlos aunque el archivo
+# responda 200. Se autoriza SOLO ese origen, no a cualquiera.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(json|svg)$">
+    Header set Access-Control-Allow-Origin "https://admin.monolitoestudio.com"
+  </FilesMatch>
+</IfModule>
