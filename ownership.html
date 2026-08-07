@@ -2948,24 +2948,36 @@
       // 9. Ghost volumes
       buildGhostVolumes();
 
-      // 10. Marcadores de panorámica (CAT). El nombre del nodo dice ÚNICAMENTE a
-      //     qué unidad pertenece —`CAT-701`—; qué imagen abre lo decide la
-      //     TIPOLOGÍA de esa unidad según el inventario, no el nombre del nodo.
-      //     Así el modelador no codifica nada y agregar una panorámica es subir
-      //     un archivo. Conviene que sea un objeto vacío (sin malla).
+      // 10. Marcadores de panorámica (CAT). Un marcador pertenece a la unidad que
+      //     lo CONTIENE: manda su posición, no su nombre. Así el modelador puede
+      //     llamarlos como le acomode (`CAT-TipoA`, `CAT-701`) sin que haya nada
+      //     que empatar, y mover un marcador de departamento lo reasigna solo.
+      //     Qué imagen abre lo decide la tipología de esa unidad (ver openPanorama).
+      //     Conviene que sea un objeto VACÍO: con malla se vería como geometría.
+      const cajasUnidad = [];
+      floorGroups.forEach(fg => (fg.units || []).forEach(u => {
+        const caja = new THREE.Box3();
+        u.items.forEach(m => caja.expandByObject(m));
+        caja.expandByScalar(0.05);          // holgura: un marcador pegado al muro sigue contando
+        cajasUnidad.push({ u, caja });
+      }));
+      const unidadQueContiene = pos => (cajasUnidad.find(c => c.caja.containsPoint(pos)) || {}).u || null;
+
       model.traverse(obj => {
-        const rawName = (obj.name || '').replace(/^Obj_/, '');
-        if (!/^CAT[\s_-]/i.test(rawName)) return;
-        const unitId = rawName.replace(/^CAT[\s_-]/i, '').replace(/_\d+$/, '').trim();
-        if (!unitId) return;
+        if (!/^(Obj_)?CAT[\s_-]/i.test(obj.name || '')) return;
         const worldPos = new THREE.Vector3();
         obj.getWorldPosition(worldPos);
+        const dueno = unidadQueContiene(worldPos);
+        if (!dueno) {
+          console.warn(`Panorámica: el marcador "${obj.name}" no cae dentro de ninguna unidad — se ignora.`);
+          return;
+        }
         const el = document.createElement('div');
         el.className  = 'cat-icon';
         el.title      = obj.name;
         document.body.appendChild(el);
-        el.addEventListener('click', () => openPanorama(unitId));
-        catNodes.push({ name: obj.name, unitId, unitKey: normId(unitId), worldPos, el });
+        el.addEventListener('click', () => openPanorama(dueno.id));
+        catNodes.push({ name: obj.name, unitId: dueno.id, unitKey: normId(dueno.id), worldPos, el });
       });
 
       // 11. Floor list UI
@@ -3017,13 +3029,18 @@
     const panoLabel   = document.getElementById('pano-label');
     let   panoViewer  = null;
 
-    // La panorámica es POR TIPOLOGÍA: se toma la de la unidad marcada y con ella
-    // se arma la ruta (`pano_tipo_{tipo}.jpg`). Sin tipología no hay qué abrir.
+    // La panorámica es POR TIPOLOGÍA. La imagen se toma del enlace hecho en el
+    // panel (panoramas.porTipologia); si no lo hay, se cae al patrón de nombres.
     function openPanorama(unitId) {
       const d    = disponibilidad[normId(unitId)];
-      const tipo = String(d?.tipologia ?? d?.tipo ?? '').toLowerCase().trim();
+      const tipo = String(d?.tipologia ?? d?.tipo ?? '').trim();
       if (!tipo) { console.warn(`Panorámica: la unidad "${unitId}" no tiene tipología en el inventario.`); return; }
-      const url  = OWN.panoramas.pattern.replace('{tipo}', tipo);
+      const P       = OWN.panoramas || {};
+      const archivo = (P.porTipologia || {})[tipo.toUpperCase()];
+      const carpeta = String(P.pattern || '').replace(/[^/]*$/, '') || 'content/panoramas/';
+      const url     = archivo ? carpeta + archivo
+                              : String(P.pattern || '').replace('{tipo}', tipo.toLowerCase());
+      if (!url) { console.warn(`Panorámica: la tipología "${tipo}" no tiene imagen ligada.`); return; }
 
       panoLabel.textContent = OWN.copy.panoramaLabel.replace('{t}', tipo.toUpperCase());
       panoOverlay.classList.add('open');

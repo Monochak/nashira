@@ -51,5 +51,11 @@
       ],
       "iconos": []
     }
+  ],
+  "panoramas": [
+    "pano_tipo_01.jpg",
+    "pano_tipo_02.jpg",
+    "pano_tipo_03.jpg",
+    "pano_tipo_04.jpg"
   ]
 }
