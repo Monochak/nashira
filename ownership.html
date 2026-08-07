@@ -2754,8 +2754,9 @@
 
       // Proyectar íconos CAT a pantalla
       const showCats = mode === 'unit' && selectedUnit !== null;
+      const selKey   = showCats ? normId(selectedUnit.id) : null;   // tolera "LOCAL 1"/"LOCAL_1"
       catNodes.forEach(cat => {
-        const isOwn = cat.unitId === selectedUnit?.id;
+        const isOwn = cat.unitKey === selKey;
         if (!showCats || !isOwn) {
           cat.el.classList.remove('visible');
           return;
@@ -2947,20 +2948,24 @@
       // 9. Ghost volumes
       buildGhostVolumes();
 
-      // 10. CAT nodes
+      // 10. Marcadores de panorámica (CAT). El nombre del nodo dice ÚNICAMENTE a
+      //     qué unidad pertenece —`CAT-701`—; qué imagen abre lo decide la
+      //     TIPOLOGÍA de esa unidad según el inventario, no el nombre del nodo.
+      //     Así el modelador no codifica nada y agregar una panorámica es subir
+      //     un archivo. Conviene que sea un objeto vacío (sin malla).
       model.traverse(obj => {
-        const rawName = obj.name.replace(/^Obj_/, ''); // quitar prefijo Obj_ si existe
-        if (!rawName.startsWith('CAT-')) return;
-        const parts  = rawName.replace(/_\d+$/, '').split('-'); // quitar sufijo _1, _2, etc.
-        const unitId = parts.slice(1, 4).join('-');   // 'Unit-10-02'
+        const rawName = (obj.name || '').replace(/^Obj_/, '');
+        if (!/^CAT[\s_-]/i.test(rawName)) return;
+        const unitId = rawName.replace(/^CAT[\s_-]/i, '').replace(/_\d+$/, '').trim();
+        if (!unitId) return;
         const worldPos = new THREE.Vector3();
         obj.getWorldPosition(worldPos);
         const el = document.createElement('div');
         el.className  = 'cat-icon';
         el.title      = obj.name;
         document.body.appendChild(el);
-        el.addEventListener('click', () => openPanorama(obj.name));
-        catNodes.push({ name: obj.name, unitId, worldPos, el });
+        el.addEventListener('click', () => openPanorama(unitId));
+        catNodes.push({ name: obj.name, unitId, unitKey: normId(unitId), worldPos, el });
       });
 
       // 11. Floor list UI
@@ -3012,9 +3017,12 @@
     const panoLabel   = document.getElementById('pano-label');
     let   panoViewer  = null;
 
-    function openPanorama(nodeName) {
-      const raw  = nodeName.replace(/^Obj_/, '').replace(/_\d+$/, '');
-      const tipo = raw.split('-').pop().toLowerCase();    // 'CAT-Unit-10-02B' → '02b'
+    // La panorámica es POR TIPOLOGÍA: se toma la de la unidad marcada y con ella
+    // se arma la ruta (`pano_tipo_{tipo}.jpg`). Sin tipología no hay qué abrir.
+    function openPanorama(unitId) {
+      const d    = disponibilidad[normId(unitId)];
+      const tipo = String(d?.tipologia ?? d?.tipo ?? '').toLowerCase().trim();
+      if (!tipo) { console.warn(`Panorámica: la unidad "${unitId}" no tiene tipología en el inventario.`); return; }
       const url  = OWN.panoramas.pattern.replace('{tipo}', tipo);
 
       panoLabel.textContent = OWN.copy.panoramaLabel.replace('{t}', tipo.toUpperCase());
