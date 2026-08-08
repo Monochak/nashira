@@ -508,7 +508,13 @@
       "panoramas": {
         "hfov": 100,
         "enabled": true,
-        "pattern": "content/panoramas/pano_tipo_{tipo}.jpg"
+        "pattern": "content/panoramas/pano_tipo_{tipo}.jpg",
+        "porTipologia": {
+          "A": "pano_tipo_01.jpg",
+          "B": "pano_tipo_02.jpg",
+          "C": "pano_tipo_03.jpg",
+          "D": "pano_tipo_04.jpg"
+        }
       },
       "amenidades": {
         "gym": "",
