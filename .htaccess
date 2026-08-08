@@ -27,7 +27,8 @@
 # reales. Sin esta cabecera el navegador le impide leerlos aunque el archivo
 # responda 200. Se autoriza SOLO ese origen, no a cualquiera.
 <IfModule mod_headers.c>
-  <FilesMatch "\.(json|svg)$">
+  <FilesMatch "\.(json|svg|glb)$">
     Header set Access-Control-Allow-Origin "https://admin.monolitoestudio.com"
+    Header set Access-Control-Expose-Headers "Content-Range, Content-Length"
   </FilesMatch>
 </IfModule>
