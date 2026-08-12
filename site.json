@@ -512,7 +512,8 @@
           },
           {
             "img": "a-sala.jpg",
-            "pie": "Area social"
+            "pie": "Area social",
+            "portada": true
           },
           {
             "img": "a-recamara.jpg",
@@ -530,7 +531,8 @@
           },
           {
             "img": "b-sala.jpg",
-            "pie": ""
+            "pie": "",
+            "portada": true
           },
           {
             "img": "a-recamara.jpg",
@@ -544,7 +546,8 @@
           },
           {
             "img": "c-sala.jpg",
-            "pie": ""
+            "pie": "",
+            "portada": true
           },
           {
             "img": "c-recamara.jpg",

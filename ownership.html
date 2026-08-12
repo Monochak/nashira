@@ -437,13 +437,22 @@
     /* Con ID: si se ocultara solo por clase, `#slide-foto` le ganaría en
        especificidad y la diapositiva seguiría encima, tapando la 360° y
        quedándose con el arrastre. */
-    #slide-pano[hidden], #slide-foto[hidden] { display: none; }
+    #slide-pano[hidden], #slide-foto[hidden], #slide-video[hidden] { display: none; }
     #slide-foto { display: flex; align-items: center; justify-content: center; padding: 4vh 6vw 12vh; }
     #visor-img {
       max-width: 100%; max-height: 100%; object-fit: contain;
       border-radius: 4px; opacity: 0; transition: opacity 0.35s ease;
     }
     #visor-img.lista { opacity: 1; }
+    /* Paneo de la vista: gira solo, en silencio y sin controles de reproducción.
+       La única palanca es cerrar, que vive arriba a la derecha y nunca se esconde. */
+    #slide-video { display: flex; align-items: center; justify-content: center; padding: 4vh 6vw 12vh; }
+    #visor-video {
+      max-width: 100%; max-height: 100%; object-fit: contain;
+      border-radius: 4px; opacity: 0; transition: opacity 0.35s ease;
+      background: oklch(6% 0.006 250);
+    }
+    #visor-video.lista { opacity: 1; }
     /* Mientras no se active, una capa transparente se queda con el gesto para
        que deslizar siga cambiando de imagen dentro de la 360°. */
     .visor-activar {
@@ -492,6 +501,21 @@
       font-size: 0.625rem; font-weight: 600; letter-spacing: 0.14em;
       color: oklch(70% 0.005 250); font-variant-numeric: tabular-nums; white-space: nowrap;
     }
+    /* Ficha del nivel: una línea sobre el pie. Son datos al margen — el
+       protagonista es la vista —, así que pesan lo menos posible. */
+    #visor-franja {
+      position: absolute; left: 0; right: 0; bottom: 66px; z-index: 10;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 0 13px; padding: 0 80px; pointer-events: none;
+      color: oklch(84% 0.005 250);
+      font-family: var(--font-body); font-size: 0.75rem; letter-spacing: 0.03em;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 2px 12px oklch(0% 0 0 / 0.8);
+    }
+    #visor-franja[hidden] { display: none; }
+    #visor-franja b { font-weight: 600; color: oklch(94% 0.005 250); }
+    #visor-franja .vf-sep { opacity: 0.4; }
+    #visor-franja .vf-disp { color: var(--accent); font-weight: 600; }
     /* Un solo elemento: sin flechas ni contador que estorben */
     #pano-overlay.solo-uno .visor-nav,
     #pano-overlay.solo-uno #visor-contador { display: none; }
@@ -993,6 +1017,60 @@
     #amenidades .amenidad-ic { width: 24px; height: 24px; }
     #amenidades .amenidad-tx { font-size: 0.66rem; line-height: 1.2; }
 
+    /* ── VISTA DEL NIVEL ─────────────────────────────────────────────────────
+       Tarjeta en la parte alta de la MISMA columna derecha que amenidades: la
+       columna se lee de arriba abajo — vista del nivel, amenidades, CTA. Solo
+       aparece en modo nivel; sin material (ni propio ni heredado) no aparece. */
+    #nivel-info {
+      position: fixed;
+      right: var(--col-right); top: 96px;
+      z-index: 6;                       /* igual que amenidades: el dim las atenúa juntas */
+      width: var(--col-width);
+      display: flex; flex-direction: column; align-items: flex-end;
+      text-align: right;
+      opacity: 0; pointer-events: none;
+      transform: translateX(14px);
+    }
+    #nivel-info.on {
+      opacity: 1; transform: translateX(0); pointer-events: auto;
+      transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #nivel-info[hidden] { display: none; }
+    .ni-eyebrow {
+      font-size: 0.625rem; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .ni-name {
+      font-family: var(--font-display); font-size: 2.25rem; font-weight: 700;
+      letter-spacing: 0.04em; color: var(--text); line-height: 1; margin: 6px 0 16px;
+      text-shadow: 0 2px 20px oklch(from var(--bg) l c h / 0.7);
+    }
+    /* Misma invitación que la miniatura de la unidad, para que se aprenda una vez. */
+    .ni-vista {
+      position: relative; padding: 0; border: none;
+      border-radius: 8px; overflow: hidden; cursor: pointer;
+      background: oklch(from var(--bg) l c h / 0.5);
+      aspect-ratio: 16 / 10; width: 100%;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ni-vista img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ni-vista:hover { transform: scale(1.02); }
+    .ni-vista-pie {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 18px 10px 8px;
+      background: linear-gradient(to top, oklch(0% 0 0 / 0.65), transparent);
+      color: oklch(97% 0.01 85);
+      font-size: 0.625rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    /* Cuando la vista es prestada del nivel vecino hay que decirlo, no insinuarlo. */
+    .ni-prestada {
+      margin-top: 9px;
+      font-size: 0.625rem; line-height: 1.35; color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .ni-prestada[hidden] { display: none; }
+
     #panel-detail { justify-content: space-between; }
 
     /* ── CONTACT FORM ────────────────────────────────────────────────────── */
@@ -1342,6 +1420,17 @@
 
   <!-- ── AMENIDADES (capa siempre visible en torre y nivel; oculta en unidad) ── -->
   <div id="amenidades" aria-label="Amenidades del proyecto"></div>
+
+  <!-- ── VISTA DEL NIVEL (solo en modo nivel, arriba de amenidades) ────────── -->
+  <div id="nivel-info" hidden>
+    <span class="ni-eyebrow" id="ni-eyebrow"></span>
+    <h2 class="ni-name" id="ni-name"></h2>
+    <button class="ni-vista" id="ni-vista">
+      <img id="ni-vista-img" alt="">
+      <span class="ni-vista-pie"><span id="ni-vista-cta">Ver la vista</span><span id="ni-vista-n"></span></span>
+    </button>
+    <span class="ni-prestada" id="ni-prestada" hidden></span>
+  </div>
 
   <!-- ── FLOOR LIST ──────────────────────────────────────────────────────── -->
   <div id="floor-list" role="navigation" aria-label="Navegación por pisos"></div>
@@ -2322,6 +2411,7 @@
 
     function refreshInfoBtn() {
       refreshAmenidades();
+      refreshNivelInfo();
       refreshBackBtn();
       // Retomar el recorrido guiado desde dentro de un departamento es
       // contradictorio (te saca de él): ahí la pastilla se retira.
@@ -3161,7 +3251,10 @@
 
     const slidePano   = document.getElementById('slide-pano');
     const slideFoto   = document.getElementById('slide-foto');
+    const slideVideo  = document.getElementById('slide-video');
     const visorImg    = document.getElementById('visor-img');
+    const visorVideo  = document.getElementById('visor-video');
+    const visorFranja = document.getElementById('visor-franja');
     const visorTexto  = document.getElementById('visor-texto');
     const visorCont   = document.getElementById('visor-contador');
     const visorPrev   = document.getElementById('visor-prev');
@@ -3213,6 +3306,125 @@
       return fotos.find(f => f.portada) || fotos[0] || null;
     }
 
+    // ── VISTAS POR NIVEL ────────────────────────────────────────────────────
+    // Lo que se ve HACIA AFUERA desde cada nivel: fotos y paneos en video, en
+    // una lista plana con su pie. La llave es torre + nivel (t1-n06) porque el
+    // número de nivel solo se repite en cuanto haya una segunda torre.
+    function urlVista(nombre) { return 'content/vistas/' + encodeURIComponent(nombre); }
+
+    function claveNivel(fi) {
+      const fg = floorGroups[fi];
+      if (!fg) return '';
+      const torre = String(fg.torre || OWN.torreDefault || 't1').toLowerCase();
+      return `${torre}-${String(fg.label).toLowerCase()}`;
+    }
+
+    // Un archivo de video trae su cuadro de portada al lado, con el mismo nombre
+    // y extensión .jpg, salvo que el panel indique otro.
+    function mediosDeVistas(lista) {
+      return (lista || []).filter(v => v && v.archivo).map(v => {
+        const esVideo = /\.(mp4|webm|ogv)$/i.test(v.archivo);
+        const portada = v.portada ? urlVista(v.portada)
+                      : esVideo   ? urlVista(v.archivo.replace(/\.[^.]+$/, '.jpg'))
+                                  : urlVista(v.archivo);
+        return { clase: esVideo ? 'video' : 'foto', url: urlVista(v.archivo), pie: v.pie || '', portada };
+      });
+    }
+
+    // Sin material propio, el nivel toma el del vecino más cercano y se dice en
+    // pantalla. Con empate gana el de abajo: una vista se sobrevalora hacia
+    // arriba, así que prometer de menos es lo honesto.
+    function vistasDeNivel(fi) {
+      const propias = mediosDeVistas((OWN.vistas || {})[claveNivel(fi)]);
+      if (propias.length) return { medios: propias, prestadaDe: null };
+      let mejor = null;
+      floorGroups.forEach((fg, i) => {
+        if (i === fi) return;
+        const m = mediosDeVistas((OWN.vistas || {})[claveNivel(i)]);
+        if (!m.length) return;
+        const d = Math.abs(i - fi);
+        if (!mejor || d < mejor.d || (d === mejor.d && i < mejor.i)) mejor = { d, i, medios: m };
+      });
+      return mejor
+        ? { medios: mejor.medios, prestadaDe: floorGroups[mejor.i].label }
+        : { medios: [], prestadaDe: null };
+    }
+
+    // Resumen del nivel armado solo con disponibilidad. Lo comparten la franja
+    // del visor y el panel deslizante, para que no puedan discrepar.
+    function datosDeNivel(fi) {
+      const fg = floorGroups[fi];
+      if (!fg) return null;
+      const datos = (fg.units || []).map(u => unitDispo(u)).filter(Boolean);
+      const m2de  = d => {
+        const ext = (d.m2_terraza ?? 0) + (d.m2_balcon ?? 0);
+        return (d.m2_int != null) ? +(d.m2_int + ext).toFixed(1) : (d.m2 ?? null);
+      };
+      const m2s = datos.map(m2de).filter(v => v != null);
+      return {
+        unidades:    datos.length || (fg.units || []).length,
+        disponibles: datos.filter(d => d.estado === 'disponible').length,
+        tipologias:  [...new Set(datos.map(d => d.tipologia).filter(Boolean))].sort(),
+        m2min: m2s.length ? Math.min(...m2s) : null,
+        m2max: m2s.length ? Math.max(...m2s) : null,
+      };
+    }
+
+    function pintarFranjaNivel(fi) {
+      const d = datosDeNivel(fi);
+      if (!d) { visorFranja.hidden = true; return; }
+      const p = [];
+      if (d.unidades)          p.push(`<b>${d.unidades}</b> unidades`);
+      if (d.disponibles)       p.push(`<span class="vf-disp">${d.disponibles} disponibles</span>`);
+      if (d.tipologias.length) p.push(`Tipos ${d.tipologias.join(' · ')}`);
+      if (d.m2min != null)     p.push(`${Math.round(d.m2min)}–${Math.round(d.m2max)} m²`);
+      visorFranja.innerHTML = p.join('<span class="vf-sep">·</span>');
+      visorFranja.hidden = !p.length;
+    }
+
+    function abrirVisorNivel(fi) {
+      const v  = vistasDeNivel(fi);
+      const fg = floorGroups[fi];
+      if (!v.medios.length || !fg) return;
+      visorMedios = v.medios;
+      visorIdx    = 0;
+      panoLabel.textContent = v.prestadaDe
+        ? `Vista de referencia · desde ${v.prestadaDe}`
+        : `Vista desde ${fg.label}`;
+      panoOverlay.classList.toggle('solo-uno', v.medios.length === 1);
+      panoOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      renderPausado = true;
+      pintarFranjaNivel(fi);
+      mostrarMedio();
+      panoOverlay.focus?.();
+    }
+
+    // Tarjeta de la vista en modo nivel. Se consulta el DOM aquí adentro para no
+    // depender del orden en que se inicializan las constantes del visor.
+    function refreshNivelInfo() {
+      const el = document.getElementById('nivel-info');
+      if (!el) return;
+      const activo = mode === 'floor' && !selectedUnit && selectedFloor !== null;
+      const v = activo ? vistasDeNivel(selectedFloor) : { medios: [], prestadaDe: null };
+      if (!v.medios.length) { el.classList.remove('on'); el.hidden = true; return; }
+
+      const fg = floorGroups[selectedFloor];
+      const m  = v.medios[0];
+      document.getElementById('ni-eyebrow').textContent = (window.SITE.brand || {}).name || '';
+      document.getElementById('ni-name').textContent    = fg.label;
+      const img = document.getElementById('ni-vista-img');
+      img.src = m.portada || m.url;
+      img.alt = m.pie || `Vista desde ${fg.label}`;
+      document.getElementById('ni-vista-n').textContent = v.medios.length > 1 ? `1 / ${v.medios.length}` : '';
+      const pres = document.getElementById('ni-prestada');
+      pres.textContent = v.prestadaDe ? `Vista de referencia, tomada desde ${v.prestadaDe}.` : '';
+      pres.hidden = !v.prestadaDe;
+      document.getElementById('ni-vista').onclick = () => abrirVisorNivel(selectedFloor);
+      el.hidden = false;
+      requestAnimationFrame(() => el.classList.add('on'));
+    }
+
     function abrirVisor(unitId) {
       const d    = disponibilidad[normId(unitId)];
       const tipo = String(d?.tipologia ?? d?.tipo ?? '').trim();
@@ -3222,6 +3434,7 @@
 
       visorMedios = medios;
       visorIdx    = 0;                       // siempre abre en la 360° si existe
+      visorFranja.hidden = true;             // la ficha es del nivel, no de la unidad
       panoLabel.textContent = String(OWN.copy.panoramaLabel || '').replace('{t}', tipo.toUpperCase());
       panoOverlay.classList.toggle('solo-uno', medios.length === 1);
       panoOverlay.classList.add('open');
@@ -3231,12 +3444,24 @@
       panoOverlay.focus?.();
     }
 
+    // Un video que solo se oculta sigue corriendo detrás de la siguiente lámina:
+    // hay que detenerlo y rebobinarlo al salir de él.
+    function detenerVideo() {
+      if (!visorVideo.getAttribute('src')) return;
+      visorVideo.pause();
+      try { visorVideo.currentTime = 0; } catch (e) { /* aún sin metadatos */ }
+      visorVideo.classList.remove('lista');
+    }
+
     function mostrarMedio() {
       const m = visorMedios[visorIdx];
       if (!m) return;
-      const esPano = m.clase === 'pano';
-      slidePano.hidden = !esPano;
-      slideFoto.hidden = esPano;
+      const esPano  = m.clase === 'pano';
+      const esVideo = m.clase === 'video';
+      slidePano.hidden  = !esPano;
+      slideFoto.hidden  = m.clase !== 'foto';
+      slideVideo.hidden = !esVideo;
+      if (!esVideo) detenerVideo();
       visorTexto.textContent = m.pie || '';
       visorCont.textContent  = `${visorIdx + 1} / ${visorMedios.length}`;
       visorPrev.disabled = visorIdx === 0;
@@ -3251,6 +3476,15 @@
             hfov: (OWN.panoramas || {}).hfov,
           });
         }
+      } else if (esVideo) {
+        // Bucle mudo, sin controles de reproducción. El póster cubre mientras
+        // llega el primer cuadro, así que nunca hay un hueco negro.
+        if (m.portada) visorVideo.poster = m.portada;
+        if (visorVideo.getAttribute('src') !== m.url) visorVideo.setAttribute('src', m.url);
+        if (visorVideo.readyState >= 2) visorVideo.classList.add('lista');
+        else visorVideo.oncanplay = () => visorVideo.classList.add('lista');
+        const rep = visorVideo.play();
+        if (rep && rep.catch) rep.catch(() => { /* si el navegador lo frena, queda el póster */ });
       } else {
         visorImg.classList.remove('lista');
         visorImg.src = m.url;
@@ -3276,6 +3510,8 @@
       document.body.style.overflow = '';
       renderPausado = false;
       desactivarPano();
+      detenerVideo();
+      visorFranja.hidden = true;
       if (panoViewer) {
         setTimeout(() => { if (panoViewer) { panoViewer.destroy(); panoViewer = null; } }, 400);
       }
@@ -3285,6 +3521,16 @@
     panoActivar.addEventListener('click', activarPano);
     visorPrev.addEventListener('click', () => irA(visorIdx - 1));
     visorNext.addEventListener('click', () => irA(visorIdx + 1));
+
+    // Al cambiar de pestaña el navegador suspende el paneo y no siempre lo
+    // retoma: si al volver el visor sigue en un video, se reanuda.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden || !panoOverlay.classList.contains('open')) return;
+      const m = visorMedios[visorIdx];
+      if (!m || m.clase !== 'video' || !visorVideo.paused) return;
+      const rep = visorVideo.play();
+      if (rep && rep.catch) rep.catch(() => {});
+    });
 
     document.addEventListener('keydown', e => {
       if (!panoOverlay.classList.contains('open')) return;
@@ -3511,6 +3757,11 @@
     <div class="visor-slide" id="slide-foto" hidden>
       <img id="visor-img" alt="">
     </div>
+    <!-- Diapositiva de paneo en video: mudo y en bucle, sin controles propios.
+         Se detiene y rebobina al salir para no seguir sonando/corriendo detrás. -->
+    <div class="visor-slide" id="slide-video" hidden>
+      <video id="visor-video" muted loop playsinline preload="metadata"></video>
+    </div>
 
     <button class="visor-nav" id="visor-prev" aria-label="Anterior">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -3525,6 +3776,7 @@
         <line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     </button>
+    <div id="visor-franja" hidden></div>
     <div id="visor-pie"><span id="visor-texto"></span><span id="visor-contador"></span></div>
     <span id="pano-label">Vista 360°</span>
   </div>
