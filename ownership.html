@@ -1282,16 +1282,42 @@
     .prez-body strong { font-weight: 700; }
     .prez-body em { font-style: italic; }
     #prez-pill {
-      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: 40px; left: 50%;
+      /* Sube unos pixeles al aparecer: llega, no se materializa. El translateX
+         del centrado tiene que repetirse aquí o se pierde al animar. */
+      transform: translateX(-50%) translateY(10px);
       z-index: 30; display: flex; align-items: center; gap: 4px;
-      padding: 6px 8px 6px 14px;
+      padding: 6px 8px 10px 14px;   /* el extra abajo aloja el hilo de avance */
       background: var(--glass-bg); border: 1px solid var(--glass-border);
       backdrop-filter: blur(20px) saturate(1.4);
       -webkit-backdrop-filter: blur(20px) saturate(1.4);
       border-radius: 100px; white-space: nowrap;
-      opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    #prez-pill.visible { opacity: 1; pointer-events: auto; }
+    #prez-pill.visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+
+    /* Hilo de avance: "1 / 11" lo dice en números; esto lo dice de un vistazo,
+       y hace que el recorrido se sienta finito — que tiene un final al que se
+       llega, no una lista que no se sabe dónde termina. */
+    #prez-pill::before, #prez-pill::after {
+      content: ''; position: absolute; bottom: 5px; height: 1.5px; border-radius: 2px;
+    }
+    #prez-pill::before {                       /* riel */
+      left: 20px; right: 20px;
+      background: oklch(from var(--text) l c h / 0.14);
+    }
+    #prez-pill::after {                        /* recorrido */
+      left: 20px;
+      width: calc((100% - 40px) * var(--avance, 0));
+      background: var(--accent);
+      transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #prez-pill { transition: opacity 0.4s ease; transform: translateX(-50%); }
+      #prez-pill.visible { transform: translateX(-50%); }
+      #prez-pill::after { transition: none; }
+    }
     #prez-counter {
       font-size: 0.625rem; font-weight: 600; letter-spacing: 0.14em;
       color: var(--muted); min-width: 40px; text-align: center;
@@ -1575,6 +1601,7 @@ Un asesor te contactará en breve.</p>
     let renderPausado   = false;   // con el visor abierto el 3D no se ve: se deja de dibujar
     let prezHighlightOn = false;   // presentación guiada: bloquea hover mientras ilumina
     let prezExitHook    = null;    // la presentación se retira al seleccionar piso/unidad
+    let prezActiva      = false;   // para que Escape sepa a quién obedecer primero
     // Centro de gravedad del encuadre: el modelo vive corrido a la izquierda en
     // todas las vistas (general, nivel y unidad) para dar aire a la columna
     // derecha (texto, amenidades o info de unidad). Proporcional al viewport
@@ -2561,10 +2588,12 @@ Un asesor te contactará en breve.</p>
     panelClose.addEventListener('click', closePanel);
     canvasDim.addEventListener('click', closePanel);
 
-    // Escape: cierra el panel si abierto, o navega hacia atrás en la vista
+    // Escape: cierra lo que esté encima. El orden es el de "qué tapa qué":
+    // panel, luego presentación, y solo entonces se navega hacia atrás.
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       if (panelOpen) { closePanel(); return; }
+      if (prezActiva && prezExitHook) { prezExitHook(); return; }
       if (mode === 'unit')  returnToFloor();
       else if (mode === 'floor') returnToOrbital();
     });
@@ -3503,12 +3532,16 @@ Un asesor te contactará en breve.</p>
         const esFinal = i === steps.length - 1;
         btnNext.disabled = false;
         pill.classList.toggle('final', esFinal);
+        // Avance del hilo: en el paso 1 de 11 ya se ve un tramo recorrido, que
+        // es lo honesto — estás dentro del recorrido, no antes de empezarlo.
+        pill.style.setProperty('--avance', (i + 1) / steps.length);
         btnNext.setAttribute('aria-label', esFinal ? 'Terminar y explorar' : 'Paso siguiente');
         applyHighlight(s.highlight || 'none');
       }
 
       function enter() {
         active = true;
+        prezActiva = true;
         overlay.classList.add('visible');
         pill.classList.add('visible');
         resume.classList.remove('visible');
@@ -3517,6 +3550,7 @@ Un asesor te contactará en breve.</p>
       function exit() {
         if (!active) return;
         active = false;
+        prezActiva = false;
         prezHighlightOn = false;
         setMaterialsBase();
         overlay.classList.remove('visible');
@@ -3524,12 +3558,27 @@ Un asesor te contactará en breve.</p>
         resume.classList.add('visible');
       }
 
-      btnPrev.addEventListener('click', () => { if (cur > 0) renderStep(cur - 1); });
-      btnNext.addEventListener('click', () => {
+      function retroceder() { if (cur > 0) renderStep(cur - 1); }
+      function avanzar() {
         if (cur < steps.length - 1) return renderStep(cur + 1);
         exit();                         // el recorrido termina y suelta la pantalla
         cur = 0;                        // terminado: si lo retoma, empieza de nuevo
                                         // (abandonar con la × sí conserva el paso)
+      }
+
+      btnPrev.addEventListener('click', retroceder);
+      btnNext.addEventListener('click', avanzar);
+
+      // El teclado mueve el recorrido igual que el pill — la galería ya
+      // respondía a las flechas y la presentación no, lo cual era incoherente.
+      // Escape lo abandona, pero eso lo resuelve el manejador global (que sabe
+      // si hay un panel encima). Si el visor está abierto, manda el visor.
+      document.addEventListener('keydown', e => {
+        if (!active || panoOverlay.classList.contains('open')) return;
+        if (e.key === 'ArrowLeft')       retroceder();
+        else if (e.key === 'ArrowRight') avanzar();
+        else return;
+        e.preventDefault();
       });
       // Abandonar en cualquier paso. Al salir aparece "▶ Presentación", así que
       // irse no es una puerta de un solo sentido.
