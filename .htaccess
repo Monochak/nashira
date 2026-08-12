@@ -20,6 +20,11 @@
   <FilesMatch "\.html?$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
+  # Los .json son datos vivos (ficha, índice del modelo, ubicación): pesan poco
+  # y servirlos viejos es peor que revalidarlos en cada visita.
+  <FilesMatch "\.json$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
 </IfModule>
 
 # 3) El panel del estudio (otro dominio) lee dos cosas de aquí: el índice del
