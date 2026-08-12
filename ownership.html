@@ -2531,11 +2531,11 @@
 
       // Miniatura de la galería: la PRIMERA FOTO (una equirectangular se vería
       // deformada). Al pulsarla el visor abre en la 360°, que va primero.
-      const gEl   = document.getElementById('ui-galeria');
-      const fotos = fotosDeTipologia(tipologia);
-      if (fotos.length) {
-        document.getElementById('ui-galeria-img').src = fotos[0].url;
-        document.getElementById('ui-galeria-img').alt = fotos[0].pie || '';
+      const gEl     = document.getElementById('ui-galeria');
+      const portada = portadaDeTipologia(tipologia);
+      if (portada) {
+        document.getElementById('ui-galeria-img').src = portada.url;
+        document.getElementById('ui-galeria-img').alt = portada.pie || '';
         const total = mediosDeTipologia(tipologia).length;
         document.getElementById('ui-galeria-n').textContent = total > 1 ? `1 / ${total}` : '';
         gEl.onclick = () => abrirVisor(unit.id);
@@ -3204,7 +3204,13 @@
     function fotosDeTipologia(tipo) {
       return ((OWN.galeria || {})[String(tipo).toUpperCase()] || [])
         .filter(g => g && g.img)
-        .map(g => ({ url: urlGaleria(g.img), pie: g.pie || '' }));
+        .map(g => ({ url: urlGaleria(g.img), pie: g.pie || '', portada: !!g.portada }));
+    }
+
+    // La miniatura es la marcada en el panel; sin marca, la primera foto.
+    function portadaDeTipologia(tipo) {
+      const fotos = fotosDeTipologia(tipo);
+      return fotos.find(f => f.portada) || fotos[0] || null;
     }
 
     function abrirVisor(unitId) {
