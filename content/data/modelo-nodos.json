@@ -69,15 +69,15 @@
     "pano_tipo_04.jpg"
   ],
   "galeria": [
-    "Nashira - Depa A Baño.png",
-    "Nashira - Depa A Recámara.png",
-    "Nashira - Depa A Sala.png",
-    "Nashira - Depa B Recámara.png",
-    "Nashira - Depa B Sala.png",
-    "Nashira - Depa C Recamara.png",
-    "Nashira - Depa C Sala.png",
-    "Nashira - Isométrico depto TIPO A.jpg",
-    "Nashira - Isométrico depto TIPO B.jpg",
-    "Nashira - Isométrico depto TIPO C.jpg"
+    "a-bano.jpg",
+    "a-isometrico.jpg",
+    "a-recamara.jpg",
+    "a-sala.jpg",
+    "b-isometrico.jpg",
+    "b-recamara.jpg",
+    "b-sala.jpg",
+    "c-isometrico.jpg",
+    "c-recamara.jpg",
+    "c-sala.jpg"
   ]
 }
