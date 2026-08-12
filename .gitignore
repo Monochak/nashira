@@ -10,3 +10,7 @@ content/panoramas/*.png
 # fuera del sitio publicado hasta decidir su destino (no referenciados)
 content/images/sequence/Video-*.mp4
 content/images/Nashira_Aerial.jpg
+
+# masters de video — la web usa los .mp4 transcodificados
+*.MOV
+*.mov
