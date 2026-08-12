@@ -1308,6 +1308,25 @@
       width: 14px; height: 14px; stroke: currentColor; stroke-width: 2;
       stroke-linecap: round; stroke-linejoin: round; fill: none; display: block;
     }
+    /* El recorrido tiene que poder abandonarse (la ×) y tiene que poder
+       terminar: en el último paso la flecha se vuelve la palabra "Explorar",
+       que es lo que de verdad hace — suelta la pantalla. */
+    .pill-sep {
+      width: 1px; height: 15px; margin: 0 3px;
+      background: var(--glass-border);
+    }
+    #prez-next .pill-tx { display: none; }
+    #prez-pill.final #prez-next .pill-ic { display: none; }
+    #prez-pill.final #prez-next {
+      opacity: 1; padding: 5px 12px;
+      color: var(--accent);
+    }
+    #prez-pill.final #prez-next .pill-tx {
+      display: block;
+      font-size: 0.625rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    #prez-pill .pill-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; opacity: 1; }
     #prez-resume {
       position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
       z-index: 30;
@@ -3410,6 +3429,7 @@ Un asesor te contactará en breve.</p>
       const counter = document.getElementById('prez-counter');
       const btnPrev = document.getElementById('prez-prev');
       const btnNext = document.getElementById('prez-next');
+      const btnSalir = document.getElementById('prez-close');
       const resume  = document.getElementById('prez-resume');
       let cur = 0, active = false;
 
@@ -3460,7 +3480,12 @@ Un asesor te contactará en breve.</p>
         }));
         counter.textContent = `${i + 1} / ${steps.length}`;
         btnPrev.disabled = i === 0;
-        btnNext.disabled = i === steps.length - 1;
+        // En el último paso "siguiente" ya no se apaga: se convierte en el
+        // final del recorrido. Antes quedaba deshabilitado y no había salida.
+        const esFinal = i === steps.length - 1;
+        btnNext.disabled = false;
+        pill.classList.toggle('final', esFinal);
+        btnNext.setAttribute('aria-label', esFinal ? 'Terminar y explorar' : 'Paso siguiente');
         applyHighlight(s.highlight || 'none');
       }
 
@@ -3482,7 +3507,15 @@ Un asesor te contactará en breve.</p>
       }
 
       btnPrev.addEventListener('click', () => { if (cur > 0) renderStep(cur - 1); });
-      btnNext.addEventListener('click', () => { if (cur < steps.length - 1) renderStep(cur + 1); });
+      btnNext.addEventListener('click', () => {
+        if (cur < steps.length - 1) return renderStep(cur + 1);
+        exit();                         // el recorrido termina y suelta la pantalla
+        cur = 0;                        // terminado: si lo retoma, empieza de nuevo
+                                        // (abandonar con la × sí conserva el paso)
+      });
+      // Abandonar en cualquier paso. Al salir aparece "▶ Presentación", así que
+      // irse no es una puerta de un solo sentido.
+      btnSalir.addEventListener('click', exit);
       // Retomar la presentación: si estás dentro de un piso o unidad, la vista
       // vuelve primero a la general del proyecto (orbital) y ahí arranca.
       resume.addEventListener('click', () => {
@@ -3514,7 +3547,12 @@ Un asesor te contactará en breve.</p>
     </button>
     <span id="prez-counter">1 / 1</span>
     <button class="pill-btn" id="prez-next" aria-label="Paso siguiente">
-      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <svg class="pill-ic" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <span class="pill-tx" data-site="pages.ownership.copy.prezFinal">Explorar</span>
+    </button>
+    <span class="pill-sep" aria-hidden="true"></span>
+    <button class="pill-btn" id="prez-close" aria-label="Salir de la presentación">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
   <button id="prez-resume" aria-label="Retomar presentación">▶ Presentación</button>
