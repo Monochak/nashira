@@ -428,6 +428,70 @@
       width: 100%;
       height: 100%;
     }
+
+    /* ── Visor unificado: panorámica + galería ──────────────────────────────
+       Una sola pieza para "ver el departamento". La 360° va primero, pero su
+       arrastre solo toma el control cuando se activa a propósito: mientras
+       tanto, deslizar cambia de imagen y no hay ambigüedad de gestos. */
+    .visor-slide { position: absolute; inset: 0; }
+    .visor-slide[hidden] { display: none; }
+    #slide-foto { display: flex; align-items: center; justify-content: center; padding: 4vh 6vw 12vh; }
+    #visor-img {
+      max-width: 100%; max-height: 100%; object-fit: contain;
+      border-radius: 4px; opacity: 0; transition: opacity 0.35s ease;
+    }
+    #visor-img.lista { opacity: 1; }
+    /* Mientras no se active, una capa transparente se queda con el gesto para
+       que deslizar siga cambiando de imagen dentro de la 360°. */
+    .visor-activar {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+      background: oklch(6% 0.006 250 / 0.35);
+      border: none; cursor: pointer;
+      color: oklch(96% 0.005 250);
+      font-family: var(--font-body); font-size: 0.6875rem; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      transition: background 0.25s;
+    }
+    .visor-activar:hover { background: oklch(6% 0.006 250 / 0.2); }
+    .visor-activar[hidden] { display: none; }
+    .visor-360 {
+      display: flex; align-items: center; justify-content: center;
+      width: 66px; height: 66px; border-radius: 50%;
+      border: 1px solid oklch(100% 0 0 / 0.5);
+      font-size: 0.8125rem; letter-spacing: 0.06em;
+    }
+    .visor-nav {
+      position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+      width: 46px; height: 46px; border-radius: 50%;
+      border: 1px solid oklch(100% 0 0 / 0.2);
+      background: oklch(9% 0.008 250 / 0.55);
+      backdrop-filter: blur(8px);
+      color: oklch(93% 0.005 250);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .visor-nav svg { width: 22px; height: 22px; }
+    .visor-nav:hover { background: oklch(16% 0.008 250 / 0.85); }
+    .visor-nav[disabled] { opacity: 0.25; pointer-events: none; }
+    #visor-prev { left: 22px; }
+    #visor-next { right: 22px; }
+    #visor-pie {
+      position: absolute; left: 0; right: 0; bottom: 30px; z-index: 10;
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+      padding: 0 80px; pointer-events: none;
+      color: oklch(88% 0.005 250);
+      font-family: var(--font-body); font-size: 0.8125rem; letter-spacing: 0.01em;
+      text-shadow: 0 2px 12px oklch(0% 0 0 / 0.8);
+      text-wrap: pretty;
+    }
+    #visor-contador {
+      font-size: 0.625rem; font-weight: 600; letter-spacing: 0.14em;
+      color: oklch(70% 0.005 250); font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    /* Un solo elemento: sin flechas ni contador que estorben */
+    #pano-overlay.solo-uno .visor-nav,
+    #pano-overlay.solo-uno #visor-contador { display: none; }
     #pano-close {
       position: absolute;
       top: 24px;
@@ -716,6 +780,27 @@
       margin-top: 22px; padding-top: 20px;
       border-top: 1px solid var(--panel-border);
     }
+    /* Miniatura de la galería: la primera fotografía, como invitación a ver
+       por dentro. Sin fotos no aparece, y entonces no hay entrada. */
+    .ui-galeria {
+      position: relative; margin-top: 20px; padding: 0; border: none;
+      border-radius: 8px; overflow: hidden; cursor: pointer;
+      background: oklch(from var(--bg) l c h / 0.5);
+      aspect-ratio: 16 / 10; width: 100%;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ui-galeria[hidden] { display: none; }
+    .ui-galeria img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ui-galeria:hover { transform: scale(1.02); }
+    .ui-galeria-pie {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 18px 10px 8px;
+      background: linear-gradient(to top, oklch(0% 0 0 / 0.65), transparent);
+      color: oklch(97% 0.01 85);
+      font-size: 0.625rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    .ui-galeria-pie::before { content: 'Ver por dentro'; }
 
     .panel-features {
       display: flex;
@@ -1207,6 +1292,7 @@
       opacity: 0; pointer-events: none; transition: opacity 0.4s ease, color 0.2s;
     }
     #prez-resume.visible { opacity: 1; pointer-events: auto; }
+    #prez-resume.en-unidad { display: none; }   /* dentro de una unidad no aplica */
     #prez-resume:hover { color: var(--text); }
     #prez-resume:focus-visible, #prez-pill .pill-btn:focus-visible {
       outline: 2px solid var(--accent); outline-offset: 3px;
@@ -1283,6 +1369,10 @@
     <span class="ui-floor" id="ui-floor"></span>
     <h2 class="ui-name" id="ui-name"></h2>
     <div class="ui-stats" id="ui-stats"></div>
+    <button class="ui-galeria" id="ui-galeria" hidden>
+      <img id="ui-galeria-img" alt="">
+      <span class="ui-galeria-pie"><span id="ui-galeria-n"></span></span>
+    </button>
     <div class="ui-feats" id="ui-feats" hidden></div>
   </div>
 
@@ -1425,6 +1515,7 @@
     let panelOpen       = false;
     let dimmerStart     = null;
     const DIMMER_MS     = OWN.camera.dimmerMs;
+    let renderPausado   = false;   // con el visor abierto el 3D no se ve: se deja de dibujar
     let prezHighlightOn = false;   // presentación guiada: bloquea hover mientras ilumina
     let prezExitHook    = null;    // la presentación se retira al seleccionar piso/unidad
     // Centro de gravedad del encuadre: el modelo vive corrido a la izquierda en
@@ -2212,8 +2303,27 @@
     // Botón abajo-derecha: SIEMPRE el CTA "Hablar con un asesor", en todos los
     // modos (torre, nivel, unidad). El botón INFO se retiró; solo se esconde
     // mientras un panel está abierto (el panel trae su propio CTA/formulario).
+    // El botón de regreso ya era contextual (de unidad vuelve al nivel, de nivel
+    // a la torre) pero su etiqueta era fija y decía "Torre" siempre: dentro de un
+    // departamento mentía. Aquí se pone al día con lo que de verdad hace.
+    function refreshBackBtn() {
+      const el = document.querySelector('#back-btn [data-site]');
+      if (!el) return;
+      const aTorre = SITE_GET('pages.ownership.copy.backButton') || 'Torre';
+      const fg = (selectedFloor !== null) ? floorGroups[selectedFloor] : null;
+      const destino = (mode === 'unit' && fg) ? fg.label : aTorre;
+      el.textContent = destino;
+      const btn = document.getElementById('back-btn');
+      if (btn) btn.setAttribute('aria-label', `Volver a ${destino}`);
+    }
+
     function refreshInfoBtn() {
       refreshAmenidades();
+      refreshBackBtn();
+      // Retomar el recorrido guiado desde dentro de un departamento es
+      // contradictorio (te saca de él): ahí la pastilla se retira.
+      const resumeBtn = document.getElementById('prez-resume');
+      if (resumeBtn) resumeBtn.classList.toggle('en-unidad', mode === 'unit');
       infoBtn.classList.add('visible', 'cta');
       infoBtn.classList.remove('selected');
       const lbl = infoBtn.querySelector('.info-label');
@@ -2415,6 +2525,22 @@
       const fEl = document.getElementById('ui-feats');
       fEl.innerHTML = feats;
       fEl.hidden = !feats;
+
+      // Miniatura de la galería: la PRIMERA FOTO (una equirectangular se vería
+      // deformada). Al pulsarla el visor abre en la 360°, que va primero.
+      const gEl   = document.getElementById('ui-galeria');
+      const fotos = fotosDeTipologia(tipologia);
+      if (fotos.length) {
+        document.getElementById('ui-galeria-img').src = fotos[0].url;
+        document.getElementById('ui-galeria-img').alt = fotos[0].pie || '';
+        const total = mediosDeTipologia(tipologia).length;
+        document.getElementById('ui-galeria-n').textContent = total > 1 ? `1 / ${total}` : '';
+        gEl.onclick = () => abrirVisor(unit.id);
+        gEl.hidden = false;
+      } else {
+        gEl.hidden = true;
+        gEl.onclick = null;
+      }
       const ui = document.getElementById('unit-info');
       ui.hidden = false;
       requestAnimationFrame(() => ui.classList.add('on'));
@@ -2724,7 +2850,8 @@
     // ── RENDER LOOP ───────────────────────────────────────────────────────────
     const _catVec = new THREE.Vector3();
     (function render() {
-      requestAnimationFrame(render);
+      requestAnimationFrame(render);   // la cadena sigue viva para poder reanudar
+      if (renderPausado) return;
       controls.update();
 
       // Centro de gravedad del encuadre: el modelo vive corrido a la izquierda en
@@ -2952,7 +3079,7 @@
       //     lo CONTIENE: manda su posición, no su nombre. Así el modelador puede
       //     llamarlos como le acomode (`CAT-TipoA`, `CAT-701`) sin que haya nada
       //     que empatar, y mover un marcador de departamento lo reasigna solo.
-      //     Qué imagen abre lo decide la tipología de esa unidad (ver openPanorama).
+      //     Qué se ve lo decide la tipología de esa unidad (ver abrirVisor).
       //     Conviene que sea un objeto VACÍO: con malla se vería como geometría.
       const cajasUnidad = [];
       floorGroups.forEach(fg => (fg.units || []).forEach(u => {
@@ -2976,7 +3103,7 @@
         el.className  = 'cat-icon';
         el.title      = obj.name;
         document.body.appendChild(el);
-        el.addEventListener('click', () => openPanorama(dueno.id));
+        el.addEventListener('click', () => abrirVisor(dueno.id));
         catNodes.push({ name: obj.name, unitId: dueno.id, unitKey: normId(dueno.id), worldPos, el });
       });
 
@@ -3029,45 +3156,141 @@
     const panoLabel   = document.getElementById('pano-label');
     let   panoViewer  = null;
 
-    // La panorámica es POR TIPOLOGÍA. La imagen se toma del enlace hecho en el
-    // panel (panoramas.porTipologia); si no lo hay, se cae al patrón de nombres.
-    function openPanorama(unitId) {
+    const slidePano   = document.getElementById('slide-pano');
+    const slideFoto   = document.getElementById('slide-foto');
+    const visorImg    = document.getElementById('visor-img');
+    const visorTexto  = document.getElementById('visor-texto');
+    const visorCont   = document.getElementById('visor-contador');
+    const visorPrev   = document.getElementById('visor-prev');
+    const visorNext   = document.getElementById('visor-next');
+    const panoActivar = document.getElementById('pano-activar');
+    let   visorMedios = [];
+    let   visorIdx    = 0;
+    let   panoActivo  = false;   // true = el arrastre lo manda la esfera, no el visor
+
+    // Todo lo que se puede ver de una TIPOLOGÍA, en orden: la 360° primero y
+    // luego las fotos de la galería, cada una con su pie.
+    function mediosDeTipologia(tipo) {
+      const T = String(tipo).toUpperCase();
+      const P = OWN.panoramas || {};
+      const medios = [];
+
+      if (P.enabled !== false) {
+        const carpeta = String(P.pattern || '').replace(/[^/]*$/, '') || 'content/panoramas/';
+        const ligada  = (P.porTipologia || {})[T];
+        // Si el proyecto ya liga panorámicas desde el panel, se respeta su
+        // decisión (una tipología sin ligar simplemente no la tiene). Solo los
+        // proyectos que aún no adoptaron el enlace caen al patrón de nombres.
+        const url = ligada ? carpeta + ligada
+                  : (!P.porTipologia && P.pattern) ? String(P.pattern).replace('{tipo}', String(tipo).toLowerCase())
+                  : '';
+        if (url) medios.push({ clase: 'pano', url, pie: '' });
+      }
+
+      ((OWN.galeria || {})[T] || []).forEach(g => {
+        if (g && g.img) medios.push({ clase: 'foto', url: 'content/galeria/' + g.img, pie: g.pie || '' });
+      });
+      return medios;
+    }
+
+    // Fotos de una tipología (sin la 360°): las usa la miniatura de la ficha.
+    function fotosDeTipologia(tipo) {
+      return ((OWN.galeria || {})[String(tipo).toUpperCase()] || [])
+        .filter(g => g && g.img)
+        .map(g => ({ url: 'content/galeria/' + g.img, pie: g.pie || '' }));
+    }
+
+    function abrirVisor(unitId) {
       const d    = disponibilidad[normId(unitId)];
       const tipo = String(d?.tipologia ?? d?.tipo ?? '').trim();
-      if (!tipo) { console.warn(`Panorámica: la unidad "${unitId}" no tiene tipología en el inventario.`); return; }
-      const P       = OWN.panoramas || {};
-      const archivo = (P.porTipologia || {})[tipo.toUpperCase()];
-      const carpeta = String(P.pattern || '').replace(/[^/]*$/, '') || 'content/panoramas/';
-      const url     = archivo ? carpeta + archivo
-                              : String(P.pattern || '').replace('{tipo}', tipo.toLowerCase());
-      if (!url) { console.warn(`Panorámica: la tipología "${tipo}" no tiene imagen ligada.`); return; }
+      if (!tipo) { console.warn(`Visor: la unidad "${unitId}" no tiene tipología en el inventario.`); return; }
+      const medios = mediosDeTipologia(tipo);
+      if (!medios.length) { console.warn(`Visor: la tipología "${tipo}" no tiene panorámica ni galería.`); return; }
 
-      panoLabel.textContent = OWN.copy.panoramaLabel.replace('{t}', tipo.toUpperCase());
+      visorMedios = medios;
+      visorIdx    = 0;                       // siempre abre en la 360° si existe
+      panoLabel.textContent = String(OWN.copy.panoramaLabel || '').replace('{t}', tipo.toUpperCase());
+      panoOverlay.classList.toggle('solo-uno', medios.length === 1);
       panoOverlay.classList.add('open');
       document.body.style.overflow = 'hidden';
-
-      if (panoViewer) { panoViewer.destroy(); panoViewer = null; }
-      panoViewer = pannellum.viewer('pano-viewer', {
-        type:        'equirectangular',
-        panorama:    url,
-        autoLoad:    true,
-        showControls: false,
-        compass:     false,
-        mouseZoom:   true,
-        hfov:        OWN.panoramas.hfov,
-      });
+      renderPausado = true;                  // el 3D no se ve: no tiene por qué seguir dibujándose
+      mostrarMedio();
+      panoOverlay.focus?.();
     }
+
+    function mostrarMedio() {
+      const m = visorMedios[visorIdx];
+      if (!m) return;
+      const esPano = m.clase === 'pano';
+      slidePano.hidden = !esPano;
+      slideFoto.hidden = esPano;
+      visorTexto.textContent = m.pie || '';
+      visorCont.textContent  = `${visorIdx + 1} / ${visorMedios.length}`;
+      visorPrev.disabled = visorIdx === 0;
+      visorNext.disabled = visorIdx === visorMedios.length - 1;
+
+      if (esPano) {
+        desactivarPano();                    // al volver a ella, el gesto es del visor otra vez
+        if (!panoViewer) {
+          panoViewer = pannellum.viewer('pano-viewer', {
+            type: 'equirectangular', panorama: m.url, autoLoad: true,
+            showControls: false, compass: false, mouseZoom: true,
+            hfov: (OWN.panoramas || {}).hfov,
+          });
+        }
+      } else {
+        visorImg.classList.remove('lista');
+        visorImg.src = m.url;
+        visorImg.alt = m.pie || '';
+        visorImg.onload = () => visorImg.classList.add('lista');
+        const sig = visorMedios[visorIdx + 1];   // adelanta la siguiente para que no titubee
+        if (sig && sig.clase === 'foto') new Image().src = sig.url;
+      }
+    }
+
+    function irA(i) {
+      const n = Math.max(0, Math.min(visorMedios.length - 1, i));
+      if (n === visorIdx) return;
+      visorIdx = n;
+      mostrarMedio();
+    }
+
+    function activarPano()   { panoActivo = true;  panoActivar.hidden = true; }
+    function desactivarPano(){ panoActivo = false; panoActivar.hidden = false; }
 
     function closePanorama() {
       panoOverlay.classList.remove('open');
       document.body.style.overflow = '';
+      renderPausado = false;
+      desactivarPano();
       if (panoViewer) {
-        setTimeout(() => { panoViewer.destroy(); panoViewer = null; }, 400);
+        setTimeout(() => { if (panoViewer) { panoViewer.destroy(); panoViewer = null; } }, 400);
       }
     }
 
     panoClose.addEventListener('click', closePanorama);
-    panoOverlay.addEventListener('keydown', e => { if (e.key === 'Escape') closePanorama(); });
+    panoActivar.addEventListener('click', activarPano);
+    visorPrev.addEventListener('click', () => irA(visorIdx - 1));
+    visorNext.addEventListener('click', () => irA(visorIdx + 1));
+
+    document.addEventListener('keydown', e => {
+      if (!panoOverlay.classList.contains('open')) return;
+      if (e.key === 'Escape')     { closePanorama(); }
+      else if (e.key === 'ArrowLeft')  { irA(visorIdx - 1); }
+      else if (e.key === 'ArrowRight') { irA(visorIdx + 1); }
+    });
+
+    // Deslizar para cambiar de imagen. Dentro de la 360° activada NO aplica:
+    // ahí el arrastre le pertenece a la esfera.
+    let visorX0 = null;
+    panoOverlay.addEventListener('pointerdown', e => { visorX0 = panoActivo ? null : e.clientX; });
+    panoOverlay.addEventListener('pointerup', e => {
+      if (visorX0 === null) return;
+      const dx = e.clientX - visorX0;
+      visorX0 = null;
+      if (Math.abs(dx) < 45) return;
+      irA(visorIdx + (dx < 0 ? 1 : -1));
+    });
 
     /* =====================================================
        PRESENTACIÓN GUIADA — pasos desde la ficha
@@ -3261,14 +3484,35 @@
   <button id="prez-resume" aria-label="Retomar presentación">▶ Presentación</button>
 
   <!-- ── PANORAMA OVERLAY ─────────────────────────────────────────────────── -->
-  <div id="pano-overlay" role="dialog" aria-label="Vista panorámica de la unidad" aria-modal="true">
-    <div id="pano-viewer"></div>
-    <button id="pano-close" aria-label="Cerrar panorama">
+  <div id="pano-overlay" role="dialog" aria-label="Galería de la unidad" aria-modal="true">
+    <!-- Diapositiva 360°: el visor de pannellum vive aquí, pero el arrastre no
+         lo controla hasta que se activa (si no, competiría con el deslizar). -->
+    <div class="visor-slide" id="slide-pano" hidden>
+      <div id="pano-viewer"></div>
+      <button class="visor-activar" id="pano-activar">
+        <span class="visor-360">360°</span>
+        <span>Explorar la vista</span>
+      </button>
+    </div>
+    <!-- Diapositiva de fotografía -->
+    <div class="visor-slide" id="slide-foto" hidden>
+      <img id="visor-img" alt="">
+    </div>
+
+    <button class="visor-nav" id="visor-prev" aria-label="Anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="visor-nav" id="visor-next" aria-label="Siguiente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <button id="pano-close" aria-label="Cerrar galería">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="6" x2="6" y2="18"/>
         <line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     </button>
+    <div id="visor-pie"><span id="visor-texto"></span><span id="visor-contador"></span></div>
     <span id="pano-label">Vista 360°</span>
   </div>
 
