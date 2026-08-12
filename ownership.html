@@ -2473,21 +2473,33 @@ Un asesor te contactará en breve.</p>
 
     // "Hablar con un asesor" → panel con el formulario. Con unidad seleccionada
     // el encabezado la identifica; sin unidad, encabeza el nombre del proyecto.
+    // El formulario ya no vive aquí: es la pieza compartida (contacto.js) que
+    // usan las cinco páginas, la misma que abre Contacto en el rail. Ownership
+    // solo aporta el contexto — qué unidad se estaba viendo — para que el lead
+    // llegue identificado y el WhatsApp salga con la unidad escrita.
     function openContactForm() {
-      const conUnidad = !!(selectedUnit && currentUnitData);
-      document.getElementById('panel-floor-label').textContent = conUnidad ? (currentUnitData.floorLabel || '') : '';
-      document.getElementById('panel-unit-name').textContent   = conUnidad ? (currentUnitData.unitLabel || '')
-                                                                           : ((window.SITE.brand || {}).name || '');
-      setPanelState('form');
-      unitPanel.classList.add('open');
-      canvasDim.classList.add('active');
-      panelOpen = true;
+      const d = (selectedUnit && currentUnitData) ? currentUnitData : null;
+      const marca = (window.SITE.brand || {}).name || '';
+      window.FormaContacto.abrir(d ? {
+        subtitulo: d.floorLabel || '',
+        titulo:    d.unitLabel || marca,
+        mensaje:   `Unidad de interés: ${d.floorLabel} / ${d.unitLabel}` +
+                   ` · Tipología: ${d.tipo} · Superficie: ${d.m2} m²`,
+        contextoWhatsApp: `Me interesa la unidad ${d.unitLabel} (${d.floorLabel}).`,
+      } : {
+        titulo:  marca,
+        mensaje: 'Interés general en el proyecto (sin unidad seleccionada)',
+      });
       infoBtn.classList.remove('shown');
     }
 
     // Botón abajo-derecha: SIEMPRE "Hablar con un asesor" (el INFO se retiró).
     // Con unidad seleccionada el formulario va identificado; sin unidad, genérico.
     infoBtn.addEventListener('click', openContactForm);
+    // El panel de contacto tapa la esquina del CTA: se retira mientras está
+    // abierto y vuelve al cerrarse, lo diga quien lo diga (el rail también abre).
+    document.addEventListener('forma:contacto-abierto', () => infoBtn.classList.remove('shown'));
+    document.addEventListener('forma:contacto-cerrado', refreshInfoBtn);
 
     function setPanelState(state) {
       document.querySelectorAll('.panel-section').forEach(el => { el.hidden = true; });
@@ -3741,6 +3753,7 @@ Un asesor te contactará en breve.</p>
 
   <script src="transition.js?v=c0fe1e68"></script>
   <script src="rail.js?v=d4bd957e"></script>
+  <script src="contacto.js?v=409b38ff"></script>
   <script src="fullscreen.js?v=8f3fe4bb"></script>
   <script src="sparkles.js?v=07f3a614"></script>
   <script src="pwa.js?v=d3f89997"></script>
