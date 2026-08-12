@@ -504,6 +504,54 @@
       "floors": {
         "data": "content/data/nashira_floors.json"
       },
+      "galeria": {
+        "A": [
+          {
+            "img": "a-isometrico.jpg",
+            "pie": "Vista en isometrico"
+          },
+          {
+            "img": "a-sala.jpg",
+            "pie": "Area social"
+          },
+          {
+            "img": "a-recamara.jpg",
+            "pie": "Habitación principal"
+          },
+          {
+            "img": "a-bano.jpg",
+            "pie": "baño"
+          }
+        ],
+        "B": [
+          {
+            "img": "b-isometrico.jpg",
+            "pie": ""
+          },
+          {
+            "img": "b-sala.jpg",
+            "pie": ""
+          },
+          {
+            "img": "a-recamara.jpg",
+            "pie": ""
+          }
+        ],
+        "C": [
+          {
+            "img": "c-isometrico.jpg",
+            "pie": ""
+          },
+          {
+            "img": "c-sala.jpg",
+            "pie": ""
+          },
+          {
+            "img": "c-recamara.jpg",
+            "pie": ""
+          }
+        ]
+      },
       "unitKey": "tipo",
       "panoramas": {
         "hfov": 100,

@@ -434,7 +434,10 @@
        arrastre solo toma el control cuando se activa a propósito: mientras
        tanto, deslizar cambia de imagen y no hay ambigüedad de gestos. */
     .visor-slide { position: absolute; inset: 0; }
-    .visor-slide[hidden] { display: none; }
+    /* Con ID: si se ocultara solo por clase, `#slide-foto` le ganaría en
+       especificidad y la diapositiva seguiría encima, tapando la 360° y
+       quedándose con el arrastre. */
+    #slide-pano[hidden], #slide-foto[hidden] { display: none; }
     #slide-foto { display: flex; align-items: center; justify-content: center; padding: 4vh 6vw 12vh; }
     #visor-img {
       max-width: 100%; max-height: 100%; object-fit: contain;
