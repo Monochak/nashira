@@ -6,7 +6,7 @@
       "label": "proyecto"
     },
     {
-      "key": "disponibilidad",
+      "key": "ownership",
       "href": "ownership.html",
       "label": "disponibilidad"
     },
@@ -17,7 +17,7 @@
       "enabled": false
     },
     {
-      "key": "ubicacion",
+      "key": "location",
       "href": "location.html",
       "label": "ubicacion",
       "enabled": true
@@ -94,7 +94,6 @@
         "nombre": "Beige"
       }
     ],
-    "constellation": "content/brand/constelacion.svg",
     "faviconColors": {
       "fondo": "#b74d31",
       "marca": "#e7e7dd"
@@ -473,7 +472,6 @@
           "telefono": "Teléfono"
         },
         "formSubmit": "Enviar solicitud",
-        "infoButton": "Info",
         "successBody": "Tu solicitud fue enviada.\nUn asesor te contactará en breve.",
         "infoProyecto": "lore ipsum 123456789",
         "loadingQuote": "CONOCE NASHIRA POR DENTRO",
@@ -581,7 +579,6 @@
           }
         ]
       },
-      "unitKey": "tipo",
       "panoramas": {
         "hfov": 100,
         "enabled": true,
