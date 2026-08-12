@@ -3188,16 +3188,20 @@
       }
 
       ((OWN.galeria || {})[T] || []).forEach(g => {
-        if (g && g.img) medios.push({ clase: 'foto', url: 'content/galeria/' + g.img, pie: g.pie || '' });
+        if (g && g.img) medios.push({ clase: 'foto', url: urlGaleria(g.img), pie: g.pie || '' });
       });
       return medios;
     }
+
+    // Los nombres de archivo pueden traer espacios y acentos: hay que codificarlos
+    // para que el navegador los pida bien.
+    function urlGaleria(nombre) { return 'content/galeria/' + encodeURIComponent(nombre); }
 
     // Fotos de una tipología (sin la 360°): las usa la miniatura de la ficha.
     function fotosDeTipologia(tipo) {
       return ((OWN.galeria || {})[String(tipo).toUpperCase()] || [])
         .filter(g => g && g.img)
-        .map(g => ({ url: 'content/galeria/' + g.img, pie: g.pie || '' }));
+        .map(g => ({ url: urlGaleria(g.img), pie: g.pie || '' }));
     }
 
     function abrirVisor(unitId) {
