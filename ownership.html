@@ -617,6 +617,7 @@
       background: oklch(99% 0.004 85 / 0.95);
       transform: scale(1.04);
     }
+
     #info-btn.selected:hover { color: var(--accent); filter: brightness(1.1); }
     /* Modo unidad: el botón se vuelve el CTA "Hablar con un asesor" (relleno acento, sin ícono). */
     #info-btn.cta {
@@ -628,6 +629,57 @@
     #info-btn.cta svg { display: none; }
     #info-btn.cta:hover { background: var(--accent); color: oklch(97% 0.01 85); filter: brightness(1.08); transform: scale(1.04); }
     #info-btn.cta::after { border-color: oklch(from var(--accent) l c h / 0.5); }
+
+    /* ── EL CTA COMO ICONO ──────────────────────────────────────────────
+       Arranca redondo —solo la diadema— y al acercar el cursor se despliega
+       hacia la izquierda con el texto. Devuelve bastante aire a esa esquina,
+       que es la más cargada de la pantalla.
+
+       La rejilla de 0fr a 1fr crece hasta el ancho natural del texto sin que
+       nadie lo mida: a `auto` no se puede transicionar, y medir en JS se
+       rompería al cambiar el texto desde el panel.
+
+       Solo donde hay cursor. En táctil no existe el hover, así que ahí el
+       botón sigue entero como hasta hoy — la única llamada a la acción de la
+       página no puede depender de un gesto que no se puede hacer.
+
+       Todo va sobre `#info-btn.cta` porque esa clase la lleva SIEMPRE el botón
+       y su regla ganaba en especificidad. De paso: esa misma regla escondía el
+       icono (`display: none`), así que la pastilla llevaba tiempo siendo solo
+       texto — el dibujo que había dentro no se veía desde hace sesiones. */
+    @media (hover: hover) and (min-width: 768px) {
+      #info-btn.cta { padding: 0; gap: 0; }
+      /* 12 + 18 + 12 = 42, más 1 px de borde por lado = 44: el círculo exacto */
+      #info-btn.cta svg { display: block; margin: 0 12px; }
+      #info-btn.cta .info-label-caja {
+        display: grid;
+        grid-template-columns: 0fr;
+        transition: grid-template-columns 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      #info-btn.cta .info-label {
+        overflow: hidden; min-width: 0;
+        /* El relleno derecho NO puede ser fijo: aunque el texto mida cero su
+           caja lo sigue ocupando, y la pastilla plegada dejaba de ser redonda.
+           Se abre junto con el ancho. */
+        padding-right: 0;
+        opacity: 0;
+        transition: opacity 0.2s ease-out,
+                    padding-right 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      #info-btn.cta:hover .info-label-caja,
+      #info-btn.cta:focus-visible .info-label-caja { grid-template-columns: 1fr; }
+      #info-btn.cta:hover .info-label,
+      #info-btn.cta:focus-visible .info-label {
+        opacity: 1; padding-right: 20px;
+        transition-delay: 0.08s, 0s;
+      }
+      /* El propio despliegue ya es la respuesta al cursor: la escala encima
+         sobraba y hacía crecer la pastilla por dos lados a la vez. */
+      #info-btn.cta:hover { transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #info-btn.cta .info-label-caja, #info-btn.cta .info-label { transition: none; }
+    }
     #info-btn::after {
       content: '';
       position: absolute;
@@ -1452,13 +1504,16 @@
   </button>
 
   <!-- ── INFO BUTTON ───────────────────────────────────────────────────────── -->
-  <button id="info-btn" aria-label="Ver información de la unidad">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="8"/>
-      <line x1="12" y1="12" x2="12" y2="16"/>
+  <!-- El icono era la "i" del botón INFO que se retiró: decía "información"
+       donde el botón ya decía "hablar con alguien". Ahora es una diadema. -->
+  <button id="info-btn" aria-label="Hablar con un asesor">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 14v-2a8 8 0 0 1 16 0v2"/>
+      <rect x="2" y="13" width="4.6" height="6.4" rx="2.3"/>
+      <rect x="17.4" y="13" width="4.6" height="6.4" rx="2.3"/>
+      <path d="M19.7 19.4v.4a2.6 2.6 0 0 1-2.6 2.6H13.4"/>
     </svg>
-    <span class="info-label" data-site="pages.ownership.copy.cta">Hablar con un asesor</span>
+    <span class="info-label-caja"><span class="info-label" data-site="pages.ownership.copy.cta">Hablar con un asesor</span></span>
   </button>
 
   <!-- ── UNIT HOVER LABEL ────────────────────────────────────────────────── -->
@@ -2404,8 +2459,12 @@ Un asesor te contactará en breve.</p>
       if (resumeBtn) resumeBtn.classList.toggle('en-unidad', mode === 'unit');
       infoBtn.classList.add('visible', 'cta');
       infoBtn.classList.remove('selected');
+      const texto = SITE_GET('pages.ownership.copy.cta') || 'Hablar con un asesor';
       const lbl = infoBtn.querySelector('.info-label');
-      if (lbl) lbl.textContent = SITE_GET('pages.ownership.copy.cta') || 'Hablar con un asesor';
+      if (lbl) lbl.textContent = texto;
+      // Plegado, el texto queda recortado: el nombre accesible es lo único que
+      // queda para quien no ve la pastilla, así que sigue a la ficha.
+      infoBtn.setAttribute('aria-label', texto);
       if (!panelOpen) requestAnimationFrame(() => infoBtn.classList.add('shown'));
       else infoBtn.classList.remove('shown');
     }
