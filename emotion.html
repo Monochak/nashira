@@ -82,22 +82,6 @@
     }
 
     /* =====================================================
-       INTRO VIDEO
-    ===================================================== */
-    #intro-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 60;
-      background: var(--bg);
-      transition: opacity 0.5s ease;
-    }
-
-    #intro-overlay.out {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* =====================================================
        STOP VIDEO
     ===================================================== */
     #stop-overlay {
@@ -116,9 +100,9 @@
       pointer-events: auto;
     }
 
-    /* Shared video styles */
-    #intro-video,
+    /* Video de cada parada */
     .pool-video {
+
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -627,12 +611,6 @@
   <!-- Page-level heading (screen readers only) -->
   <h1 class="sr-only">Nashira</h1>
 
-  <!-- INTRO VIDEO — ambient/visual only, no dialogue or meaningful audio -->
-  <div id="intro-overlay">
-    <video id="intro-video" muted playsinline preload="auto"
-           aria-label="Secuencia de introducción, visual ambiental sin audio"></video>
-  </div>
-
   <!-- STOP VIDEO — pool built in JS -->
   <div id="stop-overlay"></div>
 
@@ -700,8 +678,6 @@
     /* =====================================================
        ELEMENTS
     ===================================================== */
-    const introOverlay = document.getElementById('intro-overlay');
-    const introVideo   = document.getElementById('intro-video');
     const stopOverlay  = document.getElementById('stop-overlay');
     const canvas       = document.getElementById('canvas');
     const ctx          = canvas.getContext('2d');
@@ -1296,12 +1272,6 @@
     /* =====================================================
        ZONE HELPER — for chapter dot tracking only
     ===================================================== */
-    function getZone(frame) {
-      for (let i = C.stops.length - 1; i >= 0; i--) {
-        if (frame >= C.stops[i].frame) return i;
-      }
-      return 0;
-    }
 
     /* =====================================================
        FRAME ANIMATION
@@ -1577,26 +1547,6 @@
     /* =====================================================
        PLAY INTRO
     ===================================================== */
-    function playIntro(onDone) {
-      introVideo.src = C.intro;
-      let done = false;
-
-      function finish() {
-        if (done) return;
-        done = true;
-        introOverlay.removeEventListener('click', finish);
-        introVideo.removeEventListener('ended', finish);
-        introVideo.removeEventListener('error', finish);
-        introOverlay.classList.add('out');
-        setTimeout(() => { introOverlay.style.display = 'none'; onDone(); }, 500);
-      }
-
-      introOverlay.addEventListener('click', finish);
-      introVideo.addEventListener('ended', finish, { once: true });
-      introVideo.addEventListener('error', finish, { once: true });
-      introVideo.load();
-      introVideo.play().catch(finish);
-    }
 
     /* =====================================================
        OPTION A — SIDE CHEVRONS
@@ -1618,10 +1568,6 @@
     function showChevrons() {
       chevronPrev.classList.add('visible');
       chevronNext.classList.add('visible');
-    }
-    function hideChevrons() {
-      chevronPrev.classList.remove('visible');
-      chevronNext.classList.remove('visible');
     }
 
     /* =====================================================
@@ -1680,9 +1626,6 @@
     ===================================================== */
     function boot() {
       document.getElementById('scroll-wrapper').style.height = window.innerHeight + 'px';
-
-      // El intro overlay no se usa (no hay intro.mp4) — ocultarlo de inmediato
-      introOverlay.style.display = 'none';
 
       renderFrame(0);
       updateChapters(0);

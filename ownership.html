@@ -829,14 +829,6 @@
     }
     .ui-galeria-pie::before { content: 'Ver por dentro'; }
 
-    .panel-features {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin: 22px 0 26px;
-      padding-top: 22px;
-      border-top: 1px solid var(--panel-border);
-    }
     .unit-feat { display: flex; align-items: center; gap: 12px; }
     .unit-feat-ic {
       flex-shrink: 0;
@@ -868,14 +860,6 @@
       text-transform: uppercase;
       line-height: 1;
     }
-    /* Logo del proyecto en el header del panel de info (domina sobre el texto) */
-    .panel-proyecto-logo {
-      display: block;
-      max-width: 100%;
-      max-height: 76px;
-      width: auto;
-      height: auto;
-    }
 
     .panel-body {
       padding: 28px 32px 32px;
@@ -886,31 +870,9 @@
       gap: 28px;
     }
 
-    .panel-stats { display: flex; flex-direction: column; }
 
-    .panel-stat {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 13px 0;
-      border-bottom: 1px solid var(--panel-border);
-    }
-    .panel-stat:first-child { border-top: 1px solid var(--panel-border); }
 
-    .stat-label {
-      font-size: 0.625rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      color: var(--label);
-      text-transform: uppercase;
-    }
 
-    .stat-value {
-      font-size: 0.8125rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-    .stat-value.accent { color: var(--accent); }
 
     .panel-note {
       font-size: 0.6875rem;
@@ -950,21 +912,7 @@
       gap: 24px;
     }
     .panel-section[hidden] { display: none; }
-    .panel-proyecto-body {
-      font-size: 0.95rem; line-height: 1.7; color: var(--text);
-      letter-spacing: 0.01em; text-wrap: pretty; margin: 0 0 22px;
-      white-space: pre-line;   /* respeta saltos de párrafo del texto de la ficha */
-    }
-    .panel-proyecto-body strong { font-weight: 700; }
-    .panel-proyecto-body em { font-style: italic; }
     /* Intro opcional (descripción) sobre la retícula de amenidades */
-    .panel-proyecto-intro {
-      font-size: 0.95rem; line-height: 1.7; color: var(--text);
-      letter-spacing: 0.01em; text-wrap: pretty; margin: 0 0 22px;
-      white-space: pre-line;
-    }
-    .panel-proyecto-intro strong { font-weight: 700; }
-    .panel-proyecto-intro em { font-style: italic; }
     /* Amenidades del proyecto: retícula icono-arriba / texto-debajo */
     .amenidades-grid {
       display: grid; grid-template-columns: 1fr 1fr;
@@ -1071,7 +1019,6 @@
     }
     .ni-prestada[hidden] { display: none; }
 
-    #panel-detail { justify-content: space-between; }
 
     /* ── CONTACT FORM ────────────────────────────────────────────────────── */
     .panel-back {
@@ -1188,6 +1135,7 @@
       font-size: 0.6875rem;
       color: var(--muted);
       line-height: 1.65;
+      white-space: pre-line;   /* el texto viene de la ficha: sus saltos de línea cuentan */
     }
 
     /* ── TEMA GRAFITO (Dieter en oscuro: grafito + naranja señal) ────────── */
@@ -1477,25 +1425,6 @@
     </div>
     <div class="panel-body">
 
-      <!-- Estado: detalle de unidad -->
-      <div id="panel-detail" class="panel-section">
-        <div class="panel-stats" id="panel-stats"></div>
-        <div class="panel-features" id="panel-features" hidden></div>
-        <button class="panel-cta" id="panel-cta-contact" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
-      </div>
-
-      <!-- Estado: información del proyecto (sin unidad seleccionada) -->
-      <div id="panel-proyecto" class="panel-section" hidden>
-        <div class="panel-proyecto-body" id="panel-proyecto-body"></div>
-        <button class="panel-cta" id="panel-cta-proyecto" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
-      </div>
-
-      <!-- Estado: información del nivel (modo piso, sin unidad) -->
-      <div id="panel-nivel" class="panel-section" hidden>
-        <div class="panel-stats" id="panel-nivel-stats"></div>
-        <button class="panel-cta" id="panel-cta-nivel" data-site="pages.ownership.copy.cta">Hablar con un asesor</button>
-      </div>
-
       <!-- Estado: formulario de contacto -->
       <div id="panel-form" class="panel-section" hidden>
         <button class="panel-back" id="panel-back">&#8592; <span data-site="pages.ownership.copy.formBack">Volver</span></button>
@@ -1535,10 +1464,8 @@
       <div id="panel-success" class="panel-section" hidden>
         <div class="success-ring">&#10003;</div>
         <span class="success-title" data-site="pages.ownership.copy.successTitle">Enviado</span>
-        <p class="success-body">
-          Tu solicitud fue enviada.<br>
-          Un asesor te contactará en breve.
-        </p>
+        <p class="success-body" data-site="pages.ownership.copy.successBody">Tu solicitud fue enviada.
+Un asesor te contactará en breve.</p>
       </div>
 
     </div>
@@ -1604,6 +1531,7 @@
     let floorViewTgt    = null;
     let hoveredUnit     = null;
     let isTransitioning = false;
+    let panelState      = 'form';   // 'form' | 'success' — el panel ya solo sirve al contacto
     let panelOpen       = false;
     let dimmerStart     = null;
     const DIMMER_MS     = OWN.camera.dimmerMs;
@@ -1618,8 +1546,6 @@
     let prezShiftActual   = 0;     // valor animado en el render loop
     const PREZ_SHIFT_FRAC = 0.06;  // fracción del ancho que se desplaza el encuadre
     let glbModel        = null;   // referencia al modelo completo para hide-all
-    let panelState      = 'detail'; // 'detail' | 'proyecto' | 'form' | 'success'
-    let formReturnState = 'detail'; // a dónde vuelve el form: 'detail' (unidad) | 'proyecto'
     let currentUnitData = null;
     let disponibilidad  = {};
     let floorGroups     = [];      // [{label, nodeName, items, y_center, units, meshToUnit}]
@@ -1841,11 +1767,6 @@
       return ESTADO_LABELS[d?.estado] ?? 'Disponible';
     }
 
-    function floorAvailability(fg) {
-      const units = fg.units || [];
-      const disp  = units.filter(u => unitDispo(u)?.estado === 'disponible').length;
-      return { disp, total: units.length };
-    }
 
     function hasAvailableUnits(fg) {
       return (fg.units || []).some(u => unitDispo(u)?.estado === 'disponible');
@@ -2425,67 +2346,7 @@
       else infoBtn.classList.remove('shown');
     }
 
-    // Panel de información del NIVEL (modo piso, sin unidad): resumen armado solo
-    // de los datos de disponibilidad — unidades, disponibles, tipologías, superficies.
-    function openFloorPanel() {
-      if (selectedFloor === null || !floorGroups[selectedFloor]) return;
-      const fg    = floorGroups[selectedFloor];
-      const datos = (fg.units || []).map(u => unitDispo(u)).filter(Boolean);
-      const disp  = datos.filter(d => d.estado === 'disponible');
-      const tips  = [...new Set(datos.map(d => d.tipologia).filter(Boolean))].sort();
-      const m2de  = d => {
-        const ext = (d.m2_terraza ?? 0) + (d.m2_balcon ?? 0);
-        return (d.m2_int != null) ? +(d.m2_int + ext).toFixed(1) : (d.m2 ?? null);
-      };
-      const m2s   = datos.map(m2de).filter(v => v != null);
-      const fila  = (lbl, val, accent) => (val == null || val === '') ? '' : `
-        <div class="panel-stat">
-          <span class="stat-label">${lbl}</span>
-          <span class="stat-value${accent ? ' accent' : ''}">${val}</span>
-        </div>`;
-      document.getElementById('panel-floor-label').textContent = window.SITE.brand.name || '';
-      document.getElementById('panel-unit-name').textContent   = fg.label;
-      document.getElementById('panel-nivel-stats').innerHTML =
-        fila('Unidades', datos.length || (fg.units || []).length) +
-        fila('Disponibles', disp.length, true) +
-        fila('Tipologías', tips.length ? tips.join(' · ') : null) +
-        (m2s.length ? fila('Superficies', Math.min(...m2s).toFixed(0) + '–' + Math.max(...m2s).toFixed(0) + ' m²') : '');
-      setPanelState('nivel');
-      unitPanel.classList.add('open');
-      canvasDim.classList.add('active');
-      unitLabelEl.classList.remove('visible');
-      panelOpen = true;
-      syncFloorList();
-      infoBtn.classList.remove('shown');
-    }
 
-    // Panel de información del proyecto (reusa el panel deslizante + el mismo CTA).
-    function openProjectPanel() {
-      if (!PROJECT_INFO) return;
-      const BR = window.SITE.brand || {};
-      document.getElementById('panel-floor-label').textContent = '';
-      // Header: por defecto el nombre en texto; si hay logotipo que cargue, domina.
-      const nameEl = document.getElementById('panel-unit-name');
-      nameEl.textContent = BR.name || '';
-      if (BR.wordmark) {
-        const logo = new Image();
-        logo.className = 'panel-proyecto-logo';
-        logo.alt = BR.fullName || BR.name || '';
-        logo.onload = () => { nameEl.textContent = ''; nameEl.appendChild(logo); };
-        logo.src = BR.wordmark;
-      }
-      // Las amenidades ya NO viven aquí: son una capa siempre visible en pantalla
-      // (#amenidades). El panel de proyecto solo muestra la descripción opcional.
-      document.getElementById('panel-proyecto-body').innerHTML =
-        PROJECT_INFO ? `<div class="panel-proyecto-intro">${escFmt(PROJECT_INFO)}</div>` : '';
-      setPanelState('proyecto');
-      unitPanel.classList.add('open');
-      canvasDim.classList.add('active');
-      unitLabelEl.classList.remove('visible');
-      panelOpen = true;
-      syncFloorList();
-      infoBtn.classList.remove('shown');
-    }
 
     // "Hablar con un asesor" → panel con el formulario. Con unidad seleccionada
     // el encabezado la identifica; sin unidad, encabeza el nombre del proyecto.
@@ -2494,7 +2355,6 @@
       document.getElementById('panel-floor-label').textContent = conUnidad ? (currentUnitData.floorLabel || '') : '';
       document.getElementById('panel-unit-name').textContent   = conUnidad ? (currentUnitData.unitLabel || '')
                                                                            : ((window.SITE.brand || {}).name || '');
-      formReturnState = 'cerrar';
       setPanelState('form');
       unitPanel.classList.add('open');
       canvasDim.classList.add('active');
@@ -2508,7 +2368,9 @@
 
     function setPanelState(state) {
       document.querySelectorAll('.panel-section').forEach(el => { el.hidden = true; });
-      document.getElementById(`panel-${state}`).hidden = false;
+      const sec = document.getElementById(`panel-${state}`);
+      if (!sec) return;                 // un estado que ya no existe no tumba la página
+      sec.hidden = false;
       panelState = state;
     }
 
@@ -2644,79 +2506,6 @@
       ui.hidden = true;
     }
 
-    function openPanel(unit) {
-      const fg = floorGroups[selectedFloor];
-      const d  = unitDispo(unit);
-      const floorLabel = fg ? fg.label : '—';
-      // Etiqueta del cliente (Supabase) tiene prioridad; fallback al label del GLB
-      const unitLabel  = d?.etiqueta ?? unit.label;
-      const tipologia  = d?.tipologia ?? d?.tipo ?? '—';
-
-      // Superficie: si hay desglose granular, mostrar interior / terrazas+balcones / total;
-      // si no, caer al m2 único (compat con datos previos).
-      const fM2  = v => (v == null) ? '—' : (Math.round(v * 10) / 10).toFixed(1) + ' m²';
-      const mInt = d?.m2_int ?? null;
-      const mExt = (d?.m2_terraza != null || d?.m2_balcon != null)
-        ? ((d.m2_terraza ?? 0) + (d.m2_balcon ?? 0)) : null;
-      const mTot = (mInt != null) ? +(mInt + (mExt ?? 0)).toFixed(1) : (d?.m2 ?? null);
-
-      currentUnitData = { floorLabel, unitLabel, tipo: tipologia, m2: mTot ?? '—' };
-
-      const precioStr = d?.precio
-        ? '$' + Number(d.precio).toLocaleString('es-MX')
-        : null;
-
-      const superficieRows = (mInt != null)
-        ? `
-        <div class="panel-stat">
-          <span class="stat-label">Interior</span>
-          <span class="stat-value">${fM2(mInt)}</span>
-        </div>
-        <div class="panel-stat">
-          <span class="stat-label">Terrazas y balcones</span>
-          <span class="stat-value">${fM2(mExt)}</span>
-        </div>
-        <div class="panel-stat">
-          <span class="stat-label">Total</span>
-          <span class="stat-value">${fM2(mTot)}</span>
-        </div>`
-        : `
-        <div class="panel-stat">
-          <span class="stat-label">${OWN.copy.stats.superficie}</span>
-          <span class="stat-value">${fM2(mTot)}</span>
-        </div>`;
-
-      document.getElementById('panel-floor-label').textContent = floorLabel;
-      document.getElementById('panel-unit-name').textContent   = unitLabel;
-      document.getElementById('panel-stats').innerHTML = `
-        <div class="panel-stat">
-          <span class="stat-label">${OWN.copy.stats.tipologia}</span>
-          <span class="stat-value">${tipologia}</span>
-        </div>
-        ${superficieRows}
-        ${precioStr && d?.estado === 'disponible' ? `
-        <div class="panel-stat">
-          <span class="stat-label">${OWN.copy.stats.precio}</span>
-          <span class="stat-value accent">${precioStr}</span>
-        </div>` : ''}
-        <div class="panel-stat">
-          <span class="stat-label">${OWN.copy.stats.estado}</span>
-          <span class="stat-value${d?.estado === 'disponible' || !d ? ' accent' : ''}">${estadoLabel(d)}</span>
-        </div>
-      `;
-
-      const feats = caracteristicasUnidad(tipologia);
-      document.getElementById('panel-features').innerHTML = feats;
-      document.getElementById('panel-features').hidden = !feats;
-
-      setPanelState('detail');
-      unitPanel.classList.add('open');
-      canvasDim.classList.add('active');
-      unitLabelEl.classList.remove('visible');
-      panelOpen = true;
-      syncFloorList();
-      infoBtn.classList.remove('shown');
-    }
 
     function closePanel() {
       unitPanel.classList.remove('open');
@@ -2727,7 +2516,8 @@
       // Reset form and state after close animation (0.42s)
       setTimeout(() => {
         document.getElementById('contact-form').reset();
-        setPanelState('detail');
+        setPanelState('form');
+
       }, 460);
     }
 
@@ -2750,29 +2540,10 @@
       });
     });
 
-    // CTA: detalle de unidad → formulario
-    document.getElementById('panel-cta-contact').addEventListener('click', () => {
-      formReturnState = 'detail';
-      setPanelState('form');
-    });
 
-    // CTA: info de proyecto → formulario
-    document.getElementById('panel-cta-proyecto').addEventListener('click', () => {
-      formReturnState = 'proyecto';
-      setPanelState('form');
-    });
 
-    // CTA: info de nivel → formulario
-    document.getElementById('panel-cta-nivel').addEventListener('click', () => {
-      formReturnState = 'nivel';
-      setPanelState('form');
-    });
-
-    // Volver: formulario → de donde vino (unidad on-screen → cierra; proyecto/nivel → su detalle)
-    document.getElementById('panel-back').addEventListener('click', () => {
-      if (formReturnState === 'cerrar') closePanel();
-      else setPanelState(formReturnState);
-    });
+    // Al formulario solo se llega por el CTA, así que volver es cerrar.
+    document.getElementById('panel-back').addEventListener('click', closePanel);
 
     // Submit del formulario
     document.getElementById('contact-form').addEventListener('submit', async e => {

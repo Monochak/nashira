@@ -504,6 +504,56 @@
       "floors": {
         "data": "content/data/nashira_floors.json"
       },
+      "vistas": {
+        "t1-n03": [
+          {
+            "pie": "",
+            "archivo": "t1-n04-01.mp4"
+          }
+        ],
+        "t1-n04": [
+          {
+            "pie": "",
+            "archivo": "t1-n04-01.mp4"
+          }
+        ],
+        "t1-n05": [
+          {
+            "pie": "",
+            "archivo": "t1-n06-01.mp4"
+          }
+        ],
+        "t1-n06": [
+          {
+            "pie": "",
+            "archivo": "t1-n06-01.mp4"
+          }
+        ],
+        "t1-n07": [
+          {
+            "pie": "",
+            "archivo": "t1-n08-01.mp4"
+          }
+        ],
+        "t1-n08": [
+          {
+            "pie": "",
+            "archivo": "t1-n08-01.mp4"
+          }
+        ],
+        "t1-n09": [
+          {
+            "pie": "",
+            "archivo": "t1-n10-01.mp4"
+          }
+        ],
+        "t1-n10": [
+          {
+            "pie": "",
+            "archivo": "t1-n10-01.mp4"
+          }
+        ]
+      },
       "galeria": {
         "A": [
           {
