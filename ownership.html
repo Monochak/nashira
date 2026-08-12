@@ -2850,7 +2850,13 @@ Un asesor te contactará en breve.</p>
           obj.add(new THREE.LineSegments(edges, MAT_EDGE));
           items.push(obj);
         });
-        const label = labelMap.get(nodeName) || nodeName.replace('Floor-', 'N');
+        // Sin mapa de etiquetas, se deriva del nodo: la N solo va cuando lo que
+        // sigue es un número. Antes se anteponía siempre, y `Floor-Azotea` salía
+        // como "NAzotea" — que ni se lee bien ni coincide con 'Azotea', así que
+        // la azotea se colaba como un piso navegable más en todo proyecto nuevo.
+        const derivada = nodeName.replace(/^Floor[\s_-]*/i, '');
+        const label = labelMap.get(nodeName)
+                   || (/^\d+$/.test(derivada) ? 'N' + derivada.padStart(2, '0') : derivada);
         if (label === 'Azotea') { azoteaItems = items; return null; }
         // N01 (planta baja) ahora es un piso navegable: aloja los LOCALES vendibles.
         // Como es el índice 0, la lógica "≤ activeIdx" lo mantiene visible como base.
