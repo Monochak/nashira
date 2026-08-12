@@ -1327,6 +1327,24 @@
       letter-spacing: 0.14em; text-transform: uppercase;
     }
     #prez-pill .pill-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; opacity: 1; }
+
+    /* El guiño: la presentación arranca sola y el pill aparece sin que nada
+       diga que el recorrido se avanza con él. Tres empujoncitos de la flecha
+       —el mismo gesto que ya usan los chevrons de emotion, para no inventar
+       un lenguaje nuevo— y se calla. Se detiene al primer clic. */
+    @keyframes prez-empujon {
+      0%   { transform: translateX(0);     }
+      35%  { transform: translateX(5px);   }
+      65%  { transform: translateX(1.5px); }
+      100% { transform: translateX(0);     }
+    }
+    #prez-pill #prez-next.incita { opacity: 1; }
+    #prez-pill #prez-next.incita .pill-ic {
+      animation: prez-empujon 0.65s ease-out 3;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #prez-pill #prez-next.incita .pill-ic { animation: none; }
+    }
     #prez-resume {
       position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
       z-index: 30;
@@ -3526,7 +3544,24 @@ Un asesor te contactará en breve.</p>
       // Convive con la órbita y el zoom; se retira al seleccionar piso/unidad
       prezExitHook = exit;
 
-      if (cfg.autoStart !== false) enter();
+      // Un solo empujón, y solo cuando la presentación arranca sola: quien la
+      // retoma con "▶ Presentación" ya sabe cómo funciona el pill.
+      function incitar() {
+        if (steps.length < 2) return;
+        setTimeout(() => {
+          if (!active || cur !== 0) return;   // ya avanzó por su cuenta: sobra
+          btnNext.classList.add('incita');
+          const basta = () => btnNext.classList.remove('incita');
+          btnNext.addEventListener('animationend', basta, { once: true });
+          pill.addEventListener('click', basta, { once: true });
+          // Red de seguridad: con movimiento reducido, o en una pestaña de fondo
+          // donde el navegador congela las animaciones, `animationend` puede no
+          // llegar nunca y la flecha se quedaría encendida. 3 × 0.65s + margen.
+          setTimeout(basta, 2600);
+        }, 1200);                              // deja respirar la entrada del texto
+      }
+
+      if (cfg.autoStart !== false) { enter(); incitar(); }
       else resume.classList.add('visible');
     }
 
@@ -3597,7 +3632,7 @@ Un asesor te contactará en breve.</p>
   </div>
 
   <script src="transition.js?v=c0fe1e68"></script>
-  <script src="rail.js?v=d702b414"></script>
+  <script src="rail.js?v=d4bd957e"></script>
   <script src="fullscreen.js?v=8f3fe4bb"></script>
   <script src="sparkles.js?v=07f3a614"></script>
   <script src="pwa.js?v=d3f89997"></script>
