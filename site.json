@@ -816,6 +816,16 @@
     "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdmRzd3FuaGRxbnBkdG1nc213Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTMwODIsImV4cCI6MjA5Njg2OTA4Mn0.6i-ei2Z875hCce02sjE7g0byz9rD2wdLBq58qJUmtg8"
   },
   "siteUrl": "https://monolitoestudio.com/nashira",
+  "contacto": {
+    "email": "ventas@nashira.mx",
+    "titulo": "este es el encabezado",
+    "telefono": "+523300000000",
+    "whatsapp": "+523300000000",
+    "emailActivo": true,
+    "telefonoActivo": true,
+    "whatsappActivo": true,
+    "whatsappMensaje": "Hola humano!"
+  },
   "textColors": {
     "pages.emotion.stops.body": "#e7e7dd",
     "pages.emotion.stops.label": "#5c73c7",
