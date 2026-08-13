@@ -114,9 +114,9 @@
        —de ahí el alto acotado— para que el panel no salte al aparecer. */
     .fc-logo {
       display: block; margin: 8px 0 2px;
-      /* 15% más que el 34/210 original. Los dos topes crecen igual: si solo
-         subiera el alto, un logotipo ancho seguiría frenado por el ancho. */
-      max-height: 39px; max-width: min(100%, 242px); height: auto; width: auto;
+      /* Los dos topes guardan la proporción original (34/210): si solo subiera
+         el alto, un logotipo ancho seguiría frenado por el ancho y no crecería. */
+      max-height: 43px; max-width: min(100%, 266px); height: auto; width: auto;
     }
     .fc-logo[hidden] { display: none; }
 
