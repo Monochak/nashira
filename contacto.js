@@ -65,8 +65,10 @@
   // ── Estilos ───────────────────────────────────────────────────────────────
   const style = document.createElement('style');
   style.textContent = `
+    /* Por encima de todo lo del sitio, incluido el visor de galería (100): es
+       la única capa que puede abrirse estando cualquier otra abierta. */
     #fc-dim {
-      position: fixed; inset: 0; z-index: 90;
+      position: fixed; inset: 0; z-index: 200;
       background: oklch(from var(--bg, oklch(94% 0.01 85)) l c h / 0.55);
       backdrop-filter: blur(3px);
       opacity: 0; pointer-events: none;
@@ -75,7 +77,7 @@
     #fc-dim.abierto { opacity: 1; pointer-events: auto; }
 
     #fc-panel {
-      position: fixed; top: 0; right: 0; bottom: 0; z-index: 91;
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
       width: min(390px, 100vw);
       display: flex; flex-direction: column;
       background: var(--glass-bg, oklch(97% 0.006 85 / 0.92));
