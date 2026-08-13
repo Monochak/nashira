@@ -610,6 +610,10 @@
     }
     #info-btn.visible { display: flex; }
     #info-btn.shown   { opacity: 1; }
+    /* Dentro de la galería el CTA sigue disponible: el visor está en la capa
+       100 y el botón en la 20, así que sin esto no se esconde — se lo traga.
+       Justo ahí es cuando más se quiere preguntar, viendo el departamento. */
+    #info-btn.sobre-visor { z-index: 101; }
     #info-btn.selected {
       color: var(--accent);
       border-color: oklch(54.8% 0.157 35.7 / 0.35);
@@ -3323,6 +3327,7 @@ Un asesor te contactará en breve.</p>
       panoOverlay.classList.add('open');
       document.body.style.overflow = 'hidden';
       renderPausado = true;
+      infoBtn.classList.add('sobre-visor');   // el CTA sobrevive a la galería
       pintarFranjaNivel(fi);
       mostrarMedio();
       panoOverlay.focus?.();
@@ -3368,6 +3373,7 @@ Un asesor te contactará en breve.</p>
       panoOverlay.classList.add('open');
       document.body.style.overflow = 'hidden';
       renderPausado = true;                  // el 3D no se ve: no tiene por qué seguir dibujándose
+      infoBtn.classList.add('sobre-visor');   // el CTA sobrevive a la galería
       mostrarMedio();
       panoOverlay.focus?.();
     }
@@ -3437,6 +3443,7 @@ Un asesor te contactará en breve.</p>
       panoOverlay.classList.remove('open');
       document.body.style.overflow = '';
       renderPausado = false;
+      infoBtn.classList.remove('sobre-visor');
       desactivarPano();
       detenerVideo();
       visorFranja.hidden = true;
@@ -3767,7 +3774,7 @@ Un asesor te contactará en breve.</p>
 
   <script src="transition.js?v=c0fe1e68"></script>
   <script src="rail.js?v=d4bd957e"></script>
-  <script src="contacto.js?v=81042e37"></script>
+  <script src="contacto.js?v=81241990"></script>
   <script src="fullscreen.js?v=8f3fe4bb"></script>
   <script src="sparkles.js?v=07f3a614"></script>
   <script src="pwa.js?v=d3f89997"></script>
