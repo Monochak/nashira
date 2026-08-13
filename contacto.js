@@ -110,6 +110,13 @@
       font-size: 2rem; font-weight: 700; letter-spacing: 0.03em;
       line-height: 1.05; margin: 6px 0 0;
     }
+    /* Logotipo del proyecto en lugar del nombre en texto. Ocupa el mismo hueco
+       —de ahí el alto acotado— para que el panel no salte al aparecer. */
+    .fc-logo {
+      display: block; margin: 8px 0 2px;
+      max-height: 34px; max-width: min(100%, 210px); height: auto; width: auto;
+    }
+    .fc-logo[hidden] { display: none; }
 
     #fc-cuerpo { padding: 22px 28px 32px; display: flex; flex-direction: column; gap: 22px; }
     .fc-campos { display: flex; flex-direction: column; gap: 14px; }
@@ -212,6 +219,7 @@
     <div class="fc-cab">
       <button id="fc-cerrar" type="button" aria-label="Cerrar">&#215;</button>
       <span class="fc-eyebrow" id="fc-eyebrow"></span>
+      <img class="fc-logo" id="fc-logo" alt="" hidden>
       <h2 class="fc-titulo" id="fc-titulo"></h2>
     </div>
     <div id="fc-cuerpo">
@@ -281,11 +289,30 @@
       </div>`;
   }
 
+  // Cuando el encabezado es el PROYECTO se prefiere su logotipo; cuando es una
+  // unidad ("601") manda el texto, porque ahí el dato es el número y cambiarlo
+  // por el logo perdería justo lo que el visitante quiere confirmar.
+  // El logo solo aparece si de verdad carga: si el archivo no está subido, se
+  // queda el nombre en texto y no hay hueco ni parpadeo.
+  function encabezado(titulo, esProyecto) {
+    const B = (window.SITE && window.SITE.brand) || {};
+    const logo = panel.querySelector('#fc-logo');
+    const txt  = panel.querySelector('#fc-titulo');
+    txt.textContent = titulo;
+    txt.hidden = false;
+    logo.hidden = true;
+    if (!esProyecto || !B.wordmark) return;
+    logo.alt = B.fullName || B.name || '';
+    logo.onload  = () => { logo.hidden = false; txt.hidden = true; };
+    logo.onerror = () => { logo.hidden = true;  txt.hidden = false; };
+    logo.src = B.wordmark;
+  }
+
   function abrir(ctx) {
     ctx = ctx || {};
     const marca = (window.SITE && window.SITE.brand && window.SITE.brand.name) || '';
     panel.querySelector('#fc-eyebrow').textContent = ctx.subtitulo || '';
-    panel.querySelector('#fc-titulo').textContent  = ctx.titulo || marca;
+    encabezado(ctx.titulo || marca, !ctx.titulo);
     contextoMensaje = ctx.mensaje || null;
     panel.classList.remove('enviado');
     pintarCanales(ctx.contextoWhatsApp || ctx.subtitulo || '');
