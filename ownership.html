@@ -850,6 +850,10 @@
       transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #unit-info.on { opacity: 1; transform: translateY(-50%) translateX(0); pointer-events: auto; }
+    /* Con ID: el `display: flex` de arriba le ganaba a la regla del navegador
+       para [hidden], así que ocultarlo no lo ocultaba — solo se desvanecía en
+       0.4s, y en ese rato quedaba encima de la información del nivel. */
+    #unit-info[hidden] { display: none; }
     .ui-floor { font-size: 0.625rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
     .ui-name {
       font-family: var(--font-display); font-size: 2.75rem; font-weight: 700;
@@ -2375,7 +2379,10 @@ Un asesor te contactará en breve.</p>
       if (isTransitioning || selectedFloor === null || !unit) return;
       if (prezExitHook) prezExitHook();
       selectedUnit = unit;
-      refreshAmenidades();  // fuera YA (sin fade): su lugar lo toma la info de unidad
+      // Las dos capas del nivel salen YA, sin fade: su lugar lo toma la info de
+      // la unidad. Si se desvanecieran, por un momento se verían las dos.
+      refreshAmenidades();
+      refreshNivelInfo();
       showUnitInfo(unit);   // info + iconos sobre la pantalla, al instante
 
       // Ocultar todo el modelo — mostrar únicamente la unidad seleccionada
