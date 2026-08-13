@@ -296,40 +296,6 @@
     }
 
     /* =====================================================
-       CHAPTER INDICATORS (bottom center)
-    ===================================================== */
-    #chapters {
-      position: fixed;
-      bottom: 40px;
-      left: 64px;
-      z-index: 45;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      pointer-events: none;
-    }
-
-    .chap-dot {
-      height: 2px;
-      width: 20px;
-      background: var(--border);
-      border-radius: 2px;
-      transition: width 0.4s ease, background 0.4s ease, opacity 0.4s ease;
-      opacity: 0.5;
-    }
-
-    .chap-dot.is-active {
-      width: 40px;
-      background: var(--accent);
-      opacity: 1;
-    }
-
-    .chap-dot.is-done {
-      background: var(--muted);
-      opacity: 0.6;
-    }
-
-    /* =====================================================
        SCROLL HINT
     ===================================================== */
     /* =====================================================
@@ -435,7 +401,7 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      padding: 6px 8px 6px 14px;
+      padding: 6px 8px 10px 14px;   /* el extra abajo aloja el hilo de avance */
       background: var(--glass-bg);
       backdrop-filter: blur(20px) saturate(1.4);
       -webkit-backdrop-filter: blur(20px) saturate(1.4);
@@ -450,6 +416,27 @@
     #nav-stop-pill.visible {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    /* Hilo de avance — el mismo de la presentación de ownership. Antes esto
+       eran guiones sueltos abajo a la izquierda, uno por escena: decían más,
+       pero solo caben cinco. El hilo funciona con cualquier número, que es lo
+       que un canon necesita. */
+    #nav-stop-pill::before, #nav-stop-pill::after {
+      content: ''; position: absolute; bottom: 5px; height: 1.5px; border-radius: 2px;
+    }
+    #nav-stop-pill::before {                   /* riel */
+      left: 20px; right: 20px;
+      background: oklch(from var(--text) l c h / 0.14);
+    }
+    #nav-stop-pill::after {                    /* recorrido */
+      left: 20px;
+      width: calc((100% - 40px) * var(--avance, 0));
+      background: var(--accent);
+      transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #nav-stop-pill::after { transition: none; }
     }
 
     #pill-counter {
@@ -510,10 +497,6 @@
        TABLET  768px – 1023px
        Tighten left gutter slightly; everything else holds.
     ===================================================== */
-    @media (min-width: 768px) and (max-width: 1023px) {
-      #chapters { left: 40px; }
-    }
-
     /* =====================================================
        MOBILE  ≤ 767px
     ===================================================== */
@@ -525,12 +508,6 @@
 
       .stop-body {
         max-width: none;
-      }
-
-      /* Chapter dots */
-      #chapters {
-        left: 24px;
-        bottom: 24px;
       }
 
       /* Chevrones — más grandes y más opacos en táctil */
@@ -572,16 +549,12 @@
     /* =====================================================
        SHORT VIEWPORT  ≤ 500px tall
        Landscape mobile and compact tablet landscape.
-       Pull text and chapters up less to prevent crowding.
+       Pull text up less to prevent crowding.
     ===================================================== */
     @media (max-height: 500px) {
       #text-overlay {
         top: 50%;
         transform: translate(-50%, -50%);
-      }
-
-      #chapters {
-        bottom: 12px;
       }
 
       /* Landscape mobile: pill sube para no tapar texto */
@@ -627,8 +600,6 @@
   <!-- TEXT OVERLAY (above stop video) -->
   <div id="text-overlay" lang="en"></div>
 
-  <!-- CHAPTER INDICATORS -->
-  <div id="chapters" aria-hidden="true"></div>
 
   <!-- SCROLL HINT -->
   <!-- OPTION A — SIDE CHEVRONS -->
@@ -682,7 +653,6 @@
     const canvas       = document.getElementById('canvas');
     const ctx          = canvas.getContext('2d');
     const textOverlay  = document.getElementById('text-overlay');
-    const chaptersEl   = document.getElementById('chapters');
 
     /* =====================================================
        STOP VIDEO POOL — one <video> per stop, preloaded at boot.
@@ -721,7 +691,7 @@
     let dragLastDy        = 0;    // last vertical delta — used to detect direction on release
     let touchStartY       = 0;
     let touchTriggered    = false;
-    let prevChapterZone   = -1;    // last zone passed to updateChapters
+    let prevZone          = -1;    // última zona pasada a updateProgress
     let textVisible       = false; // guard: skip hideText work when already hidden
     let textTimers        = [];   // active setTimeout handles from showStopText — cancelled on hideText
     let cssWidth          = 0;     // logical canvas size (excludes DPR)
@@ -1001,18 +971,6 @@
     }
 
     /* =====================================================
-       BUILD CHAPTER INDICATORS
-    ===================================================== */
-    const chapDots = [];
-
-    C.stops.forEach((_, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'chap-dot';
-      chaptersEl.appendChild(dot);
-      chapDots.push(dot);
-    });
-
-    /* =====================================================
        SHOW STOP TEXT — time-driven, plays during stop video
 
        Stagger schedule:
@@ -1140,18 +1098,13 @@
     }
 
     /* =====================================================
-       UPDATE CHAPTER DOTS
-       Takes the zone index directly (0–5) so it can short-circuit
-       when the zone hasn't changed — avoids 6 classList mutations
-       every RAF frame during scroll.
+       AVANCE DEL PILL
     ===================================================== */
-    function updateChapters(zone) {
-      if (zone === prevChapterZone) return;
-      prevChapterZone = zone;
-      chapDots.forEach((dot, i) => {
-        dot.classList.toggle('is-active', i === zone);
-        dot.classList.toggle('is-done',   i < zone);
-      });
+    // Guarda de repetición: la zona se recalcula en cada cuadro del scroll y
+    // sin esto el pill se reescribiría decenas de veces por segundo.
+    function updateProgress(zone) {
+      if (zone === prevZone) return;
+      prevZone = zone;
       if (typeof updateNavPill === 'function') updateNavPill(zone);
     }
 
@@ -1270,7 +1223,7 @@
     }
 
     /* =====================================================
-       ZONE HELPER — for chapter dot tracking only
+       ZONE HELPER — alimenta el avance del pill
     ===================================================== */
 
     /* =====================================================
@@ -1360,7 +1313,7 @@
       animateToFrame(fromFrame, toFrame, () => {
         currentStopIndex = targetIndex;
         isTransitioning  = false;
-        updateChapters(currentStopIndex);
+        updateProgress(currentStopIndex);
 
         lockScroll();
         playStopVideo(currentStopIndex, () => {
@@ -1584,6 +1537,8 @@
 
     function updateNavPill(stopIndex) {
       pillCounter.textContent = `${stopIndex + 1} / ${C.stops.length}`;
+      // En la escena 1 de 5 ya se ve un tramo recorrido: estás dentro.
+      navStopPill.style.setProperty('--avance', (stopIndex + 1) / C.stops.length);
       pillPrev.disabled = false;
       pillNext.disabled = false;
       chevronPrev.classList.remove('is-disabled');
@@ -1628,7 +1583,7 @@
       document.getElementById('scroll-wrapper').style.height = window.innerHeight + 'px';
 
       renderFrame(0);
-      updateChapters(0);
+      updateProgress(0);
 
       // Frames críticos pre-cacheados por Stillness; si acceso directo, los carga aquí.
       loadCriticalFrames().then(() => {
