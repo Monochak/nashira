@@ -543,11 +543,16 @@
       transform: scale(1.08);
     }
     #pano-close svg { width: 18px; height: 18px; }
+    /* Encabezado del visor: qué se está viendo en conjunto ("Vista desde N10",
+       "Vista 360° · Tipo A"). Vivía abajo al centro, exactamente encima del pie
+       de foto —dos píxeles de diferencia— y los dos textos se encimaban en
+       cuanto una imagen tenía descripción. Es un título, así que va arriba:
+       el pie queda solo con lo suyo, la leyenda del medio actual. */
     #pano-label {
       position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 30px;
+      left: 30px;
+      max-width: calc(100% - 130px);   /* libra el botón de cerrar */
       z-index: 10;
       font-family: var(--font-body);
       font-size: 0.5625rem;
@@ -559,7 +564,9 @@
     }
     @media (max-width: 767px) {
       #pano-close { top: 16px; right: 16px; }
-      #pano-label { bottom: calc(20px + env(safe-area-inset-bottom)); }
+      /* Con `bottom` heredado y el nuevo `top`, la caja se estiraría de arriba
+         abajo. Se reancla al mismo criterio que en escritorio. */
+      #pano-label { top: 20px; left: 16px; bottom: auto; max-width: calc(100% - 80px); }
     }
 
     /* ── INFO HINT ──────────────────────────────────────────────────────────── */
