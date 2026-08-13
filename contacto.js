@@ -110,10 +110,12 @@
       font-size: 2rem; font-weight: 700; letter-spacing: 0.03em;
       line-height: 1.05; margin: 6px 0 0;
     }
-    /* Logotipo del proyecto en lugar del nombre en texto. Ocupa el mismo hueco
-       —de ahí el alto acotado— para que el panel no salte al aparecer. */
+    /* Logotipo del proyecto. Encabeza siempre: cuando el panel abre desde el
+       proyecto sustituye al nombre en texto, y desde una unidad lo acompaña —el
+       visitante tiene que saber de qué desarrollo es el 601 que va a preguntar.
+       El alto acotado evita que el panel salte al aparecer. */
     .fc-logo {
-      display: block; margin: 8px 0 2px;
+      display: block; margin: 0 0 12px;
       /* Los dos topes guardan la proporción original (34/210): si solo subiera
          el alto, un logotipo ancho seguiría frenado por el ancho y no crecería. */
       max-height: 43px; max-width: min(100%, 266px); height: auto; width: auto;
@@ -220,8 +222,8 @@
   panel.innerHTML = `
     <div class="fc-cab">
       <button id="fc-cerrar" type="button" aria-label="Cerrar">&#215;</button>
-      <span class="fc-eyebrow" id="fc-eyebrow"></span>
       <img class="fc-logo" id="fc-logo" alt="" hidden>
+      <span class="fc-eyebrow" id="fc-eyebrow"></span>
       <h2 class="fc-titulo" id="fc-titulo"></h2>
     </div>
     <div id="fc-cuerpo">
@@ -291,11 +293,12 @@
       </div>`;
   }
 
-  // Cuando el encabezado es el PROYECTO se prefiere su logotipo; cuando es una
-  // unidad ("601") manda el texto, porque ahí el dato es el número y cambiarlo
-  // por el logo perdería justo lo que el visitante quiere confirmar.
-  // El logo solo aparece si de verdad carga: si el archivo no está subido, se
-  // queda el nombre en texto y no hay hueco ni parpadeo.
+  // El logotipo encabeza SIEMPRE que exista, porque es de quién es el proyecto.
+  // Lo que cambia es el texto debajo: desde el proyecto el logo ya dice el
+  // nombre y el texto sobra; desde una unidad el número es el dato y se queda,
+  // con el logo encima — si no, el visitante escribe sobre el "601" de un
+  // desarrollo que la pantalla ya no le nombra.
+  // Y solo aparece si de verdad carga: sin archivo se queda el texto, sin hueco.
   function encabezado(titulo, esProyecto) {
     const B = (window.SITE && window.SITE.brand) || {};
     const logo = panel.querySelector('#fc-logo');
@@ -303,9 +306,9 @@
     txt.textContent = titulo;
     txt.hidden = false;
     logo.hidden = true;
-    if (!esProyecto || !B.wordmark) return;
+    if (!B.wordmark) return;
     logo.alt = B.fullName || B.name || '';
-    logo.onload  = () => { logo.hidden = false; txt.hidden = true; };
+    logo.onload  = () => { logo.hidden = false; txt.hidden = esProyecto; };
     logo.onerror = () => { logo.hidden = true;  txt.hidden = false; };
     logo.src = B.wordmark;
   }
