@@ -2526,17 +2526,6 @@ Un asesor te contactará en breve.</p>
     const panelClose = document.getElementById('panel-close');
     const infoBtn    = document.getElementById('info-btn');
 
-    // Información del proyecto (mostrada cuando NO hay unidad seleccionada).
-    const PROJECT_INFO = (typeof OWN.copy.infoProyecto === 'string') ? OWN.copy.infoProyecto.trim() : '';
-    // Formato ligero: escapa HTML y traduce **negrita** / *cursiva* (los saltos
-    // de línea los respeta el CSS con pre-line).
-    function escFmt(raw) {
-      return String(raw)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
-    }
-
     // Botón abajo-derecha: SIEMPRE el CTA "Hablar con un asesor", en todos los
     // modos (torre, nivel, unidad). El botón INFO se retiró; solo se esconde
     // mientras un panel está abierto (el panel trae su propio CTA/formulario).
