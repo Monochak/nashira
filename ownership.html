@@ -2657,9 +2657,14 @@ Un asesor te contactará en breve.</p>
       const amen  = OWN.amenidades;
       const esc   = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
       const hasSel = amen && Object.keys(amen).length;
-      // Con ficha manda la ficha (puede traer amenidades propias que no están
-      // en la biblioteca); sin ficha, se muestran todas las de la biblioteca.
-      const claves = hasSel ? Object.keys(amen) : AMEN_LIB.map(a => a.key);
+      // El ORDEN lo manda la biblioteca, no la ficha: las claves de la ficha
+      // vienen en el orden en que se guardaron, que es arbitrario. Las
+      // amenidades propias del proyecto —las que no están en la biblioteca—
+      // van al final, en el orden en que se crearon.
+      const propias = hasSel ? Object.keys(amen).filter(k => !amenLib(k)) : [];
+      const claves = hasSel
+        ? AMEN_LIB.map(a => a.key).filter(k => amen[k] !== undefined).concat(propias)
+        : AMEN_LIB.map(a => a.key);
       return claves
         .filter(key => amenIcono(key))   // sin icono no hay nada que dibujar
         .map(key => {
