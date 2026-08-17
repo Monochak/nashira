@@ -703,6 +703,20 @@
         "enabled": true,
         "autoStart": true
       },
+      "amenidadesInfo": {
+        "lockers": {
+          "texto": "Laoreet metus porttitor tristique facilisi tellus et pretium dapibus cras ornare, ad primis integer netus suscipit senectus suspendisse pharetra vulputate neque, cursus iaculis a ante ut aliquet maecenas auctor mollis."
+        },
+        "niveles": {
+          "texto": "Lorem ipsum dolor sit amet consectetur adipiscing elit donec, maecenas morbi hendrerit litora augue pellentesque habitasse."
+        },
+        "elevadores": {
+          "texto": "Dictumst justo nostra luctus natoque ac euismod quis consequat, litora felis gravida lacinia erat sollicitudin sociis placerat himenaeos, ad risus inceptos pulvinar facilisis imperdiet hac."
+        },
+        "accesoInteligente": {
+          "texto": "Orci odio dui nam tellus fusce dapibus sagittis tempor scelerisque, morbi vivamus laoreet montes arcu porta dictum rutrum vehicula, aenean lobortis gravida lacinia penatibus aliquet potenti donec."
+        }
+      },
       "caracteristicas": {
         "A": {
           "sala": "Sala /Comedor",
