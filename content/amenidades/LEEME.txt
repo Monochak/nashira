@@ -1,0 +1,12 @@
+IMAGENES DE AMENIDADES
+======================
+
+Una fotografia por amenidad, para el panel que se abre al pulsar su icono
+en la vista de torre o de nivel.
+
+El nombre del archivo NO importa: en el panel (Contenido -> Ownership ->
+Amenidades) eliges cual le toca a cada una y escribes su texto.
+
+Formatos: .jpg, .jpeg, .png o .webp. Se ven a 340 px de ancho.
+
+Una amenidad sin imagen ni texto abre igual, mostrando su icono en grande.

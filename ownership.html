@@ -1005,14 +1005,23 @@
       font-size: 0.75rem; line-height: 1.3; color: var(--text);
       letter-spacing: 0.01em; text-wrap: pretty;
     }
-    /* Amenidades como TARJETA siempre visible en torre y nivel (fuera del panel):
-       retícula 2 columnas icono-arriba/texto-debajo, anclada abajo-derecha.
-       Se oculta al seleccionar unidad; bajo un panel el dim la atenúa. */
-    #amenidades {
+    /* La columna: panel de detalle arriba, paleta abajo. El anclaje vive aquí,
+       así que la paleta puede cambiar de alto sin que nada más se entere. */
+    #amen-col {
       position: fixed;
       right: var(--col-right); bottom: 124px;   /* misma columna; arriba del CTA sin encimarse */
       z-index: 6;
       width: var(--col-width);
+      display: flex; flex-direction: column; justify-content: flex-end; gap: 12px;
+      pointer-events: none;                     /* el hueco no intercepta al modelo */
+    }
+    #amen-col > * { pointer-events: auto; }
+
+    /* Amenidades como TARJETA siempre visible en torre y nivel (fuera del panel):
+       retícula icono-arriba/texto-debajo. Se oculta al seleccionar unidad;
+       bajo un panel el dim la atenúa. */
+    #amenidades {
+      width: 100%;
       padding: 18px 18px 16px;
       background: oklch(from var(--bg) l c h / 0.72);
       backdrop-filter: blur(10px);
@@ -1031,6 +1040,74 @@
     #amenidades .amenidad { gap: 7px; }
     #amenidades .amenidad-ic { width: 24px; height: 24px; }
     #amenidades .amenidad-tx { font-size: 0.66rem; line-height: 1.2; }
+
+    /* Cada amenidad es un BOTÓN: el hover ya prometía interacción desde hace
+       tiempo — ahora por fin la cumple. */
+    #amenidades .amenidad {
+      background: none; border: none; font: inherit; color: inherit;
+      /* El margen negativo cancela el relleno: el área de clic crece pero la
+         retícula mide lo mismo que antes de que esto fuera pulsable. */
+      padding: 5px 3px; margin: -5px -3px;
+      border-radius: 8px; cursor: pointer;
+      transition: background 0.2s ease-out;
+    }
+    #amenidades .amenidad:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    #amenidades .amenidad.activa { background: oklch(from var(--accent) l c h / 0.14); }
+    #amenidades .amenidad.activa .amenidad-ic svg { stroke-width: 2.2; }
+
+    /* Compacta: sin texto y a 5 columnas. La paleta pasa de 378 a ~136 px y ese
+       alto se lo lleva el panel — en una laptop es la diferencia entre que la
+       fotografía quepa o no. El reacomodo es instantáneo a propósito: una
+       retícula que cambia de columnas no interpola, y animarla se ve peor. */
+    #amenidades.compacta .amenidades-grid { grid-template-columns: repeat(5, 1fr); gap: 14px 8px; }
+    #amenidades.compacta .amenidad-tx { display: none; }
+    #amenidades.compacta .amenidad { gap: 0; }
+
+    /* ── PANEL DE DETALLE ──────────────────────────────────────────────────── */
+    #amen-panel {
+      position: relative;
+      width: 100%;
+      padding: 16px;
+      background: oklch(from var(--bg) l c h / 0.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      display: flex; flex-direction: column; gap: 11px;
+      max-height: 60vh; overflow-y: auto;      /* red de seguridad en pantallas bajas */
+    }
+    #amen-panel[hidden] { display: none; }     /* con ID: el display:flex de arriba gana al del navegador */
+    @media (prefers-reduced-motion: no-preference) {
+      #amen-panel { animation: amen-sube 0.34s cubic-bezier(0.16, 1, 0.3, 1); }
+    }
+    @keyframes amen-sube {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #amen-x {
+      position: absolute; top: 11px; right: 11px;
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 1px solid var(--panel-border); background: none; color: var(--text);
+      font-size: 14px; line-height: 1; cursor: pointer; opacity: 0.55;
+      display: grid; place-items: center;
+      transition: opacity 0.2s;
+    }
+    #amen-x:hover { opacity: 1; }
+    #amen-panel img {
+      width: 100%; border-radius: 8px; display: block;
+    }
+    .amen-grande { display: grid; place-items: center; padding: 16px 0 4px; }
+    .amen-grande svg {
+      width: 54px; height: 54px; stroke: var(--accent); stroke-width: 1.2;
+      fill: none; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .amen-titulo {
+      font-size: 0.875rem; font-weight: 600; letter-spacing: 0.01em;
+      padding-right: 28px;                      /* libra la × */
+    }
+    .amen-texto {
+      font-size: 0.75rem; line-height: 1.55; color: var(--muted);
+      white-space: pre-line;                    /* los saltos de la ficha cuentan */
+    }
 
     /* ── VISTA DEL NIVEL ─────────────────────────────────────────────────────
        Tarjeta en la parte alta de la MISMA columna derecha que amenidades: la
@@ -1496,8 +1573,17 @@
   <!-- ── ETIQUETAS DE TIPOLOGÍA (vista por nivel) ────────────────────────── -->
   <div id="unit-tags"></div>
 
-  <!-- ── AMENIDADES (capa siempre visible en torre y nivel; oculta en unidad) ── -->
-  <div id="amenidades" aria-label="Amenidades del proyecto"></div>
+  <!-- ── AMENIDADES ────────────────────────────────────────────────────────
+       La paleta y su panel de detalle viven en la MISMA columna, apilados: así
+       el panel se apoya sobre la paleta sin que nadie calcule posiciones, y
+       cuando la paleta se compacta el panel gana ese alto solo. -->
+  <div id="amen-col">
+    <div id="amen-panel" role="dialog" aria-label="Detalle de la amenidad" hidden>
+      <button id="amen-x" type="button" aria-label="Cerrar">&#215;</button>
+      <div id="amen-cuerpo"></div>
+    </div>
+    <div id="amenidades" aria-label="Amenidades del proyecto"></div>
+  </div>
 
   <!-- ── VISTA DEL NIVEL (solo en modo nivel, arriba de amenidades) ────────── -->
   <div id="nivel-info" hidden>
@@ -2576,9 +2662,25 @@ Un asesor te contactará en breve.</p>
       const hasSel = amen && Object.keys(amen).length;
       return AMENIDADES_CAT
         .filter(a => !hasSel || amen[a.key] !== undefined)
-        .map(a => `<div class="amenidad"><span class="amenidad-ic">${AMEN_ICON(a.ic)}</span><span class="amenidad-tx">${esc((hasSel && amen[a.key]) || a.label)}</span></div>`)
+        .map(a => {
+          const nombre = esc((hasSel && amen[a.key]) || a.label);
+          // Botón, no div: se pulsa, se tabula y se anuncia. El `title` da el
+          // nombre al pasar el cursor, que es lo único que se pierde cuando la
+          // paleta se compacta y las etiquetas desaparecen.
+          return `<button type="button" class="amenidad" data-amen="${esc(a.key)}" title="${nombre}" aria-label="${nombre}">` +
+                 `<span class="amenidad-ic">${AMEN_ICON(a.ic)}</span>` +
+                 `<span class="amenidad-tx">${nombre}</span></button>`;
+        })
         .join('');
     }
+
+    // Detalle de cada amenidad: texto e imagen, ambos opcionales. Sin nada, el
+    // panel abre igual mostrando el icono en grande — ninguna queda muerta.
+    function detalleAmenidad(key) {
+      const d = (OWN.amenidadesInfo || {})[key] || {};
+      return { texto: String(d.texto || '').trim(), img: String(d.img || '').trim() };
+    }
+    function urlAmenidad(nombre) { return 'content/amenidades/' + encodeURIComponent(nombre); }
     const AMENIDADES_HTML = amenidadesProyecto();
 
     // Capa de amenidades SIEMPRE VISIBLE: se puebla una vez y se muestra en modo
@@ -2590,10 +2692,73 @@ Un asesor te contactará en breve.</p>
       if (AMENIDADES_HTML && !el.innerHTML) el.innerHTML = `<div class="amenidades-grid">${AMENIDADES_HTML}</div>`;
       // Visible en torre y nivel; oculta SOLO al seleccionar unidad. Al abrir un
       // panel no se oculta: el dim (z10) la atenúa junto al modelo, como la info de unidad.
-      const show = !!AMENIDADES_HTML && !selectedUnit
+      // Durante el recorrido guiado la paleta se retira: el texto de la
+      // presentación se queda con la columna entera, y los iconos no invitan a
+      // irse por su cuenta mientras alguien te está contando el proyecto.
+      const show = !!AMENIDADES_HTML && !selectedUnit && !prezActiva
                 && (mode === 'orbital' || mode === 'floor');
       el.classList.toggle('on', show);
+      if (!show) cerrarAmenidad();   // sin paleta, un panel abierto queda huérfano
     }
+
+    // ── DETALLE DE UNA AMENIDAD ─────────────────────────────────────────────
+    // Al abrir, la paleta se compacta (5 columnas, sin texto) y le cede su alto
+    // al panel. Se puede saltar de una amenidad a otra sin cerrar: por eso los
+    // iconos siguen a la vista en vez de quedar tapados.
+    let amenAbierta = null;
+
+    function abrirAmenidad(key) {
+      const cat = AMENIDADES_CAT.find(a => a.key === key);
+      const caja = document.getElementById('amen-panel');
+      if (!cat || !caja) return;
+      const amen = OWN.amenidades || {};
+      const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      const nombre = esc(amen[key] || cat.label);
+      const d = detalleAmenidad(key);
+
+      const cabeza = d.img
+        ? `<img src="${esc(urlAmenidad(d.img))}" alt="${nombre}">`
+        : `<div class="amen-grande">${AMEN_ICON(cat.ic)}</div>`;
+      document.getElementById('amen-cuerpo').innerHTML =
+        cabeza +
+        `<div class="amen-titulo">${nombre}</div>` +
+        (d.texto ? `<p class="amen-texto">${esc(d.texto)}</p>` : '');
+
+      amenAbierta = key;
+      caja.hidden = false;
+      document.getElementById('amenidades').classList.add('compacta');
+      marcarAmenidad();
+    }
+
+    function cerrarAmenidad() {
+      if (amenAbierta === null) return;
+      amenAbierta = null;
+      const caja = document.getElementById('amen-panel');
+      if (caja) caja.hidden = true;
+      document.getElementById('amenidades').classList.remove('compacta');
+      marcarAmenidad();
+    }
+
+    function marcarAmenidad() {
+      document.querySelectorAll('#amenidades .amenidad').forEach(b =>
+        b.classList.toggle('activa', b.dataset.amen === amenAbierta)
+      );
+    }
+
+    document.getElementById('amenidades').addEventListener('click', e => {
+      const b = e.target.closest('.amenidad');
+      if (!b) return;
+      // El mismo icono cierra; otro distinto cambia de contenido sin cerrar.
+      if (b.dataset.amen === amenAbierta) cerrarAmenidad();
+      else abrirAmenidad(b.dataset.amen);
+    });
+    document.getElementById('amen-x').addEventListener('click', cerrarAmenidad);
+    // Tocar fuera de la columna cierra; dentro (paleta o panel) no.
+    document.addEventListener('pointerdown', e => {
+      if (amenAbierta === null) return;
+      if (e.target.closest('#amen-col')) return;
+      cerrarAmenidad();
+    });
 
     // Lista de características de la tipología de una unidad (icono + texto).
     function caracteristicasUnidad(tipologia) {
@@ -2681,6 +2846,7 @@ Un asesor te contactará en breve.</p>
     // panel, luego presentación, y solo entonces se navega hacia atrás.
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
+      if (amenAbierta !== null) { cerrarAmenidad(); return; }
       if (panelOpen) { closePanel(); return; }
       if (prezActiva && prezExitHook) { prezExitHook(); return; }
       if (mode === 'unit')  returnToFloor();
@@ -3634,6 +3800,7 @@ Un asesor te contactará en breve.</p>
       function enter() {
         active = true;
         prezActiva = true;
+        refreshAmenidades();          // la paleta se retira: la columna es del recorrido
         overlay.classList.add('visible');
         pill.classList.add('visible');
         resume.classList.remove('visible');
@@ -3643,6 +3810,7 @@ Un asesor te contactará en breve.</p>
         if (!active) return;
         active = false;
         prezActiva = false;
+        refreshAmenidades();          // terminó el recorrido: ahora te toca a ti
         prezHighlightOn = false;
         setMaterialsBase();
         overlay.classList.remove('visible');
