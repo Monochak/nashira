@@ -50,12 +50,24 @@
          presentación, la tarjeta de amenidades y el CTA: los tres comparten
          borde DERECHO y el texto va justificado a la derecha. Cambiar este
          valor los mueve juntos, sin desalinearse. */
-      --col-right:      48px;
-      --col-width:      min(340px, 38vw);
+      /* Los márgenes CRECEN con la ventana. Antes eran 48 px fijos, así que la
+         torre se quedaba al centro y las columnas pegadas a las orillas: en una
+         laptop conviven, pero a 1920 el hueco entre el texto y la torre pasaba
+         de 130 px a casi 500. Al crecer el margen, la composición se cierra
+         sobre el modelo en vez de abrirse con la pantalla.
+         Por debajo de 1400 no cambia nada — las pantallas chicas ya funcionaban.
+         Sin tope a propósito: la fórmula deja una banda de composicion de
+         1400 px centrada, así que la distancia del texto a la torre es la
+         MISMA en cualquier pantalla (unos 270 px). Es la proporción que ya
+         funciona en laptop, sostenida a cualquier ancho. */
+      --col-right:      max(48px, calc((100vw - 1400px) / 2));
+      /* El ancho también crece, pero poco: el texto deja de ser una isla sin
+         volverse un párrafo interminable. */
+      --col-width:      clamp(340px, 22vw, 430px);
       /* Columna izquierda (niveles y unidades), en espejo: comparte borde
          IZQUIERDO y su texto va justificado a la izquierda, dejando aire
          entre la lista y la torre. */
-      --col-left:       48px;
+      --col-left:       max(48px, calc((100vw - 1400px) / 2));
     }
 
     html, body {
@@ -1006,14 +1018,20 @@
       font-size: 0.75rem; line-height: 1.3; color: var(--text);
       letter-spacing: 0.01em; text-wrap: pretty;
     }
-    /* La columna: panel de detalle arriba, paleta abajo. El anclaje vive aquí,
-       así que la paleta puede cambiar de alto sin que nada más se entere. */
+    /* La columna se centra verticalmente, como la lista de niveles. Antes vivía
+       anclada a 124 px del borde inferior: en una laptop quedaba cerca del
+       centro, pero al crecer la pantalla se quedaba abajo mientras la torre
+       seguía al medio. Ahora las dos columnas comparten criterio.
+
+       El panel de detalle sale del flujo y se apoya SOBRE la paleta: si
+       participara del centrado, abrirlo empujaría los iconos hacia abajo —
+       justo los que acabas de pulsar. */
     #amen-col {
       position: fixed;
-      right: var(--col-right); bottom: 124px;   /* misma columna; arriba del CTA sin encimarse */
+      right: var(--col-right); top: 50%;
+      transform: translateY(-50%);
       z-index: 6;
       width: var(--col-width);
-      display: flex; flex-direction: column; justify-content: flex-end; gap: 12px;
       pointer-events: none;                     /* el hueco no intercepta al modelo */
     }
     #amen-col > * { pointer-events: auto; }
@@ -1066,15 +1084,15 @@
 
     /* ── PANEL DE DETALLE ──────────────────────────────────────────────────── */
     #amen-panel {
-      position: relative;
-      width: 100%;
+      position: absolute;
+      left: 0; right: 0; bottom: calc(100% + 12px);
       padding: 16px;
       background: oklch(from var(--bg) l c h / 0.82);
       backdrop-filter: blur(14px);
       border: 1px solid var(--panel-border);
       border-radius: 14px;
       display: flex; flex-direction: column; gap: 11px;
-      max-height: 60vh; overflow-y: auto;      /* red de seguridad en pantallas bajas */
+      max-height: max(180px, calc(50vh - 160px)); overflow-y: auto;   /* el hueco real sobre la paleta */
     }
     #amen-panel[hidden] { display: none; }     /* con ID: el display:flex de arriba gana al del navegador */
     @media (prefers-reduced-motion: no-preference) {
@@ -1411,7 +1429,10 @@
     }
     .prez-kpi {
       font-family: var(--font-display);
-      font-size: 1.8rem;
+      /* Crece con la ventana: calibrado para NO cambiar en laptop (1.8rem a
+         1280) y llegar a 2.2 en 1920. Antes era fijo, y el móvil lo tenía más
+         grande que un monitor de 32 pulgadas. */
+      font-size: clamp(1.8rem, calc(1vw + 1rem), 2.4rem);
       font-weight: 700; line-height: 1;
       color: var(--text); letter-spacing: -0.01em;
     }
@@ -1420,7 +1441,7 @@
       text-transform: uppercase; color: var(--muted); margin: 6px 0 12px;
     }
     .prez-body {
-      font-size: 0.9rem; line-height: 1.6; color: var(--text);
+      font-size: clamp(0.9rem, calc(0.375vw + 0.6rem), 1.15rem); line-height: 1.6; color: var(--text);
       letter-spacing: 0.01em; text-wrap: pretty; margin: 0;
       white-space: pre-line;   /* respeta los saltos de párrafo del texto de la ficha */
     }
