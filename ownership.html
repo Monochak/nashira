@@ -1034,7 +1034,10 @@
     #amen-col {
       position: fixed;
       right: var(--col-right); top: 50%;
-      transform: translateY(-50%);
+      /* El desplazamiento se suma al centrado: la paleta baja lo justo para que
+         el panel quepa arriba, usando el hueco muerto que queda hacia abajo. */
+      transform: translateY(calc(-50% + var(--amen-baja, 0px)));
+      transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 6;
       width: var(--col-width);
       pointer-events: none;                     /* el hueco no intercepta al modelo */
@@ -1097,7 +1100,9 @@
       border: 1px solid var(--panel-border);
       border-radius: 14px;
       display: flex; flex-direction: column; gap: 11px;
-      max-height: max(180px, calc(50vh - 160px)); overflow-y: auto;   /* el hueco real sobre la paleta */
+      /* Ya no hace falta desplazar: la imagen tiene tope y la paleta baja lo
+         necesario para que quepa. El máximo solo cubre ventanas muy bajas. */
+      max-height: calc(100vh - 150px); overflow-y: auto;
     }
     #amen-panel[hidden] { display: none; }     /* con ID: el display:flex de arriba gana al del navegador */
     @media (prefers-reduced-motion: no-preference) {
@@ -1116,8 +1121,13 @@
       transition: opacity 0.2s;
     }
     #amen-x:hover { opacity: 1; }
+    /* Recorte fijo: sin él, una foto vertical medía 450 px de alto y el panel
+       se rendía con barra de desplazamiento. Ahora TODAS las amenidades dan un
+       panel del mismo alto, se suba lo que se suba. La proporción sugerida está
+       en el manual — una foto que no la respete se recorta al centro. */
     #amen-panel img {
-      width: 100%; border-radius: 8px; display: block;
+      width: 100%; aspect-ratio: 16 / 10; object-fit: cover;
+      border-radius: 8px; display: block;
     }
     .amen-grande { display: grid; place-items: center; padding: 16px 0 4px; }
     .amen-grande svg {
@@ -2736,6 +2746,33 @@ Un asesor te contactará en breve.</p>
     // iconos siguen a la vista en vez de quedar tapados.
     let amenAbierta = null;
 
+    // La paleta BAJA lo justo para que el panel quepa arriba, y solo cuando hace
+    // falta: en una pantalla alta ya hay sitio y no se mueve nada. Debajo de la
+    // paleta suele quedar espacio muerto —entre ella y el CTA— y esto lo usa.
+    // Nunca invade el CTA ni la pastilla de navegación.
+    function acomodarColumnaAmenidades() {
+      const col = document.getElementById('amen-col');
+      const panel = document.getElementById('amen-panel');
+      const paleta = document.getElementById('amenidades');
+      if (!col || !panel || !paleta) return;
+
+      if (panel.hidden) { col.style.setProperty('--amen-baja', '0px'); return; }
+
+      col.style.setProperty('--amen-baja', '0px');   // medir siempre desde el centro
+      const rp = paleta.getBoundingClientRect();
+      const alturaPanel = panel.getBoundingClientRect().height;
+      const rail = document.querySelector('#rail');
+      const techo = (rail ? rail.getBoundingClientRect().bottom : 20) + 16;
+      const cta = document.getElementById('info-btn');
+      const piso = cta && cta.classList.contains('shown')
+        ? cta.getBoundingClientRect().top - 16
+        : window.innerHeight - 16;
+
+      const falta  = Math.max(0, (techo + alturaPanel + 12) - rp.top);
+      const margen = Math.max(0, piso - rp.bottom);
+      col.style.setProperty('--amen-baja', Math.round(Math.min(falta, margen)) + 'px');
+    }
+
     function abrirAmenidad(key) {
       const ic = amenIcono(key);
       const caja = document.getElementById('amen-panel');
@@ -2756,6 +2793,11 @@ Un asesor te contactará en breve.</p>
       caja.hidden = false;
       document.getElementById('amenidades').classList.add('compacta');
       marcarAmenidad();
+      // Llamada directa y no en el siguiente cuadro: el panel ya está en el DOM,
+      // así que su alto se puede medir aquí mismo. Con requestAnimationFrame,
+      // una pestaña en segundo plano —donde los cuadros se congelan— dejaba la
+      // paleta sin acomodar y el panel se salía por arriba.
+      acomodarColumnaAmenidades();
     }
 
     function cerrarAmenidad() {
@@ -2764,6 +2806,7 @@ Un asesor te contactará en breve.</p>
       const caja = document.getElementById('amen-panel');
       if (caja) caja.hidden = true;
       document.getElementById('amenidades').classList.remove('compacta');
+      acomodarColumnaAmenidades();               // vuelve al centro
       marcarAmenidad();
     }
 
@@ -2781,6 +2824,7 @@ Un asesor te contactará en breve.</p>
       else abrirAmenidad(b.dataset.amen);
     });
     document.getElementById('amen-x').addEventListener('click', cerrarAmenidad);
+    window.addEventListener('resize', () => { if (amenAbierta !== null) acomodarColumnaAmenidades(); });
     // Tocar fuera de la columna cierra; dentro (paleta o panel) no.
     document.addEventListener('pointerdown', e => {
       if (amenAbierta === null) return;
