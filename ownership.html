@@ -56,18 +56,23 @@
          de 130 px a casi 500. Al crecer el margen, la composición se cierra
          sobre el modelo en vez de abrirse con la pantalla.
          Por debajo de 1400 no cambia nada — las pantallas chicas ya funcionaban.
-         Sin tope a propósito: la fórmula deja una banda de composicion de
-         1400 px centrada, así que la distancia del texto a la torre es la
-         MISMA en cualquier pantalla (unos 270 px). Es la proporción que ya
-         funciona en laptop, sostenida a cualquier ancho. */
-      --col-right:      max(48px, calc((100vw - 1400px) / 2));
+         El divisor entre 4 y no entre 2: el ancho de la ventana no es el único
+         factor. La torre se encuadra por la ALTURA, así que en una ventana alta
+         crece y necesita más aire lateral. Cerrar la composición solo en
+         función del ancho la termina montando sobre el modelo. Esta es una
+         calibración prudente; el número fino se ve en pantalla. */
+      /* La cercanía la fija el proyecto (camera.cercaniaColumnas, 0-100):
+         cada modelo tiene su silueta y ningún número sirve para todos.
+         0 = columnas en las orillas, como antes. 100 = lo más cerca posible. */
+      --col-cercania:   0.5;
+      --col-right:      max(48px, calc((100vw - 1400px) / 2 * var(--col-cercania)));
       /* El ancho también crece, pero poco: el texto deja de ser una isla sin
          volverse un párrafo interminable. */
       --col-width:      clamp(340px, 22vw, 430px);
       /* Columna izquierda (niveles y unidades), en espejo: comparte borde
          IZQUIERDO y su texto va justificado a la izquierda, dejando aire
          entre la lista y la torre. */
-      --col-left:       max(48px, calc((100vw - 1400px) / 2));
+      --col-left:       max(48px, calc((100vw - 1400px) / 2 * var(--col-cercania)));
     }
 
     html, body {
@@ -1741,6 +1746,14 @@ Un asesor te contactará en breve.</p>
     // Pantalla de carga configurable desde el panel: tamaño de la frase y del
     // logo (100% = el tamaño base) y cuánto permanece en pantalla como mínimo.
     const CARGA = OWN.carga || {};
+
+    // Cercanía de las columnas al modelo (0-100). Se aplica sobre la variable
+    // CSS para que un solo valor mueva las dos columnas y el CTA a la vez.
+    (function () {
+      const v = (OWN.camera || {}).cercaniaColumnas;
+      const c = isFinite(+v) ? Math.max(0, Math.min(100, +v)) : 50;
+      document.documentElement.style.setProperty('--col-cercania', c / 100);
+    })();
     (function () {
       const r = document.documentElement;
       const esc = v => (v == null || !isFinite(+v)) ? null : Math.max(20, Math.min(300, +v)) / 100;
